@@ -6,8 +6,10 @@ Created on 2020(e)ko abe. 2(a)
 import unittest
 
 from mirri.entities.date_range import DateRange
-from mirri.entities.strain import Collect, Strain, Taxonomy
-from mirri.settings import NAGOYA_APPLIES
+from mirri.entities.strain import Collect, Isolation, Strain, Taxonomy, Deposit
+from mirri.settings import DATE_OF_ISOLATION, ISOLATED_BY, NAGOYA_APPLIES, \
+    COLLECT, COUNTRY, LOCATION, GENETICS, PLOIDY, NAGOYA_PROTOCOL, DEPOSITOR, \
+    DEPOSIT
 
 
 class TestDataRange(unittest.TestCase):
@@ -64,7 +66,7 @@ class TestCollect(unittest.TestCase):
         collect.location.country = 'spain'
         collect.date = DateRange().strpdate('2012----')
 
-        collect.collected_by = 'pepito'
+        collect.who = 'pepito'
         self.assertEqual(dict(collect.dict()),
                          {'location': {'countryOfOriginCode': 'spain'},
                           'collected_by': 'pepito',
@@ -96,8 +98,13 @@ class TestStrain(unittest.TestCase):
         strain = Strain()
         self.assertEqual(strain.dict(), {})
 
+    def test_strain_add_data(self):
+        strain = Strain()
+
         strain.id.number = '5433'
         strain.id.collection = 'CECT'
+        strain.id.url = 'https://cect/2342'
+
         try:
             strain.nagoya_protocol = 'asdas'
             self.fail()
@@ -105,10 +112,39 @@ class TestStrain(unittest.TestCase):
             pass
 
         strain.nagoya_protocol = NAGOYA_APPLIES
+        strain.dict()[NAGOYA_PROTOCOL] = NAGOYA_APPLIES
 
-        print(strain.dict())
+        strain.collect.location.country = 'spain'
+
+        self.assertEqual(strain.dict()[COLLECT][LOCATION][COUNTRY], 'spain')
+
+        strain.genetics.ploidy = 9
+        self.assertEqual(strain.dict()[GENETICS][PLOIDY], 9)
+
+        strain.growth.recommended_medium = ['asd']
+        strain.isolation.date = DateRange(year=1900)
+
+        strain.deposit.who = 'pepe'
+        self.assertEqual(strain.dict()[DEPOSIT][DEPOSITOR], 'pepe')
+
+
+class TestIsolation(unittest.TestCase):
+
+    def test_iniatialize_isollation(self):
+        isolation = Isolation()
+        self.assertEqual(isolation.dict(), {})
+        isolation.who = 'pepito'
+        self.assertTrue(ISOLATED_BY in isolation.dict())
+        isolation.date = DateRange().strpdate('2012----')
+        self.assertTrue(DATE_OF_ISOLATION in isolation.dict())
+
+        try:
+            isolation.location.site = 'spain'
+            self.fail()
+        except (ValueError, AttributeError):
+            pass
 
 
 if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testStrainEntities']
+    # import sys;sys.argv = ['', 'TestStrain']
     unittest.main()

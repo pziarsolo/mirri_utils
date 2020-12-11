@@ -35,7 +35,7 @@ MUTANT_INFORMATION = 'mutant_information'
 GENOTYPE = 'genotype'
 LITERATURE = 'literature'
 SEXUAL_STATE = 'sexual_state'
-PLOYDY = 'ploidy'
+PLOIDY = 'ploidy'
 INTERSPECIFIC_HYBRID = 'interspecific_hybrid'
 PLANT_PATHOGENICITY_CODE = 'plant_pathogenicity_code'
 PATHOGENICITY = 'pathogenicity'
@@ -44,7 +44,7 @@ PRODUCTION_OF_METABOLITES = 'production_of_metabolites'
 APPLICATIONS = 'applications'
 REMARKS = 'remarks'
 PLASMIDS = 'plasmids'
-PLASMIDS_COLLECTION_FILEDS = 'plasmids_collections_fields'
+PLASMIDS_COLLECTION_FIELDS = 'plasmids_collections_fields'
 SUBSTRATE_HOST_OF_ISOLATION = 'substrate_host_of_isolation'
 ISOLATION_HABITAT = 'isolation_habitat'
 ONTOTYPE_ISOLATION_HABITAT = 'ontobiotope_term_for_the_isolation_habitat'
@@ -148,7 +148,7 @@ MIRRI_FIELDS = [
     {'attribute': GENOTYPE, 'label': 'Genotype', 'mandatory': False},
     {'attribute': LITERATURE, 'label': 'Literature', 'mandatory': False},
     {'attribute': SEXUAL_STATE, 'label': 'Sexual state', 'mandatory': False},
-    {'attribute': PLOYDY, 'label': 'Ploidy', 'mandatory': False},
+    {'attribute': PLOIDY, 'label': 'Ploidy', 'mandatory': False},
     {'attribute': INTERSPECIFIC_HYBRID, 'label': 'Interspecific hybrid',
      'mandatory': False},
     {'attribute': PLANT_PATHOGENICITY_CODE,
@@ -162,7 +162,7 @@ MIRRI_FIELDS = [
     {'attribute': APPLICATIONS, 'label': 'Applications', 'mandatory': False},
     {'attribute': REMARKS, 'label': 'Remarks', 'mandatory': False},
     {'attribute': PLASMIDS, 'label': 'Plasmids', 'mandatory': False},
-    {'attribute': PLASMIDS_COLLECTION_FILEDS,
+    {'attribute': PLASMIDS_COLLECTION_FIELDS,
      'label': 'Plasmids collections fields', 'mandatory': False},
     {'attribute': SUBSTRATE_HOST_OF_ISOLATION,
      'label': 'Substrate/host of isolation', 'mandatory': False},
@@ -194,3 +194,59 @@ COMMERCIAL_USE_WITH_AGREEMENT = 'commercial_use_with_agreement'
 
 ALLOWED_RESTRICTION_USE_OPTIONS = [NO_RESTRICTION, ONLY_RESEARCH,
                                    COMMERCIAL_USE_WITH_AGREEMENT]
+AGAR = 'agar'
+CRYO = 'cryo'
+DRY_ICE = 'dry ice'
+LIQUID_CULTURE_MEDIUM = 'liquid culture medium'
+LYO = 'lyo'
+OIL = 'oil'
+WATER = 'water'
+ALLOWED_FORMS_OF_SUPPLY = [AGAR, CRYO, DRY_ICE, LIQUID_CULTURE_MEDIUM,
+                           LYO, OIL, WATER]
+
+DEPOSIT = 'deposit'
+ISOLATION = 'isolation'
+COLLECT = 'collect'
+GROWTH = 'growth'
+GENETICS = 'genetics'
+
+# Markers
+MARKERS = 'markers'
+MARKER_TYPE = 'marker_type'
+MARKER_INSDC = 'INSDC'
+MARKER_SEQ = 'marker_seq'
+ALLOWED_MARKER_TYPES = [
+    {'acronym': '16S rRNA', 'marker': '16S rRNA'},
+    {'acronym': 'ACT', 'marker': 'Actin'},
+    {'acronym': 'CaM', 'marker': 'Calmodulin'},
+    {'acronym': 'EF-1α', 'marker': 'elongation factor 1-alpha (EF-1α)'},
+    {'acronym': 'ITS', 'marker': 'nuclear ribosomal Internal Transcribed Spacer (ITS)'},
+    {'acronym': 'LSU', 'marker': 'nuclear ribosomal Large SubUnit (LSU)'},
+    {'acronym': 'RPB1', 'marker': 'Ribosomal RNA-coding genes RPB1'},
+    {'acronym': 'RPB2', 'marker': 'Ribosomal RNA-coding genes RPB2'},
+    {'acronym': 'TUBB', 'marker': 'β-Tubulin'},
+]
+
+PUBLICATIONS = 'publications'
+PUB_ID = ''
+PUB_DOI = ''
+PUB_TITLE = ''
+PUB_AUTHORS = ''
+PUB_JOURNAL = ''
+PUB_YEAR = ''
+PUB_VOLUMEN = ''
+PUB_ISSUE = ''
+PUB_FIRST_PAGE = ''
+PUB_LAST_PAGE = ''
+BOOK_TITLE = ''
+BOOK_EDITOR = ''
+BOOK_PUBLISHER = ''
+ANEUPLOID = 0
+HAPLOID = 1
+DIPLOID = 2
+TRIPLOID = 3
+TETRAPLOID = 4
+POLYPLOID = 9
+
+ALLOWED_PLOIDIES = [ANEUPLOID, HAPLOID, DIPLOID, TRIPLOID, TETRAPLOID,
+                    POLYPLOID]

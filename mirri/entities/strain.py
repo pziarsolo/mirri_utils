@@ -3,6 +3,8 @@ Created on 2020(e)ko abe. 1(a)
 
 @author: peio
 '''
+from __future__ import annotations
+
 import re
 from builtins import property
 from collections import OrderedDict
@@ -12,19 +14,33 @@ from typing import List, Union
 
 from mirri.entities.date_range import DateRange
 from mirri.entities.location import Location
+from mirri.entities.publication import Publication
 from mirri.settings import (ACCESSION_NAME, ACCESSION_NUMBER,
+                            ALLOWED_FORMS_OF_SUPPLY, ALLOWED_MARKER_TYPES,
                             ALLOWED_NAGOYA_OPTIONS,
                             ALLOWED_RESTRICTION_USE_OPTIONS, ALLOWED_SUBTAXA,
-                            ALLOWED_TAXONOMIC_RANKS, COLLECTED_BY,
-                            COLLECTION_CODE, COMMENTS_ON_TAXONOMY,
-                            DATE_OF_COLLECTION, DUAL_USE, GENUS,
-                            HISTORY_OF_DEPOSIT, INFRASUBSPECIFIC_NAME,
-                            INTERSPECIFIC_HYBRID, ISOLATION_HABITAT, LOCATION,
-                            NAGOYA_PROTOCOL, ONTOTYPE_ISOLATION_HABITAT,
-                            ORGANISM_TYPE, QUARANTINE, RESTRICTION_ON_USE,
-                            RISK_GROUP, SPECIES,
-                            STRAIN_FROM_REGISTERED_COLLECTION, STRAIN_ID,
-                            STRAIN_PUI, STRAIN_URL)
+                            ALLOWED_TAXONOMIC_RANKS, APPLICATIONS, COLLECT,
+                            COLLECTED_BY, COLLECTION_CODE,
+                            COMMENTS_ON_TAXONOMY, DATE_OF_COLLECTION,
+                            DATE_OF_INCLUSION, DATE_OF_ISOLATION, DEPOSIT,
+                            DEPOSITOR, DUAL_USE, ENZYME_PRODUCTION,
+                            FORM_OF_SUPPLY, GENETICS, GENOTYPE, GENUS, GMO,
+                            GMO_CONSTRUCTION_INFO, GROWTH, HISTORY_OF_DEPOSIT,
+                            INFRASUBSPECIFIC_NAME, INTERSPECIFIC_HYBRID,
+                            ISOLATED_BY, ISOLATION, ISOLATION_HABITAT,
+                            LOCATION, MARKER_INSDC, MARKER_SEQ, MARKER_TYPE,
+                            MARKERS, MUTANT_INFORMATION, NAGOYA_PROTOCOL,
+                            ONTOTYPE_ISOLATION_HABITAT, ORGANISM_TYPE,
+                            OTHER_CULTURE_NUMBERS, PATHOGENICITY, PLASMIDS,
+                            PLASMIDS_COLLECTION_FIELDS, PLOIDY,
+                            PRODUCTION_OF_METABOLITES, PUBLICATIONS,
+                            QUARANTINE, RECOMMENDED_GROWTH_MEDIUM,
+                            RECOMMENDED_GROWTH_TEMP, REMARKS,
+                            RESTRICTION_ON_USE, RISK_GROUP, SEXUAL_STATE,
+                            SPECIES, STATUS, STRAIN_FROM_REGISTERED_COLLECTION,
+                            STRAIN_ID, STRAIN_PUI, STRAIN_URL,
+                            SUBSTRATE_HOST_OF_ISOLATION,
+                            TESTED_TEMPERATURE_GROWTH_RANGE, ALLOWED_PLOIDIES)
 
 RANK_TRANSLATOR = {'subspecies': 'subsp.', 'convarietas': 'convar.',
                    'variety': 'var.', 'group': 'Group', 'forma': 'f.'}
@@ -243,31 +259,87 @@ class Taxonomy(object):
                     taxas = []
 
 
-class Collect():
+class _GeneralStep():
+    _date_tag = None
+    _who_tag = None
+    _location_tag = None
 
     def __init__(self, data=None):
         self._data = {}
+        if self._location_tag is not None:
+            if data and self._location_tag in data:
+                self.location = Location(date[self._location_tag])
+            else:
+                self.location = Location()
+        if self._date_tag:
+            if data and self._who_tag in data:
+                self.who = data[self._who_tag]
+        if self._date_tag:
+            _date = DateRange()
+            if data and self._date_tag in data:
+                _date = _date.strpdate(data[self._date_tag])
+            self.date = _date
 
-        if data and LOCATION in data:
-            self.location = Location(date[LOCATION])
-        else:
-            self.location = Location()
+    def __bool__(self):
+        return bool(self.location) or bool(self.date) or bool(self.who)
 
-        if data and COLLECTED_BY in data:
-            self.collected_by = data[COLLECTED_BY]
+    @property
+    def location(self) -> Location:
+        return self._data.get(self._location_tag, None)
 
-        _date = DateRange()
-        if data and DATE_OF_COLLECTION in data:
-            _date = _date.strpdate(data[DATE_OF_COLLECTION])
-        self.date = _date
+    @location.setter
+    def location(self, location: Location):
+        if self._location_tag is None:
+            return ValueError('Can set location on this class')
+        if not isinstance(location, Location):
+            raise ValueError('Location must be a Location instance')
+        self._data[self._location_tag] = location
 
+    @property
+    def who(self) -> str:
+        return self._data.get(self._who_tag, None)
+
+    @who.setter
+    def who(self, collected_by: str):
+        if self._who_tag is None:
+            return ValueError('Can set who on this class')
+        self._data[self._who_tag] = collected_by
+
+    @property
+    def date(self) -> DateRange:
+        return self._data.get(self._date_tag, None)
+
+    @date.setter
+    def date(self, _date: DateRange):
+        if self._date_tag is None:
+            return ValueError('Can set date on this class')
+
+        if not isinstance(_date, DateRange):
+            raise ValueError('Date must be a DateRange instance')
+        self._data[self._date_tag] = _date
+
+    def dict(self):
+        _data = OrderedDict()
+        if self.location:
+            _data[self._location_tag] = self.location.dict()
+        if self.who:
+            _data[self._who_tag] = self._data[self._who_tag]
+        if self.date:
+            _data[self._date_tag] = self._data[self._date_tag].strfdate
+        return _data
+
+
+class Collect(_GeneralStep):
+    _date_tag = DATE_OF_COLLECTION
+    _who_tag = COLLECTED_BY
+    _location_tag = LOCATION
+
+    def __init__(self, data=None):
+        super().__init__(data=data)
         if data and ISOLATION_HABITAT in data:
             self.habitat = data[ISOLATION_HABITAT]
         if data and ONTOTYPE_ISOLATION_HABITAT in data:
             self.habitat_ontobiotype = data[ONTOTYPE_ISOLATION_HABITAT]
-
-    def __bool__(self):
-        return bool(self._data)
 
     def __str__(self):
         info = ''
@@ -275,50 +347,21 @@ class Collect():
             info += f'{self.location}'
         if self.date:
             info += f' in {self.date.strfdate}'
-        if self.collected_by:
-            info += f' by {self.collected_by}'
+        if self.who:
+            info += f' by {self.who}'
         if info:
             info = f'Collected: {info}'
         return info
 
     def dict(self):
-        _data = OrderedDict()
-        if LOCATION in self._data and self._data[LOCATION]:
-            _data[LOCATION] = self.location.dict()
-        if COLLECTED_BY in self._data:
-            _data[COLLECTED_BY] = self._data[COLLECTED_BY]
-        if DATE_OF_COLLECTION in self._data and self._data[DATE_OF_COLLECTION]:
-            _data[DATE_OF_COLLECTION] = self._data[DATE_OF_COLLECTION].strfdate
+        _data = super().dict()
         if ISOLATION_HABITAT in self._data:
             _data[ISOLATION_HABITAT] = self._data[ISOLATION_HABITAT]
         if ONTOTYPE_ISOLATION_HABITAT in self._data:
-            _data[ONTOTYPE_ISOLATION_HABITAT] = self._data[ONTOTYPE_ISOLATION_HABITAT]
+            ontotype = self._data[ONTOTYPE_ISOLATION_HABITAT]
+            _data[ONTOTYPE_ISOLATION_HABITAT] = ontotype
 
         return _data
-
-    @property
-    def location(self) -> Location:
-        return self._data[LOCATION]
-
-    @location.setter
-    def location(self, location: Location):
-        self._data[LOCATION] = location
-
-    @property
-    def collected_by(self) -> str:
-        return self._data[COLLECTED_BY]
-
-    @collected_by.setter
-    def collected_by(self, collected_by: str):
-        self._data[COLLECTED_BY] = collected_by
-
-    @property
-    def date(self) -> DateRange:
-        return self._data[DATE_OF_COLLECTION]
-
-    @date.setter
-    def date(self, _date: DateRange):
-        self._data[DATE_OF_COLLECTION] = _date
 
     @property
     def habitat(self):
@@ -337,6 +380,28 @@ class Collect():
         if not re.match('OBS:[0-9]{6}', 'OBT:[0-9]{6}'):
             raise ValueError(f'Bad ontotype format, {habitat}')
         self._data[ONTOTYPE_ISOLATION_HABITAT] = habitat
+
+
+class Isolation(_GeneralStep):
+    _who_tag = ISOLATED_BY
+    _date_tag = DATE_OF_ISOLATION
+
+    def __init__(self, data=None):
+        super().__init__(data=data)
+        _date = DateRange()
+
+        if data and SUBSTRATE_HOST_OF_ISOLATION in data:
+            val = data[SUBSTRATE_HOST_OF_ISOLATION]
+            self.substrate_host_of_isolation = val
+
+    def dict(self):
+        _data = super().dict()
+        return _data
+
+
+class Deposit(_GeneralStep):
+    _who_tag = DEPOSITOR
+    _date_tag = DATE_OF_INCLUSION
 
 
 class StrainId(object):
@@ -409,6 +474,220 @@ class StrainId(object):
         return StrainId(self._id_dict)
 
 
+class GenomicSequence():
+
+    def __init__(self, data=None):
+        self._data = {}
+        if data and MARKER_TYPE in data:
+            self.marker_type = data[MARKER_TYPE]
+
+        if data and MARKER_INSDC in data:
+            self.marker_id = data[MARKER_INSDC]
+
+        if data and MARKER_SEQ in data:
+            self.marker_seq = data[MARKER_SEQ]
+
+    def __bool__(self):
+        return bool(self._data)
+
+    def dict(self):
+        return self._data
+
+    @property
+    def marker_type(self):
+        return self._data.get(MARKER_TYPE, None)
+
+    @marker_type.setter
+    def marker_type(self, value: str):
+        if value not in ALLOWED_MARKER_TYPES:
+            types = " ".join([m['acronym'] for m in ALLOWED_MARKER_TYPES])
+            msg = f'{value} not in allowed marker types: {types}'
+            raise ValueError(msg)
+        self._data[MARKER_TYPE] = value
+
+    @property
+    def marker_id(self) -> str:
+        return self._data.get(MARKER_INSDC, None)
+
+    @marker_id.setter
+    def marker_id(self, value: str):
+        self._data[MARKER_INSDC] = value
+
+    @property
+    def marker_seq(self) -> str:
+        return self._data.get(MARKER_SEQ, None)
+
+    @marker_seq.setter
+    def marker_seq(self, value: str):
+        self._data[MARKER_SEQ] = value
+
+
+class Genetics():
+
+    def __init__(self, data=None):
+        self._data = {}
+        if data and SEXUAL_STATE in data:
+            self.sexual_state = data[SEXUAL_STATE]
+        if data and PLOIDY in data:
+            self.ploidy = data[PLOIDY]
+        if data and GMO in data:
+            self.gmo = data[GMO]
+        if data and MUTANT_INFORMATION in data:
+            self.mutant_info = data[MUTANT_INFORMATION]
+        if data and GMO_CONSTRUCTION_INFO in data:
+            self.gmo_construction = data[GMO_CONSTRUCTION_INFO]
+        if data and GENOTYPE in data:
+            self.genotype = data[GENOTYPE]
+
+        if data and MARKERS in data:
+            self.markers = [GenomicSequence(marker_data)
+                            for marker_data in data[MARKERS]]
+        else:
+            self.markers = []
+
+    def __bool__(self):
+        data = deepcopy(self._data)
+        if MARKERS in data:
+            markers = data.pop(MARKERS)
+            return bool(markers or data)
+        else:
+            return bool(data)
+
+    def dict(self):
+        data = deepcopy(self._data)
+        if MARKERS in data and not data[MARKERS]:
+            del data[MARKERS]
+        return data
+
+    @property
+    def sexual_state(self) -> str:
+        return self._data.get(SEXUAL_STATE, None)
+
+    @sexual_state.setter
+    def sexual_state(self, state: str):
+        self._data[SEXUAL_STATE] = state
+
+    @property
+    def ploidy(self) -> str:
+        return self._data.get(PLOIDY, None)
+
+    @ploidy.setter
+    def ploidy(self, value: int):
+        if value not in ALLOWED_PLOIDIES:
+            msg = f'{value} not in allowed ploidies: '
+            msg += f'{", ".join(str(p) for p in ALLOWED_PLOIDIES)}'
+            raise ValueError(msg)
+        self._data[PLOIDY] = value
+
+    @property
+    def gmo(self) -> str:
+        return self._data.get(GMO, None)
+
+    @gmo.setter
+    def gmo(self, value: str):
+        self._data[GMO] = value
+
+    @property
+    def gmo_construction(self) -> str:
+        return self._data.get(GMO_CONSTRUCTION_INFO, None)
+
+    @gmo_construction.setter
+    def gmo_construction(self, value: str):
+        self._data[GMO_CONSTRUCTION_INFO] = value
+
+    @property
+    def mutant_info(self) -> str:
+        return self._data.get(MUTANT_INFORMATION, None)
+
+    @mutant_info.setter
+    def mutant_info(self, value: str):
+        self._data[MUTANT_INFORMATION] = value
+
+    @property
+    def genotype(self) -> str:
+        return self._data.get(GENOTYPE, None)
+
+    @genotype.setter
+    def genotype(self, value: str):
+        self._data[GENOTYPE] = value
+
+    @property
+    def plasmids(self) -> List[str]:
+        return self._data.get(PLASMIDS, None)
+
+    @plasmids.setter
+    def plasmids(self, value: List[str]):
+        self._data[PLASMIDS] = value
+
+    @property
+    def plasmids_in_collections(self):
+        return self._data[PLASMIDS_COLLECTION_FIELDS]
+
+    @plasmids_in_collections.setter
+    def plasmids_in_collections(self, value: List[str]):
+        self._data[PLASMIDS_COLLECTION_FIELDS] = value
+
+    @property
+    def markers(self) -> List[GenomicSequence]:
+        return self._data.get(MARKERS, None)
+
+    @markers.setter
+    def markers(self, value: List[GenomicSequence]):
+        for marker in value:
+            if not isinstance(marker, GenomicSequence):
+                msg = 'Markers needs to be a GenomicSecuence instances list'
+                raise ValueError(msg)
+        self._data[MARKERS] = value
+
+
+class Growth():
+
+    def __init__(self, data=None):
+        self._data = {}
+        if data and TESTED_TEMPERATURE_GROWTH_RANGE in data:
+            self.tested_temp_range = data[TESTED_TEMPERATURE_GROWTH_RANGE]
+        if data and RECOMMENDED_GROWTH_MEDIUM in data:
+            self.recommended_medium = data[RECOMMENDED_GROWTH_MEDIUM]
+        if data and RECOMMENDED_GROWTH_TEMP in data:
+            self.recommended_temp = data[RECOMMENDED_GROWTH_TEMP]
+
+    def __bool__(self):
+        return bool(self._data)
+
+    def dict(self):
+        return self._data
+
+    @property
+    def tested_temp_range(self) -> dict:
+        return self._data.get(TESTED_TEMPERATURE_GROWTH_RANGE, None)
+
+    @tested_temp_range.setter
+    def tested_temp_range(self, val: dict):
+        if 'min' in val and 'max' in val:
+            self._data[TESTED_TEMPERATURE_GROWTH_RANGE] = val
+        else:
+            raise ValueError('A dict with min and max is required')
+
+    @property
+    def recommended_medium(self) -> List[str]:
+        return self._data.get(RECOMMENDED_GROWTH_MEDIUM, None)
+
+    @recommended_medium.setter
+    def recommended_medium(self, value):
+        if not isinstance(value, (list, set)):
+            msg = 'Recommendedn medium must be a list'
+            raise ValueError(msg)
+        self._data[RECOMMENDED_GROWTH_MEDIUM] = value
+
+    @property
+    def recommended_temp(self) -> Union[float, int]:
+        return self._data.get(RECOMMENDED_GROWTH_TEMP, None)
+
+    @recommended_temp.setter
+    def recommended_temp(self, value):
+        self._data[RECOMMENDED_GROWTH_TEMP] = value
+
+
 class Strain:
 
     def __init__(self, data=None):
@@ -419,21 +698,62 @@ class Strain:
             self.risk_group = data[RISK_GROUP]
         if data and RESTRICTION_ON_USE in data:
             self.restriction_on_use = data[RESTRICTION_ON_USE]
+        if data and STATUS in data:
+            self.status = data[STATUS]
+
         if data and STRAIN_ID in data:
             self.id = StrainId(data[STRAIN_ID])
         else:
             self.id = StrainId()
+
+        _deposit = None if not data or (data and DEPOSIT not in data) else data[DEPOSIT]
+        self.deposit = Deposit(_deposit)
+
+        _collect = None if not data or (data and COLLECT not in data) else data[COLLECT]
+        self.collect = Collect(_collect)
+
+        _isolation = None if not data or (data and ISOLATION not in data) else data[ISOLATION]
+        self.isolation = Isolation(_isolation)
+
+        _growth = None if not data or (data and GROWTH not in data) else data[GROWTH]
+        self.growth = Growth(_growth)
+
+        _genetics = None if not data or (data and GENETICS not in data) else data[GENETICS]
+        self.genetics = Genetics(_genetics)
+
+        self.other_numbers = []
+        if data and OTHER_CULTURE_NUMBERS in data:
+            for other_number in data[OTHER_CULTURE_NUMBERS]:
+                self.other_numbers.append(StrainId(other_number))
+
+        self.publications = []
+        if data and PUBLICATIONS in data:
+            for pub in data[PUBLICATIONS]:
+                self.publications.append(Publication(pub))
 
     def __str__(self):
         return f'{self.id.collection} {self.id.number}'
 
     def dict(self):
         data = deepcopy(self._data)
-
-        if STRAIN_ID in data and data[STRAIN_ID]:
-            data[STRAIN_ID] = data[STRAIN_ID].dict()
-        else:
-            del data[STRAIN_ID]
+        for child in [STRAIN_ID, COLLECT, DEPOSIT, ISOLATION, GROWTH,
+                      GENETICS]:
+            if child in data:
+                if data[child]:
+                    data[child] = data[child].dict()
+                else:
+                    del data[child]
+        if OTHER_CULTURE_NUMBERS in data:
+            if data[OTHER_CULTURE_NUMBERS]:
+                o_n_data = [on.dict() for on in data[OTHER_CULTURE_NUMBERS]]
+                data[OTHER_CULTURE_NUMBERS] = o_n_data
+            else:
+                del data[OTHER_CULTURE_NUMBERS]
+        if PUBLICATIONS in data:
+            if data[PUBLICATIONS]:
+                data[PUBLICATIONS] = [pub.dict() for pub in data[PUBLICATIONS]]
+            else:
+                del data[PUBLICATIONS]
         return data
 
     @property
@@ -478,12 +798,13 @@ class Strain:
 
     @property
     def is_potentially_harmful(self) -> bool:
-        return self._data[DUAL_USE]
+        return self._data.get(DUAL_USE, None)
 
     @is_potentially_harmful.setter
     def is_potetially_harmful(self, is_harmful: bool):
         # Specify whether the strain has the potential for a harmful use
-        # according to EU Council Regulation 2000/1334/CEand its amendments
+        # according to import pprint
+        # EU Council Regulation 2000/1334/CEand its amendments
         # and corrections
         self._data[DUAL_USE] = is_harmful
 
@@ -497,15 +818,27 @@ class Strain:
 
     @property
     def is_from_registered_collection(self) -> bool:
-        return self._data.get(STRAIN_FROM_REGISTERED_COLLECTION)
+        return self._data.get(STRAIN_FROM_REGISTERED_COLLECTION, None)
 
     @is_from_registered_collection.setter
     def is_from_registered_collection(self, value: bool):
         self._data[STRAIN_FROM_REGISTERED_COLLECTION] = value
 
     @property
+    def other_numbers(self) -> List[StrainId]:
+        return self._data.get(OTHER_CULTURE_NUMBERS, None)
+
+    @other_numbers.setter
+    def other_numbers(self, value: List[StrainId]):
+        for on in value:
+            if not isinstance(on, StrainId):
+                msg = 'Other number must be a list of Strain Id instances'
+                raise ValueError(msg)
+        self._data[OTHER_CULTURE_NUMBERS] = value
+
+    @property
     def other_denominations(self) -> str:
-        return self._data.get(ACCESSION_NAME)
+        return self._data.get(ACCESSION_NAME, None)
 
     @other_denominations.setter
     def other_denominations(self, value: str):
@@ -521,5 +854,115 @@ class Strain:
             value = [item.strip() for item in value.split('>')]
             self._data[HISTORY_OF_DEPOSIT] = value
 
-#     @property
-#     def form_of_supply(self):
+    @property
+    def form_of_supply(self) -> List[str]:
+        return self._data.get(FORM_OF_SUPPLY, None)
+
+    @form_of_supply.setter
+    def form_of_supply(self, value: List[str]):
+        allowed = {f.lower() for f in ALLOWED_FORMS_OF_SUPPLY}
+        if {v.lower(9) for v in value}.difference(allowed):
+            msg = 'Not allowed forms of suplly'
+            raise ValueError(msg)
+        self._data[FORM_OF_SUPPLY] = value
+
+    @property
+    def collect(self) -> Collect:
+        return self._data.get(COLLECT, None)
+
+    @collect.setter
+    def collect(self, _collect: Collect):
+        self._data[COLLECT] = _collect
+
+    @property
+    def deposit(self) -> Deposit:
+        return self._data.get(DEPOSIT, None)
+
+    @deposit.setter
+    def deposit(self, _deposit: Deposit):
+        self._data[DEPOSIT] = _deposit
+
+    @property
+    def isolation(self) -> Isolation:
+        return self._data.get(ISOLATION, None)
+
+    @isolation.setter
+    def isolation(self, _isolation: Isolation):
+        self._data[ISOLATION] = _isolation
+
+    @property
+    def growth(self) -> Growth:
+        return self._data.get(GROWTH, None)
+
+    @growth.setter
+    def growth(self, _growth: Growth):
+        self._data[GROWTH] = _growth
+
+    @property
+    def genetics(self) -> Genetics:
+        return self._data.get(GENETICS, None)
+
+    @genetics.setter
+    def genetics(self, _genetics: Genetics):
+        self._data[GENETICS] = _genetics
+
+    @property
+    def publications(self) -> List[Publication]:
+        self._data.get(PUBLICATIONS, None)
+
+    @publications.setter
+    def publications(self, value: List[Publication]):
+        for pub in value:
+            if not isinstance(pub, Publication):
+                msg = 'Publications must be Publication instaces'
+                raise ValueError(msg)
+        self._data[PUBLICATIONS] = value
+
+    # mierder
+    @property
+    def pathogenity(self) -> str:
+        return self._data.get(PATHOGENICITY, None)
+
+    @pathogenity.setter
+    def pathogenity(self, value: str):
+        self._data[PATHOGENICITY] = value
+
+    @property
+    def enzyme_production(self) -> str:
+        return self._data.get(ENZYME_PRODUCTION, None)
+
+    @enzyme_production.setter
+    def enzyme_production(self, value: str):
+        self._data[ENZYME_PRODUCTION] = value
+
+    @property
+    def production_of_metabolites(self) -> str:
+        return self._data.get(PRODUCTION_OF_METABOLITES, None)
+
+    @production_of_metabolites.setter
+    def production_of_metabolites(self, value: str):
+        self._data[PRODUCTION_OF_METABOLITES] = value
+
+    @property
+    def remarks(self) -> str:
+        return self._data.get(REMARKS, None)
+
+    @remarks.setter
+    def remarks(self, value: str):
+        self._data[REMARKS] = value
+
+    @property
+    def aplications(self) -> str:
+        return self._data.get(APPLICATIONS, None)
+
+    @aplications.setter
+    def aplications(self, value: str):
+        self._data[APPLICATIONS] = value
+
+    @property
+    def status(self) -> str:
+        return self._data.get(STATUS, None)
+
+    @status.setter
+    def status(self, value: str):
+        self._data[STATUS] = value
