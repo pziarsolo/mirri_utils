@@ -82,95 +82,110 @@ STRAIN_PUI = 'strain_pui'
 STRAIN_URL = 'strain_url'
 
 MIRRI_FIELDS = [
-    {'attribute': ACCESSION_NUMBER, 'label': 'Accession number',
+    {'attribute': 'id', 'label': 'Accession number',
      'mandatory': True},
-    {'attribute': RESTRICTION_ON_USE, 'label': 'Restrictions on use',
+    {'attribute': 'restriction_on_use', 'label': 'Restrictions on use',
      'mandatory': True},
-    {'attribute': NAGOYA_PROTOCOL,
+    {'attribute': 'nagoya_protocol',
      'label': 'Nagoya protocol restrictions and compliance conditions',
      'mandatory': True},
     {'attribute': ABS_RELATED_FILES, 'label': 'ABS related files',
      'mandatory': False},
     {'attribute': MTA_FILES, 'label': 'MTA file', 'mandatory': False},
-    {'attribute': OTHER_CULTURE_NUMBERS,
+    {'attribute': 'other_numbers',
      'label': 'Other culture collection numbers',
      'mandatory': False},
-    {'attribute': STRAIN_FROM_REGISTERED_COLLECTION,
+    {'attribute': 'is_from_registered_collection',
      'label': 'Strain from a registered collection',
      'mandatory': False},
-    {'attribute': RISK_GROUP, 'label': 'Risk Group',
+    {'attribute': 'risk_group', 'label': 'Risk Group',
      'mandatory': True},
-    {'attribute': DUAL_USE, 'label': 'Dual use', 'mandatory': False},
-    {'attribute': QUARANTINE, 'label': 'Quarantinein Europe',
+    {'attribute': 'dual_use', 'label': 'Dual use', 'mandatory': False},
+    {'attribute': 'is_subject_to_quarantine', 'label': 'Quarantinein Europe',
      'mandatory': False},
-    {'attribute': ORGANISM_TYPE, 'label': 'Organism type',
+
+    {'attribute': 'taxonomy.organism_type', 'label': 'Organism type',
      'mandatory': True},
-    {'attribute': TAXON_NAME, 'label': 'Taxon name', 'mandatory': True},
-    {'attribute': INFRASUBSPECIFIC_NAME,
+    {'attribute': 'taxonomy.species', 'label': 'Taxon name',
+     'mandatory': True},
+    {'attribute': 'taxonomy.infrasubspecific_name',
      'label': 'Infrasubspecific names', 'mandatory': False},
-    {'attribute': COMMENTS_ON_TAXONOMY, 'label': 'Comment on taxonomy',
+    {'attribute': 'taxonomy.comments', 'label': 'Comment on taxonomy',
      'mandatory': False},
-    {'attribute': STATUS, 'label': 'Status', 'mandatory': False},
-    {'attribute': HISTORY_OF_DEPOSIT, 'label': 'History of deposit',
+    {'attribute': 'taxonomy.interspecific_hybrid',
+     'label': 'Interspecific hybrid', 'mandatory': False},
+
+    {'attribute': 'status', 'label': 'Status', 'mandatory': False},
+    {'attribute': 'history', 'label': 'History of deposit',
      'mandatory': False},
-    {'attribute': DEPOSITOR, 'label': 'Depositor', 'mandatory': False},
-    {'attribute': DATE_OF_DEPOSIT, 'label': 'Date of deposit',
+
+    {'attribute': 'deposit.who', 'label': 'Depositor', 'mandatory': False},
+    {'attribute': 'deposit.date', 'label': 'Date of deposit',
      'mandatory': False},
-    {'attribute': COLLECTED_BY, 'label': 'Collected by', 'mandatory': False},
-    {'attribute': DATE_OF_COLLECTION, 'label': 'Date of collection',
-     'mandatory': False},
-    {'attribute': ISOLATED_BY, 'label': 'Isolated by', 'mandatory': False},
-    {'attribute': DATE_OF_ISOLATION, 'label': 'Date of isolation',
-     'mandatory': False},
-    {'attribute': DATE_OF_INCLUSION,
+    {'attribute': 'deposit.date',
      'label': 'Date of inclusion in the catalogue', 'mandatory': False},
-    {'attribute': TESTED_TEMPERATURE_GROWTH_RANGE,
-     'label': 'Tested temperature growth range', 'mandatory': False},
-    {'attribute': RECOMMENDED_GROWTH_TEMP,
-     'label': 'Recommended growth temperature', 'mandatory': True},
-    {'attribute': RECOMMENDED_GROWTH_MEDIUM,
-     'label': 'Recommended medium for growth', 'mandatory': True},
-    {'attribute': FORM_OF_SUPPLY, 'label': 'Form of supply',
-     'mandatory': True},
-    {'attribute': GEO_COORDS,
-     'label': 'Coordinates of geographic origin', 'mandatory': False},
-    {'attribute': ACCESSION_NAME, 'label': 'Other denomination',
+
+    {'attribute': 'collect.who', 'label': 'Collected by', 'mandatory': False},
+    {'attribute': 'collect.date', 'label': 'Date of collection',
      'mandatory': False},
-    {'attribute': ALTITUDE,
-     'label': 'Altitude of geographic origin', 'mandatory': False},
-    {'attribute': GEOGRAPHIC_ORIGIN, 'label': 'Geographic origin',
-     'mandatory': True},
-    {'attribute': GMO, 'label': 'GMO', 'mandatory': False},
-    {'attribute': GMO_CONSTRUCTION_INFO,
-     'label': 'GMO construction information', 'mandatory': False},
-    {'attribute': MUTANT_INFORMATION, 'label': 'Mutant information',
+
+    {'attribute': 'isolation.who', 'label': 'Isolated by', 'mandatory': False},
+    {'attribute': 'isolation.date', 'label': 'Date of isolation',
      'mandatory': False},
-    {'attribute': GENOTYPE, 'label': 'Genotype', 'mandatory': False},
-    {'attribute': LITERATURE, 'label': 'Literature', 'mandatory': False},
-    {'attribute': SEXUAL_STATE, 'label': 'Sexual state', 'mandatory': False},
-    {'attribute': PLOIDY, 'label': 'Ploidy', 'mandatory': False},
-    {'attribute': INTERSPECIFIC_HYBRID, 'label': 'Interspecific hybrid',
-     'mandatory': False},
-    {'attribute': PLANT_PATHOGENICITY_CODE,
-     'label': 'Plant pathogenicity code', 'mandatory': False},
-    {'attribute': PATHOGENICITY, 'label': 'Pathogenicity',
-     'mandatory': False},
-    {'attribute': ENZYME_PRODUCTION, 'label': 'Enzyme production',
-     'mandatory': False},
-    {'attribute': PRODUCTION_OF_METABOLITES,
-     'label': 'Production of metabolites', 'mandatory': False},
-    {'attribute': APPLICATIONS, 'label': 'Applications', 'mandatory': False},
-    {'attribute': REMARKS, 'label': 'Remarks', 'mandatory': False},
-    {'attribute': PLASMIDS, 'label': 'Plasmids', 'mandatory': False},
-    {'attribute': PLASMIDS_COLLECTION_FIELDS,
-     'label': 'Plasmids collections fields', 'mandatory': False},
-    {'attribute': SUBSTRATE_HOST_OF_ISOLATION,
+    {'attribute': 'isolation.substrate_host_of_isolation',
      'label': 'Substrate/host of isolation', 'mandatory': False},
-    {'attribute': ISOLATION_HABITAT,
+
+    {'attribute': 'growth.tested_temp_range',
+     'label': 'Tested temperature growth range', 'mandatory': False},
+    {'attribute': 'growth.recommended_temp',
+     'label': 'Recommended growth temperature', 'mandatory': True},
+    {'attribute': 'growth.recommended_medium',
+     'label': 'Recommended medium for growth', 'mandatory': True},
+
+    {'attribute': 'form_of_supply', 'label': 'Form of supply',
+     'mandatory': True},
+    {'attribute': 'other_denominations', 'label': 'Other denomination',
      'mandatory': False},
-    {'attribute': ONTOTYPE_ISOLATION_HABITAT,
+
+    {'attribute': 'collect.location.longitude',
+     'label': 'Coordinates of geographic origin', 'mandatory': False},
+    {'attribute': 'collect.location.altidude',
+     'label': 'Altitude of geographic origin', 'mandatory': False},
+    {'attribute': 'collect.location', 'label': 'Geographic origin',
+     'mandatory': True},
+    {'attribute': 'collect.habitat',
+     'mandatory': False},
+    {'attribute': 'collect.habitat_ontotype',
      'label': 'Ontobiotope term for the isolation habitat',
      'mandatory': False},
+
+    {'attribute': 'genetics.gmo', 'label': 'GMO', 'mandatory': False},
+    {'attribute': 'genetics.gmo_construction',
+     'label': 'GMO construction information', 'mandatory': False},
+    {'attribute': 'genetics.mutant_info', 'label': 'Mutant information',
+     'mandatory': False},
+    {'attribute': 'genetics.genotype', 'label': 'Genotype',
+     'mandatory': False},
+    {'attribute': 'genetics.sexual_state', 'label': 'Sexual state',
+     'mandatory': False},
+    {'attribute': 'genetics.ploidy', 'label': 'Ploidy', 'mandatory': False},
+    {'attribute': 'genetics.plasmids', 'label': 'Plasmids',
+     'mandatory': False},
+    {'attribute': 'genetic.plasmid_collections_fields',
+     'label': 'Plasmids collections fields', 'mandatory': False},
+
+    {'attribute': 'publications', 'label': 'Literature', 'mandatory': False},
+    {'attribute': PLANT_PATHOGENICITY_CODE,
+     'label': 'Plant pathogenicity code', 'mandatory': False},
+    {'attribute': 'pathogenity', 'label': 'Pathogenicity',
+     'mandatory': False},
+    {'attribute': 'enzyme_production', 'label': 'Enzyme production',
+     'mandatory': False},
+    {'attribute': 'production_of_metabolites',
+     'label': 'Production of metabolites', 'mandatory': False},
+    {'attribute': 'applications', 'label': 'Applications', 'mandatory': False},
+    {'attribute': 'remarks', 'label': 'Remarks', 'mandatory': False},
+
     {'attribute': LITERATURE_LINKED_TO_SEQ_GENOME,
      'label': 'Literature linked to the sequence/genome',
      'mandatory': False}
@@ -209,7 +224,7 @@ ISOLATION = 'isolation'
 COLLECT = 'collect'
 GROWTH = 'growth'
 GENETICS = 'genetics'
-
+TAXONOMY = 'taxonomy'
 # Markers
 MARKERS = 'markers'
 MARKER_TYPE = 'marker_type'
@@ -228,19 +243,21 @@ ALLOWED_MARKER_TYPES = [
 ]
 
 PUBLICATIONS = 'publications'
-PUB_ID = ''
-PUB_DOI = ''
-PUB_TITLE = ''
-PUB_AUTHORS = ''
-PUB_JOURNAL = ''
-PUB_YEAR = ''
-PUB_VOLUMEN = ''
-PUB_ISSUE = ''
-PUB_FIRST_PAGE = ''
-PUB_LAST_PAGE = ''
-BOOK_TITLE = ''
-BOOK_EDITOR = ''
-BOOK_PUBLISHER = ''
+PUB_ID = 'pub_id'
+PUB_DOI = 'pub_doi'
+PUB_TITLE = 'title'
+PUB_AUTHORS = 'authors'
+PUB_JOURNAL = 'journal'
+PUB_YEAR = 'year'
+PUB_VOLUMEN = 'volumen'
+PUB_ISSUE = 'issue'
+PUB_FIRST_PAGE = 'first_page'
+PUB_LAST_PAGE = 'last_page'
+BOOK_TITLE = 'book_title'
+BOOK_EDITOR = 'editor'
+BOOK_PUBLISHER = 'publisher'
+
+# ploidy
 ANEUPLOID = 0
 HAPLOID = 1
 DIPLOID = 2

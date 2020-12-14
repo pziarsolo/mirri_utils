@@ -12,24 +12,26 @@ from copy import deepcopy
 from datetime import date
 from typing import List, Union
 
+from mirri.entities._private_classes import _FieldBasedClass
 from mirri.entities.date_range import DateRange
 from mirri.entities.location import Location
 from mirri.entities.publication import Publication
-from mirri.settings import (ACCESSION_NAME, ACCESSION_NUMBER,
-                            ALLOWED_FORMS_OF_SUPPLY, ALLOWED_MARKER_TYPES,
-                            ALLOWED_NAGOYA_OPTIONS,
-                            ALLOWED_RESTRICTION_USE_OPTIONS, ALLOWED_SUBTAXA,
-                            ALLOWED_TAXONOMIC_RANKS, APPLICATIONS, COLLECT,
-                            COLLECTED_BY, COLLECTION_CODE,
-                            COMMENTS_ON_TAXONOMY, DATE_OF_COLLECTION,
-                            DATE_OF_INCLUSION, DATE_OF_ISOLATION, DEPOSIT,
-                            DEPOSITOR, DUAL_USE, ENZYME_PRODUCTION,
-                            FORM_OF_SUPPLY, GENETICS, GENOTYPE, GENUS, GMO,
-                            GMO_CONSTRUCTION_INFO, GROWTH, HISTORY_OF_DEPOSIT,
-                            INFRASUBSPECIFIC_NAME, INTERSPECIFIC_HYBRID,
-                            ISOLATED_BY, ISOLATION, ISOLATION_HABITAT,
-                            LOCATION, MARKER_INSDC, MARKER_SEQ, MARKER_TYPE,
-                            MARKERS, MUTANT_INFORMATION, NAGOYA_PROTOCOL,
+from mirri.settings import (ABS_RELATED_FILES, ACCESSION_NAME,
+                            ACCESSION_NUMBER, ALLOWED_FORMS_OF_SUPPLY,
+                            ALLOWED_MARKER_TYPES, ALLOWED_NAGOYA_OPTIONS,
+                            ALLOWED_PLOIDIES, ALLOWED_RESTRICTION_USE_OPTIONS,
+                            ALLOWED_SUBTAXA, ALLOWED_TAXONOMIC_RANKS,
+                            APPLICATIONS, COLLECT, COLLECTED_BY,
+                            COLLECTION_CODE, COMMENTS_ON_TAXONOMY,
+                            DATE_OF_COLLECTION, DATE_OF_INCLUSION,
+                            DATE_OF_ISOLATION, DEPOSIT, DEPOSITOR, DUAL_USE,
+                            ENZYME_PRODUCTION, FORM_OF_SUPPLY, GENETICS,
+                            GENOTYPE, GENUS, GMO, GMO_CONSTRUCTION_INFO,
+                            GROWTH, HISTORY_OF_DEPOSIT, INFRASUBSPECIFIC_NAME,
+                            INTERSPECIFIC_HYBRID, ISOLATED_BY, ISOLATION,
+                            ISOLATION_HABITAT, LOCATION, MARKER_INSDC,
+                            MARKER_SEQ, MARKER_TYPE, MARKERS, MTA_FILES,
+                            MUTANT_INFORMATION, NAGOYA_PROTOCOL,
                             ONTOTYPE_ISOLATION_HABITAT, ORGANISM_TYPE,
                             OTHER_CULTURE_NUMBERS, PATHOGENICITY, PLASMIDS,
                             PLASMIDS_COLLECTION_FIELDS, PLOIDY,
@@ -39,8 +41,8 @@ from mirri.settings import (ACCESSION_NAME, ACCESSION_NUMBER,
                             RESTRICTION_ON_USE, RISK_GROUP, SEXUAL_STATE,
                             SPECIES, STATUS, STRAIN_FROM_REGISTERED_COLLECTION,
                             STRAIN_ID, STRAIN_PUI, STRAIN_URL,
-                            SUBSTRATE_HOST_OF_ISOLATION,
-                            TESTED_TEMPERATURE_GROWTH_RANGE, ALLOWED_PLOIDIES)
+                            SUBSTRATE_HOST_OF_ISOLATION, TAXONOMY,
+                            TESTED_TEMPERATURE_GROWTH_RANGE)
 
 RANK_TRANSLATOR = {'subspecies': 'subsp.', 'convarietas': 'convar.',
                    'variety': 'var.', 'group': 'Group', 'forma': 'f.'}
@@ -67,9 +69,14 @@ class OrganismType():
 
     @code.setter
     def code(self, code: int):
+        if code not in ORG_TYPES.values():
+            raise ValueError('code not accepted for organism type')
         self._data['code'] = code
-        self._data['name'] = [name for code, name in ORG_TYPES.items()
-                              if code == code][0]
+        name = None
+        for _name, _code in ORG_TYPES.items():
+            if _code == code:
+                name = _name
+        self._data['name'] = name
 
     @property
     def name(self):
@@ -266,14 +273,13 @@ class _GeneralStep():
 
     def __init__(self, data=None):
         self._data = {}
+        if data is None:
+            data = {}
         if self._location_tag is not None:
-            if data and self._location_tag in data:
-                self.location = Location(date[self._location_tag])
-            else:
-                self.location = Location()
+            self.location = Location(data.get(self._location_tag, None))
+            print(self.location)
         if self._date_tag:
-            if data and self._who_tag in data:
-                self.who = data[self._who_tag]
+            self.who = data.get(self._who_tag, None)
         if self._date_tag:
             _date = DateRange()
             if data and self._date_tag in data:
@@ -300,10 +306,10 @@ class _GeneralStep():
         return self._data.get(self._who_tag, None)
 
     @who.setter
-    def who(self, collected_by: str):
+    def who(self, by_who: str):
         if self._who_tag is None:
             return ValueError('Can set who on this class')
-        self._data[self._who_tag] = collected_by
+        self._data[self._who_tag] = by_who
 
     @property
     def date(self) -> DateRange:
@@ -336,10 +342,11 @@ class Collect(_GeneralStep):
 
     def __init__(self, data=None):
         super().__init__(data=data)
-        if data and ISOLATION_HABITAT in data:
-            self.habitat = data[ISOLATION_HABITAT]
-        if data and ONTOTYPE_ISOLATION_HABITAT in data:
-            self.habitat_ontobiotype = data[ONTOTYPE_ISOLATION_HABITAT]
+        if data is None:
+            data = {}
+
+        self.habitat = data.get(ISOLATION_HABITAT, None)
+        self.habitat_ontobiotype = data.get(ONTOTYPE_ISOLATION_HABITAT, None)
 
     def __str__(self):
         info = ''
@@ -369,7 +376,8 @@ class Collect(_GeneralStep):
 
     @habitat.setter
     def habitat(self, habitat: str):
-        self._data[ISOLATION_HABITAT] = habitat
+        if habitat is not None:
+            self._data[ISOLATION_HABITAT] = habitat
 
     @property
     def habitat_ontotype(self):
@@ -377,9 +385,10 @@ class Collect(_GeneralStep):
 
     @habitat_ontotype.setter
     def habitat_ontotype(self, habitat: str):
-        if not re.match('OBS:[0-9]{6}', 'OBT:[0-9]{6}'):
-            raise ValueError(f'Bad ontotype format, {habitat}')
-        self._data[ONTOTYPE_ISOLATION_HABITAT] = habitat
+        if habitat is not None:
+            if not re.match('OBS:[0-9]{6}', 'OBT:[0-9]{6}'):
+                raise ValueError(f'Bad ontotype format, {habitat}')
+            self._data[ONTOTYPE_ISOLATION_HABITAT] = habitat
 
 
 class Isolation(_GeneralStep):
@@ -387,16 +396,26 @@ class Isolation(_GeneralStep):
     _date_tag = DATE_OF_ISOLATION
 
     def __init__(self, data=None):
+        if data is None:
+            data = {}
         super().__init__(data=data)
         _date = DateRange()
 
-        if data and SUBSTRATE_HOST_OF_ISOLATION in data:
-            val = data[SUBSTRATE_HOST_OF_ISOLATION]
-            self.substrate_host_of_isolation = val
+        self.substrate_host_of_isolation = data.get(SUBSTRATE_HOST_OF_ISOLATION,
+                                                    None)
 
     def dict(self):
         _data = super().dict()
         return _data
+
+    @property
+    def substrate_host_of_isolation(self):
+        return self._data.get(SUBSTRATE_HOST_OF_ISOLATION, None)
+
+    @substrate_host_of_isolation.setter
+    def substrate_host_of_isolation(self, value: str):
+        if value is not None:
+            self._data[SUBSTRATE_HOST_OF_ISOLATION] = value
 
 
 class Deposit(_GeneralStep):
@@ -474,24 +493,11 @@ class StrainId(object):
         return StrainId(self._id_dict)
 
 
-class GenomicSequence():
-
-    def __init__(self, data=None):
-        self._data = {}
-        if data and MARKER_TYPE in data:
-            self.marker_type = data[MARKER_TYPE]
-
-        if data and MARKER_INSDC in data:
-            self.marker_id = data[MARKER_INSDC]
-
-        if data and MARKER_SEQ in data:
-            self.marker_seq = data[MARKER_SEQ]
-
-    def __bool__(self):
-        return bool(self._data)
-
-    def dict(self):
-        return self._data
+class GenomicSequence(_FieldBasedClass):
+    _fields = [{'attribute': 'marker_type', 'label': MARKER_TYPE},
+               {'attribute': 'marker_id', 'label': MARKER_INSDC},
+               {'attribute': 'marker_seq', 'label': MARKER_SEQ}
+    ]
 
     @property
     def marker_type(self):
@@ -499,11 +505,12 @@ class GenomicSequence():
 
     @marker_type.setter
     def marker_type(self, value: str):
-        if value not in ALLOWED_MARKER_TYPES:
+        if value is not None:
             types = " ".join([m['acronym'] for m in ALLOWED_MARKER_TYPES])
-            msg = f'{value} not in allowed marker types: {types}'
-            raise ValueError(msg)
-        self._data[MARKER_TYPE] = value
+            if value not in types:
+                msg = f'{value} not in allowed marker types: {types}'
+                raise ValueError(msg)
+            self._data[MARKER_TYPE] = value
 
     @property
     def marker_id(self) -> str:
@@ -554,9 +561,11 @@ class Genetics():
             return bool(data)
 
     def dict(self):
-        data = deepcopy(self._data)
-        if MARKERS in data and not data[MARKERS]:
-            del data[MARKERS]
+        data = {}
+        for key, value in self._data.items():
+            if value is None or value == []:
+                continue
+            data[key] = value
         return data
 
     @property
@@ -640,22 +649,30 @@ class Genetics():
         self._data[MARKERS] = value
 
 
-class Growth():
+class Growth(_FieldBasedClass):
+    _fields = [
+        {'attribute': 'tested_temp_range',
+         'label': TESTED_TEMPERATURE_GROWTH_RANGE},
+        {'attribute': 'recommended_medium',
+         'label': RECOMMENDED_GROWTH_MEDIUM},
+        {'attribute': 'recommended_temp',
+         'label': RECOMMENDED_GROWTH_TEMP}
+    ]
 
-    def __init__(self, data=None):
-        self._data = {}
-        if data and TESTED_TEMPERATURE_GROWTH_RANGE in data:
-            self.tested_temp_range = data[TESTED_TEMPERATURE_GROWTH_RANGE]
-        if data and RECOMMENDED_GROWTH_MEDIUM in data:
-            self.recommended_medium = data[RECOMMENDED_GROWTH_MEDIUM]
-        if data and RECOMMENDED_GROWTH_TEMP in data:
-            self.recommended_temp = data[RECOMMENDED_GROWTH_TEMP]
-
-    def __bool__(self):
-        return bool(self._data)
-
-    def dict(self):
-        return self._data
+#     def __init__(self, data=None):
+#         self._data = {}
+#         if data and TESTED_TEMPERATURE_GROWTH_RANGE in data:
+#             self.tested_temp_range = data[TESTED_TEMPERATURE_GROWTH_RANGE]
+#         if data and RECOMMENDED_GROWTH_MEDIUM in data:
+#             self.recommended_medium = data[RECOMMENDED_GROWTH_MEDIUM]
+#         if data and RECOMMENDED_GROWTH_TEMP in data:
+#             self.recommended_temp = data[RECOMMENDED_GROWTH_TEMP]
+#
+#     def __bool__(self):
+#         return bool(self._data)
+#
+#     def dict(self):
+#         return self._data
 
     @property
     def tested_temp_range(self) -> dict:
@@ -663,10 +680,11 @@ class Growth():
 
     @tested_temp_range.setter
     def tested_temp_range(self, val: dict):
-        if 'min' in val and 'max' in val:
-            self._data[TESTED_TEMPERATURE_GROWTH_RANGE] = val
-        else:
-            raise ValueError('A dict with min and max is required')
+        if val is not None:
+            if 'min' in val and 'max' in val:
+                self._data[TESTED_TEMPERATURE_GROWTH_RANGE] = val
+            else:
+                raise ValueError('A dict with min and max is required')
 
     @property
     def recommended_medium(self) -> List[str]:
@@ -674,10 +692,11 @@ class Growth():
 
     @recommended_medium.setter
     def recommended_medium(self, value):
-        if not isinstance(value, (list, set)):
-            msg = 'Recommendedn medium must be a list'
-            raise ValueError(msg)
-        self._data[RECOMMENDED_GROWTH_MEDIUM] = value
+        if value is not None:
+            if not isinstance(value, (list, set)):
+                msg = 'Recommendedn medium must be a list'
+                raise ValueError(msg)
+            self._data[RECOMMENDED_GROWTH_MEDIUM] = value
 
     @property
     def recommended_temp(self) -> Union[float, int]:
@@ -692,34 +711,31 @@ class Strain:
 
     def __init__(self, data=None):
         self._data = {}
-        if data and NAGOYA_PROTOCOL in data:
-            self.nagoya_protocol = data[NAGOYA_PROTOCOL]
-        if data and RISK_GROUP in data:
-            self.risk_group = data[RISK_GROUP]
-        if data and RESTRICTION_ON_USE in data:
-            self.restriction_on_use = data[RESTRICTION_ON_USE]
-        if data and STATUS in data:
-            self.status = data[STATUS]
+        if data is None:
+            data = {}
+        self.nagoya_protocol = data.get(NAGOYA_PROTOCOL, None)
+        self.risk_group = data.get(RISK_GROUP, None)
+        self.restriction_on_use = data.get(RESTRICTION_ON_USE, None)
+        self.status = data.get(STATUS, None)
+        self.abs_related_files = data.get(ABS_RELATED_FILES, None)
+        self.mta_files = data.get(MTA_FILES, None)
+        self.is_potentially_harmful = data.get(DUAL_USE, None)
+        self.is_from_registered_collection = data.get(STRAIN_FROM_REGISTERED_COLLECTION, None)
+        self.is_subject_to_quarantine = data.get(QUARANTINE, None)
 
-        if data and STRAIN_ID in data:
-            self.id = StrainId(data[STRAIN_ID])
-        else:
-            self.id = StrainId()
+        self.id = StrainId(data.get(STRAIN_ID, None))
 
-        _deposit = None if not data or (data and DEPOSIT not in data) else data[DEPOSIT]
-        self.deposit = Deposit(_deposit)
+        self.taxonomy = Taxonomy(data.get(TAXONOMY, None))
 
-        _collect = None if not data or (data and COLLECT not in data) else data[COLLECT]
-        self.collect = Collect(_collect)
+        self.deposit = Deposit(data.get(DEPOSIT, None))
 
-        _isolation = None if not data or (data and ISOLATION not in data) else data[ISOLATION]
-        self.isolation = Isolation(_isolation)
+        self.collect = Collect(data.get(COLLECT, None))
 
-        _growth = None if not data or (data and GROWTH not in data) else data[GROWTH]
-        self.growth = Growth(_growth)
+        self.isolation = Isolation(data.get(ISOLATION, None))
 
-        _genetics = None if not data or (data and GENETICS not in data) else data[GENETICS]
-        self.genetics = Genetics(_genetics)
+        self.growth = Growth(data.get(GROWTH, None))
+
+        self.genetics = Genetics(data.get(GENETICS, None))
 
         self.other_numbers = []
         if data and OTHER_CULTURE_NUMBERS in data:
@@ -734,26 +750,44 @@ class Strain:
     def __str__(self):
         return f'{self.id.collection} {self.id.number}'
 
+#     def dict2(self):
+#         data = deepcopy(self._data)
+#         for child in [STRAIN_ID, COLLECT, DEPOSIT, ISOLATION, GROWTH,
+#                       GENETICS]:
+#             if child in data:
+#                 if data[child]:
+#                     data[child] = data[child].dict()
+#                 else:
+#                     del data[child]
+#         if OTHER_CULTURE_NUMBERS in data:
+#             if data[OTHER_CULTURE_NUMBERS]:
+#                 o_n_data = [on.dict() for on in data[OTHER_CULTURE_NUMBERS]]
+#                 data[OTHER_CULTURE_NUMBERS] = o_n_data
+#             else:
+#                 del data[OTHER_CULTURE_NUMBERS]
+#         if PUBLICATIONS in data:
+#             if data[PUBLICATIONS]:
+#                 data[PUBLICATIONS] = [pub.dict() for pub in data[PUBLICATIONS]]
+#             else:
+#                 del data[PUBLICATIONS]
+#         return data
+
     def dict(self):
-        data = deepcopy(self._data)
-        for child in [STRAIN_ID, COLLECT, DEPOSIT, ISOLATION, GROWTH,
-                      GENETICS]:
-            if child in data:
-                if data[child]:
-                    data[child] = data[child].dict()
-                else:
-                    del data[child]
-        if OTHER_CULTURE_NUMBERS in data:
-            if data[OTHER_CULTURE_NUMBERS]:
-                o_n_data = [on.dict() for on in data[OTHER_CULTURE_NUMBERS]]
-                data[OTHER_CULTURE_NUMBERS] = o_n_data
-            else:
-                del data[OTHER_CULTURE_NUMBERS]
-        if PUBLICATIONS in data:
-            if data[PUBLICATIONS]:
-                data[PUBLICATIONS] = [pub.dict() for pub in data[PUBLICATIONS]]
-            else:
-                del data[PUBLICATIONS]
+        data = {}
+        for field, value in self._data.items():
+            if field in [STRAIN_ID, COLLECT, DEPOSIT, ISOLATION, GROWTH,
+                         GENETICS, TAXONOMY]:
+                value = value.dict()
+                if value == {}:
+                    value = None
+            elif field in [OTHER_CULTURE_NUMBERS, PUBLICATIONS]:
+                value = [item.dict() for item in value]
+                if value == []:
+                    value = None
+
+            if value is not None:
+                data[field] = value
+
         return data
 
     @property
@@ -770,11 +804,12 @@ class Strain:
 
     @nagoya_protocol.setter
     def nagoya_protocol(self, nagoya):
-        if nagoya not in ALLOWED_NAGOYA_OPTIONS:
-            msg = f'Nagoya protocol options not matched: {nagoya}'
-            msg += f' options: {", ".join(ALLOWED_NAGOYA_OPTIONS)}'
-            raise ValueError(msg)
-        self._data[NAGOYA_PROTOCOL] = nagoya
+        if nagoya is not None:
+            if nagoya not in ALLOWED_NAGOYA_OPTIONS:
+                msg = f'Nagoya protocol options not matched: {nagoya}'
+                msg += f' options: {", ".join(ALLOWED_NAGOYA_OPTIONS)}'
+                raise ValueError(msg)
+            self._data[NAGOYA_PROTOCOL] = nagoya
 
     @property
     def risk_group(self) -> str:
@@ -782,7 +817,8 @@ class Strain:
 
     @risk_group.setter
     def risk_group(self, risk_gr: Union[str, int]):
-        self._data[RISK_GROUP] = str(risk_gr)
+        if risk_gr is not None:
+            self._data[RISK_GROUP] = str(risk_gr)
 
     @property
     def restriction_on_use(self) -> str:
@@ -790,23 +826,25 @@ class Strain:
 
     @restriction_on_use.setter
     def restriction_on_use(self, restriction: str):
-        if restriction not in ALLOWED_RESTRICTION_USE_OPTIONS:
-            msg = f'Restriction use options not matched: {restriction}.'
-            msg += f' Options: {" ,".join(ALLOWED_RESTRICTION_USE_OPTIONS)}'
-            raise ValueError(msg)
-        self._data[RESTRICTION_ON_USE] = restriction
+        if restriction is not None:
+            if restriction not in ALLOWED_RESTRICTION_USE_OPTIONS:
+                msg = f'Restriction use options not matched: {restriction}.'
+                msg += f' Options: {" ,".join(ALLOWED_RESTRICTION_USE_OPTIONS)}'
+                raise ValueError(msg)
+            self._data[RESTRICTION_ON_USE] = restriction
 
     @property
     def is_potentially_harmful(self) -> bool:
         return self._data.get(DUAL_USE, None)
 
     @is_potentially_harmful.setter
-    def is_potetially_harmful(self, is_harmful: bool):
+    def is_potentially_harmful(self, is_harmful: bool):
         # Specify whether the strain has the potential for a harmful use
         # according to import pprint
         # EU Council Regulation 2000/1334/CEand its amendments
         # and corrections
-        self._data[DUAL_USE] = is_harmful
+        if is_harmful is not None:
+            self._data[DUAL_USE] = is_harmful
 
     @property
     def is_subject_to_quarantine(self) -> bool:
@@ -822,7 +860,30 @@ class Strain:
 
     @is_from_registered_collection.setter
     def is_from_registered_collection(self, value: bool):
-        self._data[STRAIN_FROM_REGISTERED_COLLECTION] = value
+        if value is not None:
+            self._data[STRAIN_FROM_REGISTERED_COLLECTION] = value
+
+    @property
+    def abs_related_files(self) -> List[str]:
+        return self._data.get(ABS_RELATED_FILES, None)
+
+    @abs_related_files.setter
+    def abs_related_files(self, value: List[str]):
+        if value is not None and not isinstance(value, list):
+            raise ValueError('Value must be alist')
+        if value is not None:
+            self._data[ABS_RELATED_FILES] = value
+
+    @property
+    def mta_files(self) -> List[str]:
+        return self._data.get(MTA_FILES, None)
+
+    @mta_files.setter
+    def mta_files(self, value: List[str]):
+        if value is not None and not isinstance(value, list):
+            raise ValueError('Value must be alist')
+        if value is not None:
+            self._data[MTA_FILES] = value
 
     @property
     def other_numbers(self) -> List[StrainId]:
@@ -837,11 +898,11 @@ class Strain:
         self._data[OTHER_CULTURE_NUMBERS] = value
 
     @property
-    def other_denominations(self) -> str:
+    def other_denominations(self) -> List[str]:
         return self._data.get(ACCESSION_NAME, None)
 
     @other_denominations.setter
-    def other_denominations(self, value: str):
+    def other_denominations(self, value: List[str]):
         self._data[ACCESSION_NAME] = value
 
     @property
@@ -865,6 +926,14 @@ class Strain:
             msg = 'Not allowed forms of suplly'
             raise ValueError(msg)
         self._data[FORM_OF_SUPPLY] = value
+
+    @property
+    def taxonomy(self) -> Taxonomy:
+        return self._data.get(TAXONOMY, None)
+
+    @taxonomy.setter
+    def taxonomy(self, value: Taxonomy):
+        self._data[TAXONOMY] = value
 
     @property
     def collect(self) -> Collect:
@@ -952,11 +1021,11 @@ class Strain:
         self._data[REMARKS] = value
 
     @property
-    def aplications(self) -> str:
+    def applications(self) -> str:
         return self._data.get(APPLICATIONS, None)
 
-    @aplications.setter
-    def aplications(self, value: str):
+    @applications.setter
+    def applications(self, value: str):
         self._data[APPLICATIONS] = value
 
     @property

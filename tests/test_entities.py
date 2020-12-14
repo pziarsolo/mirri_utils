@@ -6,10 +6,16 @@ Created on 2020(e)ko abe. 2(a)
 import unittest
 
 from mirri.entities.date_range import DateRange
-from mirri.entities.strain import Collect, Isolation, Strain, Taxonomy, Deposit
-from mirri.settings import DATE_OF_ISOLATION, ISOLATED_BY, NAGOYA_APPLIES, \
-    COLLECT, COUNTRY, LOCATION, GENETICS, PLOIDY, NAGOYA_PROTOCOL, DEPOSITOR, \
-    DEPOSIT
+from mirri.entities.location import Location
+from mirri.entities.strain import (Collect, Deposit, GenomicSequence,
+                                   Isolation, OrganismType, Strain, StrainId,
+                                   Taxonomy)
+from mirri.settings import (COLLECT, COUNTRY, DATE_OF_ISOLATION, DEPOSIT,
+                            DEPOSITOR, GENETICS, GROWTH, ISOLATED_BY,
+                            ISOLATION, LOCATION, NAGOYA_APPLIES,
+                            NAGOYA_PROTOCOL, ORGANISM_TYPE,
+                            OTHER_CULTURE_NUMBERS, PLOIDY,
+                            RECOMMENDED_GROWTH_MEDIUM, TAXONOMY)
 
 
 class TestDataRange(unittest.TestCase):
@@ -75,6 +81,14 @@ class TestCollect(unittest.TestCase):
                          'Collected: spain in 2012---- by pepito')
 
 
+class TestOrganismType(unittest.TestCase):
+
+    def test_basic_usage(self):
+        org_type = OrganismType(2)
+        self.assertEqual(org_type.name, 'archaea')
+        self.assertEqual(org_type.code, 2)
+
+
 class TestTaxonomy(unittest.TestCase):
 
     def test_taxonomy_basic(self):
@@ -90,6 +104,21 @@ class TestTaxonomy(unittest.TestCase):
         self.assertEqual(taxonomy.long_name, 'Bacilus vulgaris')
 
         # print(taxonomy.dict())
+
+
+class TestLocation(unittest.TestCase):
+
+    def test_empty_init(self):
+        loc = Location()
+        self.assertEqual(loc.dict(), {})
+        self.assertFalse(loc)
+
+    def test_add_data(self):
+        loc = Location()
+        loc.country = 'esp'
+        self.assertEqual(loc.dict(), {COUNTRY: 'esp'})
+        loc.state = None
+        self.assertEqual(loc.dict(), {COUNTRY: 'esp'})
 
 
 class TestStrain(unittest.TestCase):
@@ -123,9 +152,30 @@ class TestStrain(unittest.TestCase):
 
         strain.growth.recommended_medium = ['asd']
         strain.isolation.date = DateRange(year=1900)
+        self.assertEqual(strain.dict()[ISOLATION][DATE_OF_ISOLATION],
+                         '1900----')
 
         strain.deposit.who = 'pepe'
         self.assertEqual(strain.dict()[DEPOSIT][DEPOSITOR], 'pepe')
+
+        strain.growth.recommended_medium = ['11']
+        self.assertEqual(strain.dict()[GROWTH][RECOMMENDED_GROWTH_MEDIUM],
+                         ['11'])
+
+        strain.taxonomy.organism_type = 2
+        self.assertEqual(strain.dict()[TAXONOMY][ORGANISM_TYPE],
+                         {'code': 2, 'name': 'archaea'})
+
+        strain.taxonomy.organism_type = 'algae'
+        self.assertEqual(strain.dict()[TAXONOMY][ORGANISM_TYPE],
+                         {'code': 1, 'name': 'algae'})
+
+        strain.other_numbers.append(StrainId(collection='aaa', number='a'))
+        strain.other_numbers.append(StrainId(collection='aaa3', number='a3'))
+        self.assertEqual(strain.dict()[OTHER_CULTURE_NUMBERS],
+                         [{'collection_code': 'aaa', 'accession_number': 'a'},
+                          {'collection_code': 'aaa3', 'accession_number': 'a3'}
+                          ])
 
 
 class TestIsolation(unittest.TestCase):
@@ -143,6 +193,17 @@ class TestIsolation(unittest.TestCase):
             self.fail()
         except (ValueError, AttributeError):
             pass
+
+
+class TestGenomicSequence(unittest.TestCase):
+
+    def test_empty_init(self):
+        gen_seq = GenomicSequence()
+        self.assertEqual(gen_seq.dict(), {})
+        gen_seq.marker_id = 'pepe'
+        gen_seq.marker_type = '16S rRNA'
+        self.assertEqual(gen_seq.dict(),
+                         {'marker_type': '16S rRNA', 'INSDC': 'pepe'})
 
 
 if __name__ == "__main__":
