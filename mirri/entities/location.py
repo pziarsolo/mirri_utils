@@ -1,12 +1,12 @@
-from collections import OrderedDict
-from copy import deepcopy
+# from collections import OrderedDict
+# from copy import deepcopy
 from typing import Union
 
 from mirri.entities._private_classes import _FieldBasedClass
-from mirri.settings import (ALLOWED_COLLECTING_SITE_KEYS, ALTITUDE,
-                            COORD_SPATIAL_REFERENCE, COORDUNCERTAINTY, COUNTRY,
-                            GEOREF_METHOD, ISLAND, LATITUDE, LONGITUDE,
-                            MUNICIPALITY, OTHER, PROVINCE, SITE, STATE)
+from mirri.settings import (ALTITUDE, COORD_SPATIAL_REFERENCE,
+                            COORDUNCERTAINTY, COUNTRY, GEOREF_METHOD, ISLAND,
+                            LATITUDE, LONGITUDE, MUNICIPALITY, OTHER, PROVINCE,
+                            SITE, STATE)
 
 
 class Location(_FieldBasedClass):
@@ -21,7 +21,8 @@ class Location(_FieldBasedClass):
         {'attribute': 'longitude', 'label': LONGITUDE},
         {'attribute': 'latitude', 'label': LATITUDE},
         {'attribute': 'altitude', 'label': ALTITUDE},
-        {'attribute': 'coord_spatial_reference', 'label': COORD_SPATIAL_REFERENCE},
+        {'attribute': 'coord_spatial_reference',
+         'label': COORD_SPATIAL_REFERENCE},
         {'attribute': 'coord_uncertainty', 'label': COORDUNCERTAINTY},
         {'attribute': 'georef_method', 'label': GEOREF_METHOD}
     ]

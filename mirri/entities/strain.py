@@ -9,7 +9,6 @@ import re
 from builtins import property
 from collections import OrderedDict
 from copy import deepcopy
-from datetime import date
 from typing import List, Union
 
 from mirri.entities._private_classes import _FieldBasedClass
@@ -122,10 +121,13 @@ class Taxonomy(object):
         return bool(self._data)
 
     def dict(self):
-        data = deepcopy(self._data)
-        if ORGANISM_TYPE in data:
-            data[ORGANISM_TYPE] = data[ORGANISM_TYPE].dict()
-
+        data = {}
+        for key, value in self._data.items():
+            if value is None:
+                continue
+            if key == ORGANISM_TYPE:
+                value = value.dict()
+            data[key] = value
         return data
 
     def __getitem__(self, key):
@@ -277,7 +279,6 @@ class _GeneralStep():
             data = {}
         if self._location_tag is not None:
             self.location = Location(data.get(self._location_tag, None))
-            print(self.location)
         if self._date_tag:
             self.who = data.get(self._who_tag, None)
         if self._date_tag:
@@ -319,13 +320,13 @@ class _GeneralStep():
     def date(self, _date: DateRange):
         if self._date_tag is None:
             return ValueError('Can set date on this class')
-
-        if not isinstance(_date, DateRange):
-            raise ValueError('Date must be a DateRange instance')
-        self._data[self._date_tag] = _date
+        if _date is not None:
+            if not isinstance(_date, DateRange):
+                raise ValueError('Date must be a DateRange instance')
+            self._data[self._date_tag] = _date
 
     def dict(self):
-        _data = OrderedDict()
+        _data = {}
         if self.location:
             _data[self._location_tag] = self.location.dict()
         if self.who:
@@ -401,8 +402,8 @@ class Isolation(_GeneralStep):
         super().__init__(data=data)
         _date = DateRange()
 
-        self.substrate_host_of_isolation = data.get(SUBSTRATE_HOST_OF_ISOLATION,
-                                                    None)
+        self.substrate_host_of_isolation = \
+            data.get(SUBSTRATE_HOST_OF_ISOLATION, None)
 
     def dict(self):
         _data = super().dict()
@@ -497,7 +498,7 @@ class GenomicSequence(_FieldBasedClass):
     _fields = [{'attribute': 'marker_type', 'label': MARKER_TYPE},
                {'attribute': 'marker_id', 'label': MARKER_INSDC},
                {'attribute': 'marker_seq', 'label': MARKER_SEQ}
-    ]
+               ]
 
     @property
     def marker_type(self):
@@ -582,18 +583,21 @@ class Genetics():
 
     @ploidy.setter
     def ploidy(self, value: int):
-        if value not in ALLOWED_PLOIDIES:
-            msg = f'{value} not in allowed ploidies: '
-            msg += f'{", ".join(str(p) for p in ALLOWED_PLOIDIES)}'
-            raise ValueError(msg)
-        self._data[PLOIDY] = value
+        if value is not None:
+            if value not in ALLOWED_PLOIDIES:
+                msg = f'{value} not in allowed ploidies: '
+                msg += f'{", ".join(str(p) for p in ALLOWED_PLOIDIES)}'
+                raise ValueError(msg)
+            self._data[PLOIDY] = value
 
     @property
-    def gmo(self) -> str:
+    def gmo(self) -> bool:
         return self._data.get(GMO, None)
 
     @gmo.setter
-    def gmo(self, value: str):
+    def gmo(self, value: bool):
+        if value is not None and not isinstance(value, bool):
+            raise ValueError('Gmos value must be boolean')
         self._data[GMO] = value
 
     @property
@@ -720,7 +724,8 @@ class Strain:
         self.abs_related_files = data.get(ABS_RELATED_FILES, None)
         self.mta_files = data.get(MTA_FILES, None)
         self.is_potentially_harmful = data.get(DUAL_USE, None)
-        self.is_from_registered_collection = data.get(STRAIN_FROM_REGISTERED_COLLECTION, None)
+        self.is_from_registered_collection = \
+            data.get(STRAIN_FROM_REGISTERED_COLLECTION, None)
         self.is_subject_to_quarantine = data.get(QUARANTINE, None)
 
         self.id = StrainId(data.get(STRAIN_ID, None))
@@ -748,7 +753,7 @@ class Strain:
                 self.publications.append(Publication(pub))
 
     def __str__(self):
-        return f'{self.id.collection} {self.id.number}'
+        return f'Strain {self.id.collection} {self.id.number}'
 
 #     def dict2(self):
 #         data = deepcopy(self._data)
@@ -767,7 +772,8 @@ class Strain:
 #                 del data[OTHER_CULTURE_NUMBERS]
 #         if PUBLICATIONS in data:
 #             if data[PUBLICATIONS]:
-#                 data[PUBLICATIONS] = [pub.dict() for pub in data[PUBLICATIONS]]
+#                 data[PUBLICATIONS] = [pub.dict()
+#                                        for pub in data[PUBLICATIONS]]
 #             else:
 #                 del data[PUBLICATIONS]
 #         return data
@@ -829,7 +835,8 @@ class Strain:
         if restriction is not None:
             if restriction not in ALLOWED_RESTRICTION_USE_OPTIONS:
                 msg = f'Restriction use options not matched: {restriction}.'
-                msg += f' Options: {" ,".join(ALLOWED_RESTRICTION_USE_OPTIONS)}'
+                msg += ' Options: '
+                msg += f'{" ,".join(ALLOWED_RESTRICTION_USE_OPTIONS)}'
                 raise ValueError(msg)
             self._data[RESTRICTION_ON_USE] = restriction
 
@@ -844,6 +851,8 @@ class Strain:
         # EU Council Regulation 2000/1334/CEand its amendments
         # and corrections
         if is_harmful is not None:
+            if not isinstance(is_harmful, bool):
+                raise ValueError('is_potentially harmful must be True/False')
             self._data[DUAL_USE] = is_harmful
 
     @property
@@ -851,7 +860,9 @@ class Strain:
         return self._data[QUARANTINE]
 
     @is_subject_to_quarantine.setter
-    def is_subject_to_quarantine(self, quarantine):
+    def is_subject_to_quarantine(self, quarantine: bool):
+        if quarantine is not None and not isinstance(quarantine, bool):
+            raise ValueError('is subject to quarantine must be boolean')
         self._data[QUARANTINE] = quarantine
 
     @property
@@ -861,6 +872,8 @@ class Strain:
     @is_from_registered_collection.setter
     def is_from_registered_collection(self, value: bool):
         if value is not None:
+            if not isinstance(value, bool):
+                raise ValueError('is from reg_collection must be boolean')
             self._data[STRAIN_FROM_REGISTERED_COLLECTION] = value
 
     @property
@@ -912,7 +925,8 @@ class Strain:
     @history.setter
     def history(self, value: str):
         if value:
-            value = [item.strip() for item in value.split('>')]
+            value = [item.strip() for item in value.split('<')]
+            value = list(filter(bool, value))
             self._data[HISTORY_OF_DEPOSIT] = value
 
     @property
@@ -922,7 +936,8 @@ class Strain:
     @form_of_supply.setter
     def form_of_supply(self, value: List[str]):
         allowed = {f.lower() for f in ALLOWED_FORMS_OF_SUPPLY}
-        if {v.lower(9) for v in value}.difference(allowed):
+
+        if {v.lower() for v in value}.difference(allowed):
             msg = 'Not allowed forms of suplly'
             raise ValueError(msg)
         self._data[FORM_OF_SUPPLY] = value
@@ -981,11 +996,12 @@ class Strain:
 
     @publications.setter
     def publications(self, value: List[Publication]):
-        for pub in value:
-            if not isinstance(pub, Publication):
-                msg = 'Publications must be Publication instaces'
-                raise ValueError(msg)
-        self._data[PUBLICATIONS] = value
+        if value is not None:
+            for pub in value:
+                if not isinstance(pub, Publication):
+                    msg = 'Publications must be Publication instaces'
+                    raise ValueError(msg)
+            self._data[PUBLICATIONS] = value
 
     # mierder
     @property

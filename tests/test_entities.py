@@ -176,6 +176,8 @@ class TestStrain(unittest.TestCase):
                          [{'collection_code': 'aaa', 'accession_number': 'a'},
                           {'collection_code': 'aaa3', 'accession_number': 'a3'}
                           ])
+        import pprint
+        pprint.pprint(strain.dict())
 
 
 class TestIsolation(unittest.TestCase):
@@ -204,6 +206,8 @@ class TestGenomicSequence(unittest.TestCase):
         gen_seq.marker_type = '16S rRNA'
         self.assertEqual(gen_seq.dict(),
                          {'marker_type': '16S rRNA', 'INSDC': 'pepe'})
+
+        validate_strain(strain)
 
 
 if __name__ == "__main__":

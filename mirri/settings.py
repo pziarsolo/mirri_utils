@@ -106,7 +106,7 @@ MIRRI_FIELDS = [
 
     {'attribute': 'taxonomy.organism_type', 'label': 'Organism type',
      'mandatory': True},
-    {'attribute': 'taxonomy.species', 'label': 'Taxon name',
+    {'attribute': 'taxonomy.taxon_name', 'label': 'Taxon name',
      'mandatory': True},
     {'attribute': 'taxonomy.infrasubspecific_name',
      'label': 'Infrasubspecific names', 'mandatory': False},
@@ -147,13 +147,13 @@ MIRRI_FIELDS = [
     {'attribute': 'other_denominations', 'label': 'Other denomination',
      'mandatory': False},
 
-    {'attribute': 'collect.location.longitude',
+    {'attribute': 'collect.location.coords',
      'label': 'Coordinates of geographic origin', 'mandatory': False},
     {'attribute': 'collect.location.altidude',
      'label': 'Altitude of geographic origin', 'mandatory': False},
     {'attribute': 'collect.location', 'label': 'Geographic origin',
      'mandatory': True},
-    {'attribute': 'collect.habitat',
+    {'attribute': 'collect.habitat', 'label': 'Isolation habitat',
      'mandatory': False},
     {'attribute': 'collect.habitat_ontotype',
      'label': 'Ontobiotope term for the isolation habitat',
@@ -171,7 +171,7 @@ MIRRI_FIELDS = [
     {'attribute': 'genetics.ploidy', 'label': 'Ploidy', 'mandatory': False},
     {'attribute': 'genetics.plasmids', 'label': 'Plasmids',
      'mandatory': False},
-    {'attribute': 'genetic.plasmid_collections_fields',
+    {'attribute': 'genetics.plasmid_collections_fields',
      'label': 'Plasmids collections fields', 'mandatory': False},
 
     {'attribute': 'publications', 'label': 'Literature', 'mandatory': False},
@@ -235,7 +235,8 @@ ALLOWED_MARKER_TYPES = [
     {'acronym': 'ACT', 'marker': 'Actin'},
     {'acronym': 'CaM', 'marker': 'Calmodulin'},
     {'acronym': 'EF-1α', 'marker': 'elongation factor 1-alpha (EF-1α)'},
-    {'acronym': 'ITS', 'marker': 'nuclear ribosomal Internal Transcribed Spacer (ITS)'},
+    {'acronym': 'ITS',
+     'marker': 'nuclear ribosomal Internal Transcribed Spacer (ITS)'},
     {'acronym': 'LSU', 'marker': 'nuclear ribosomal Large SubUnit (LSU)'},
     {'acronym': 'RPB1', 'marker': 'Ribosomal RNA-coding genes RPB1'},
     {'acronym': 'RPB2', 'marker': 'Ribosomal RNA-coding genes RPB2'},
@@ -267,3 +268,9 @@ POLYPLOID = 9
 
 ALLOWED_PLOIDIES = [ANEUPLOID, HAPLOID, DIPLOID, TRIPLOID, TETRAPLOID,
                     POLYPLOID]
+
+SUBTAXAS = {'subsp.': 'subspecies',
+            'var.': 'variety',
+            'convar.': 'convarietas',
+            'group.': 'group',
+            'f.': 'forma'}

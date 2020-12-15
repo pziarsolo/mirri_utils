@@ -1,0 +1,191 @@
+import re
+from datetime import date
+
+from openpyxl import load_workbook
+
+from mirri import rsetattr
+from mirri.entities.date_range import DateRange
+from mirri.entities.strain import GenomicSequence, Strain, StrainId
+from mirri.settings import (COMMERCIAL_USE_WITH_AGREEMENT, MIRRI_FIELDS,
+                            NAGOYA_APPLIES, NAGOYA_NO_APPLIES,
+                            NAGOYA_NO_CLEAR_APPLIES, NO_RESTRICTION,
+                            ONLY_RESEARCH, SUBTAXAS)
+
+RESTRICTION_USE_TRANSLATOR = {
+    1: NO_RESTRICTION, 2: ONLY_RESEARCH, 3: COMMERCIAL_USE_WITH_AGREEMENT
+}
+NAGOYA_TRANSLATOR = {
+    1: NAGOYA_NO_APPLIES, 2: NAGOYA_APPLIES, 3: NAGOYA_NO_CLEAR_APPLIES
+}
+
+
+def excel_dict_reader(path, sheet_name):
+    wb = load_workbook(filename=str(path), data_only=True)
+    try:
+        sheet = wb[sheet_name]
+    except KeyError:
+        raise ValueError(f'{sheet_name} sheet not in excel file')
+
+    first = True
+    for row in sheet.rows:
+        values = [cell.value for cell in row]
+        if first:
+            header = values
+            first = False
+            continue
+        yield dict(zip(header, values))
+
+
+def parse_mirri_excel(path, version, error_logs):
+    if version == '20200601':
+        return _parse_mirri_v20200601(path, error_logs)
+
+
+def _parse_mirri_v20200601(path, error_logs, fail_if_error=True):
+    errors = {}
+    locations = excel_dict_reader(path, 'Locations')
+    indexed_locations = {loc['ID']: loc for loc in locations}
+
+#     growth_media = excel_dict_reader(path, 'Growth media')
+#     indexed_growth_media = {gm['Acronym']: gm for gm in growth_media}
+
+    markers = excel_dict_reader(path, 'Genomic information')
+    indexed_markers = {}
+    for marker in markers:
+        strain_id = marker['Strain AN']
+        if strain_id not in indexed_markers:
+            indexed_markers[strain_id] = []
+        indexed_markers[strain_id].append(marker)
+
+    count = 0
+    for strain_row in excel_dict_reader(path, 'Strains'):
+        strain = Strain()
+        if count > 30:
+            break
+        strain_id = None
+        for field in MIRRI_FIELDS:
+            try:
+                label = field['label']
+                attribute = field['attribute']
+                value = strain_row[label]
+                if attribute == 'id':
+                    strain_id = value
+
+                # print(label, attribute, value)
+                if attribute == 'id':
+                    collection, number = value.split(' ', 1)
+                    value = StrainId(collection=collection, number=number)
+                    rsetattr(strain, attribute, value)
+
+                elif attribute == 'restriction_on_use':
+                    rsetattr(strain, attribute, RESTRICTION_USE_TRANSLATOR[value])
+                elif attribute == 'nagoya_protocol':
+                    rsetattr(strain, attribute, NAGOYA_TRANSLATOR[value])
+                elif attribute == 'other_numbers':
+                    other_numbers = []
+                    if value is not None:
+                        for on in value.split(';'):
+                            on = on.strip()
+                            try:
+                                collection, number = on.split(' ', 1)
+                            except ValueError:
+                                collection = None
+                                number = on
+                            other_numbers.append(StrainId(collection=collection,
+                                                          number=number))
+                        rsetattr(strain, attribute, other_numbers)
+                elif attribute == 'taxonomy.taxon_name':
+                    add_taxon_to_strain(strain, value)
+                elif attribute in ('deposit.date', 'collect.date',
+                                   'isolation.date'):
+                    if isinstance(value, date):
+                        value = DateRange(year=value.year, month=value.month,
+                                          day=value.day)
+                    elif isinstance(value, str):
+                        value = DateRange().strpdate(value)
+
+                    rsetattr(strain, attribute, value)
+
+                elif attribute == 'growth.recommended_medium':
+                    if value is not None:
+                        value = value.split(';')
+                    rsetattr(strain, attribute, value)
+                elif attribute == 'form_of_supply':
+                    value = value.split(';')
+                    rsetattr(strain, attribute, value)
+                elif attribute == 'collect.location.coords':
+                    if value:
+                        items = value.split(';')
+                        strain.collect.location.latitude = items[0]
+                        strain.collect.location.longitude = items[1]
+                        if len(items) > 2:
+                            strain.collect.location.coord_uncertainty = items[2]
+
+                elif attribute == 'collect.location':
+                    location = indexed_locations[value]
+                    strain.collect.location.country = location['country']
+                    strain.collect.location.state = location['region']
+                    strain.collect.location.municipality = location['city']
+                    strain.collect.location.site = location['locality']
+                elif attribute in ('abs_related_files', 'mta_files'):
+                    if value is not None:
+                        rsetattr(strain, attribute, value.split(';'))
+                elif attribute == '':
+                    rsetattr(strain, attribute, value)
+                elif attribute in ('is_from_registered_collection',
+                                   'is_subject_to_quarantine',
+                                   'is_potentially_harmful', 'genetics.gmo'):
+                    if value == 1:
+                        value = False
+                    elif value == 2:
+                        value = True
+                    else:
+                        value = None
+                    rsetattr(strain, attribute, value)
+                else:
+                    rsetattr(strain, attribute, value)
+            except ValueError as error:
+                if fail_if_error:
+                    raise
+                if strain_id not in error_logs:
+                    error_logs[strain_id] = []
+                error_logs[strain_id].append(f'{label}: error')
+
+        # add markers
+        strain_id = f'{strain.id.collection} {strain.id.number}'
+        if strain_id in indexed_markers:
+            for marker in indexed_markers[strain_id]:
+                _marker = GenomicSequence()
+                _marker.marker_id = marker['INSDC AN']
+                _marker.marker_type = marker['Marker']
+                _marker.marker_seq = marker['Sequence']
+                strain.genetics.markers.append(_marker)
+
+        yield strain
+        # count += 1
+
+
+def add_taxon_to_strain(strain, value):
+    if value is None:
+        return
+    value = value.strip()
+    if not value:
+        return
+    items = re.split(r' +', value)
+    genus = items[0]
+    strain.taxonomy.genus = genus
+    if len(items) > 1:
+        species = items[1]
+        if species in ('sp', 'spp', '.sp'):
+            species = None
+            return
+        strain.taxonomy.species = species
+
+        if len(items) > 2:
+            for index in range(0, len(items[2:]), 2):
+                rank = SUBTAXAS.get(items[index + 2], None)
+                if rank is None:
+                    print(strain, value, items)
+                    return
+                name = items[index + 3]
+            strain.taxonomy.add_subtaxa(rank, name)
