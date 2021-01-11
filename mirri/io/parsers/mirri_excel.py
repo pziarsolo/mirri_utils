@@ -36,27 +36,40 @@ def excel_dict_reader(path, sheet_name):
         yield dict(zip(header, values))
 
 
-def parse_mirri_excel(path, version, error_logs):
+def parse_mirri_excel(path, version, fail_if_error=True):
     if version == '20200601':
-        return _parse_mirri_v20200601(path, error_logs)
+        return _parse_mirri_v20200601(path, fail_if_error=fail_if_error)
 
 
-def _parse_mirri_v20200601(path, error_logs, fail_if_error=True):
-    errors = {}
+def _parse_mirri_v20200601(path, fail_if_error):
     locations = excel_dict_reader(path, 'Locations')
     indexed_locations = {loc['ID']: loc for loc in locations}
 
-#     growth_media = excel_dict_reader(path, 'Growth media')
-#     indexed_growth_media = {gm['Acronym']: gm for gm in growth_media}
+    growth_media = excel_dict_reader(path, 'Growth media')
+    indexed_growth_media = {str(gm['Acronym']): gm for gm in growth_media}
 
     markers = excel_dict_reader(path, 'Genomic information')
     indexed_markers = {}
+
+    indexed_errors = {}
+
     for marker in markers:
         strain_id = marker['Strain AN']
         if strain_id not in indexed_markers:
             indexed_markers[strain_id] = []
         indexed_markers[strain_id].append(marker)
+    strains = list(_parse_strains(path,
+                                  indexed_locations,
+                                  indexed_growth_media,
+                                  indexed_markers, indexed_errors,
+                                  fail_if_error))
 
+    return {'strains': strains, 'growth_media': indexed_growth_media,
+            'markers': indexed_markers, 'errors': indexed_errors}
+
+
+def _parse_strains(path, indexed_locations, indexed_growth_media,
+                   indexed_markers, error_logs, fail_if_error):
     count = 0
     for strain_row in excel_dict_reader(path, 'Strains'):
         strain = Strain()
@@ -108,8 +121,18 @@ def _parse_mirri_v20200601(path, error_logs, fail_if_error=True):
 
                 elif attribute == 'growth.recommended_medium':
                     if value is not None:
-                        value = value.split(';')
-                    rsetattr(strain, attribute, value)
+                        sep = '/'
+                        if ';' in value:
+                            sep = ';'
+
+                        growth_media = value.split(sep)
+                        for growth_medium in growth_media:
+                            growth_medium = growth_medium.strip()
+                            if growth_medium not in indexed_growth_media:
+                                msg = f'{growth_medium} Growth medium not in '
+                                msg += 'growth media sheet'
+                                raise ValueError(msg)
+                        rsetattr(strain, attribute, growth_media)
                 elif attribute == 'form_of_supply':
                     value = value.split(';')
                     rsetattr(strain, attribute, value)
@@ -144,12 +167,12 @@ def _parse_mirri_v20200601(path, error_logs, fail_if_error=True):
                     rsetattr(strain, attribute, value)
                 else:
                     rsetattr(strain, attribute, value)
-            except ValueError as error:
+            except (ValueError, IndexError) as error:
                 if fail_if_error:
                     raise
                 if strain_id not in error_logs:
                     error_logs[strain_id] = []
-                error_logs[strain_id].append(f'{label}: error')
+                error_logs[strain_id].append(f'{label}: {error}')
 
         # add markers
         strain_id = f'{strain.id.collection} {strain.id.number}'
@@ -185,7 +208,7 @@ def add_taxon_to_strain(strain, value):
             for index in range(0, len(items[2:]), 2):
                 rank = SUBTAXAS.get(items[index + 2], None)
                 if rank is None:
-                    print(strain, value, items)
-                    return
+                    raise ValueError(f'Not valid value: {value}')
+
                 name = items[index + 3]
             strain.taxonomy.add_subtaxa(rank, name)
