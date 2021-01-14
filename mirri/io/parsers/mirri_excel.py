@@ -6,10 +6,11 @@ from openpyxl import load_workbook
 from mirri import rsetattr
 from mirri.entities.date_range import DateRange
 from mirri.entities.strain import GenomicSequence, Strain, StrainId
-from mirri.settings import (COMMERCIAL_USE_WITH_AGREEMENT, MIRRI_FIELDS,
+from mirri.settings import (COMMERCIAL_USE_WITH_AGREEMENT, GENOMIC_INFO,
+                            GROWTH_MEDIA, LOCATIONS, MIRRI_FIELDS,
                             NAGOYA_APPLIES, NAGOYA_NO_APPLIES,
                             NAGOYA_NO_CLEAR_APPLIES, NO_RESTRICTION,
-                            ONLY_RESEARCH, SUBTAXAS)
+                            ONLY_RESEARCH, STRAINS, SUBTAXAS)
 
 RESTRICTION_USE_TRANSLATOR = {
     1: NO_RESTRICTION, 2: ONLY_RESEARCH, 3: COMMERCIAL_USE_WITH_AGREEMENT
@@ -23,8 +24,8 @@ def excel_dict_reader(path, sheet_name):
     wb = load_workbook(filename=str(path), data_only=True)
     try:
         sheet = wb[sheet_name]
-    except KeyError:
-        raise ValueError(f'{sheet_name} sheet not in excel file')
+    except KeyError as error:
+        raise ValueError(f'{sheet_name} sheet not in excel file') from error
 
     first = True
     for row in sheet.rows:
@@ -42,22 +43,22 @@ def parse_mirri_excel(path, version, fail_if_error=True):
 
 
 def _parse_mirri_v20200601(path, fail_if_error):
-    locations = excel_dict_reader(path, 'Locations')
+    locations = excel_dict_reader(path, LOCATIONS)
     indexed_locations = {loc['ID']: loc for loc in locations}
 
-    growth_media = excel_dict_reader(path, 'Growth media')
+    growth_media = excel_dict_reader(path, GROWTH_MEDIA)
     indexed_growth_media = {str(gm['Acronym']): gm for gm in growth_media}
 
-    markers = excel_dict_reader(path, 'Genomic information')
+    markers = excel_dict_reader(path, GENOMIC_INFO)
     indexed_markers = {}
-
-    indexed_errors = {}
 
     for marker in markers:
         strain_id = marker['Strain AN']
         if strain_id not in indexed_markers:
             indexed_markers[strain_id] = []
         indexed_markers[strain_id].append(marker)
+    indexed_errors = {}
+
     strains = list(_parse_strains(path,
                                   indexed_locations,
                                   indexed_growth_media,
@@ -65,16 +66,14 @@ def _parse_mirri_v20200601(path, fail_if_error):
                                   fail_if_error))
 
     return {'strains': strains, 'growth_media': indexed_growth_media,
-            'markers': indexed_markers, 'errors': indexed_errors}
+            'errors': indexed_errors}
 
 
 def _parse_strains(path, indexed_locations, indexed_growth_media,
                    indexed_markers, error_logs, fail_if_error):
-    count = 0
-    for strain_row in excel_dict_reader(path, 'Strains'):
+
+    for strain_row in excel_dict_reader(path, STRAINS):
         strain = Strain()
-        if count > 30:
-            break
         strain_id = None
         for field in MIRRI_FIELDS:
             try:
@@ -86,12 +85,16 @@ def _parse_strains(path, indexed_locations, indexed_growth_media,
 
                 # print(label, attribute, value)
                 if attribute == 'id':
-                    collection, number = value.split(' ', 1)
+                    try:
+                        collection, number = value.split(' ', 1)
+                    except AttributeError as error:
+                        raise ValueError('malformed accession number') from error
                     value = StrainId(collection=collection, number=number)
                     rsetattr(strain, attribute, value)
 
                 elif attribute == 'restriction_on_use':
-                    rsetattr(strain, attribute, RESTRICTION_USE_TRANSLATOR[value])
+                    rsetattr(strain, attribute,
+                             RESTRICTION_USE_TRANSLATOR[value])
                 elif attribute == 'nagoya_protocol':
                     rsetattr(strain, attribute, NAGOYA_TRANSLATOR[value])
                 elif attribute == 'other_numbers':
@@ -162,12 +165,15 @@ def _parse_strains(path, indexed_locations, indexed_growth_media,
                         value = False
                     elif value == 2:
                         value = True
-                    else:
+                    elif value is None:
                         value = None
+                    else:
+                        msg = f'Only 1, 2 or empty are allowed: {value}'
+                        raise ValueError(msg)
                     rsetattr(strain, attribute, value)
                 else:
                     rsetattr(strain, attribute, value)
-            except (ValueError, IndexError) as error:
+            except (ValueError, IndexError, KeyError) as error:
                 if fail_if_error:
                     raise
                 if strain_id not in error_logs:

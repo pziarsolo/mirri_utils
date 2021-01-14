@@ -40,5 +40,6 @@ class MirriExcelTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'MirriExcelTests.test_mirri_excel_parser_invalid']
+    # import sys;sys.argv = ['',
+    #                        'MirriExcelTests.test_mirri_excel_parser_invalid']
     unittest.main()

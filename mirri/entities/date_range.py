@@ -1,5 +1,6 @@
 from calendar import monthrange
 from collections import OrderedDict
+from copy import copy
 from datetime import date
 
 
@@ -46,7 +47,11 @@ class DateRange():
 
     def strpdate(self, date_str: str):
         date_str = str(date_str)
+        orig_date = copy(date_str)
         date_str = date_str.replace('/', '').replace('-', '')
+        if len(date_str) > 8:
+            msg = f'Malformed date, Mora caracters than expected: {orig_date}'
+            raise ValueError(msg)
         month = None
         day = None
         if len(date_str) >= 4:

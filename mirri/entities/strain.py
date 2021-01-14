@@ -19,20 +19,21 @@ from mirri.settings import (ABS_RELATED_FILES, ACCESSION_NAME,
                             ACCESSION_NUMBER, ALLOWED_FORMS_OF_SUPPLY,
                             ALLOWED_MARKER_TYPES, ALLOWED_NAGOYA_OPTIONS,
                             ALLOWED_PLOIDIES, ALLOWED_RESTRICTION_USE_OPTIONS,
-                            ALLOWED_SUBTAXA, ALLOWED_TAXONOMIC_RANKS,
-                            APPLICATIONS, COLLECT, COLLECTED_BY,
-                            COLLECTION_CODE, COMMENTS_ON_TAXONOMY,
-                            DATE_OF_COLLECTION, DATE_OF_INCLUSION,
-                            DATE_OF_ISOLATION, DEPOSIT, DEPOSITOR, DUAL_USE,
-                            ENZYME_PRODUCTION, FORM_OF_SUPPLY, GENETICS,
-                            GENOTYPE, GENUS, GMO, GMO_CONSTRUCTION_INFO,
-                            GROWTH, HISTORY_OF_DEPOSIT, INFRASUBSPECIFIC_NAME,
-                            INTERSPECIFIC_HYBRID, ISOLATED_BY, ISOLATION,
-                            ISOLATION_HABITAT, LOCATION, MARKER_INSDC,
-                            MARKER_SEQ, MARKER_TYPE, MARKERS, MTA_FILES,
-                            MUTANT_INFORMATION, NAGOYA_PROTOCOL,
-                            ONTOTYPE_ISOLATION_HABITAT, ORGANISM_TYPE,
-                            OTHER_CULTURE_NUMBERS, PATHOGENICITY, PLASMIDS,
+                            ALLOWED_RISK_GROUPS, ALLOWED_SUBTAXA,
+                            ALLOWED_TAXONOMIC_RANKS, APPLICATIONS, COLLECT,
+                            COLLECTED_BY, COLLECTION_CODE,
+                            COMMENTS_ON_TAXONOMY, DATE_OF_COLLECTION,
+                            DATE_OF_INCLUSION, DATE_OF_ISOLATION, DEPOSIT,
+                            DEPOSITOR, DUAL_USE, ENZYME_PRODUCTION,
+                            FORM_OF_SUPPLY, GENETICS, GENOTYPE, GENUS, GMO,
+                            GMO_CONSTRUCTION_INFO, GROWTH, HISTORY_OF_DEPOSIT,
+                            INFRASUBSPECIFIC_NAME, INTERSPECIFIC_HYBRID,
+                            ISOLATED_BY, ISOLATION, ISOLATION_HABITAT,
+                            LOCATION, MARKER_INSDC, MARKER_SEQ, MARKER_TYPE,
+                            MARKERS, MTA_FILES, MUTANT_INFORMATION,
+                            NAGOYA_PROTOCOL, ONTOTYPE_ISOLATION_HABITAT,
+                            ORGANISM_TYPE, OTHER_CULTURE_NUMBERS,
+                            PATHOGENICITY, PLASMIDS,
                             PLASMIDS_COLLECTION_FIELDS, PLOIDY,
                             PRODUCTION_OF_METABOLITES, PUBLICATIONS,
                             QUARANTINE, RECOMMENDED_GROWTH_MEDIUM,
@@ -69,7 +70,7 @@ class OrganismType():
     @code.setter
     def code(self, code: int):
         if code not in ORG_TYPES.values():
-            raise ValueError('code not accepted for organism type')
+            raise ValueError(f'code {code} not accepted for organism type')
         self._data['code'] = code
         name = None
         for _name, _code in ORG_TYPES.items():
@@ -823,7 +824,13 @@ class Strain:
 
     @risk_group.setter
     def risk_group(self, risk_gr: Union[str, int]):
+        # we have to check if there are some more options
         if risk_gr is not None:
+            risk_gr = str(risk_gr)
+            if risk_gr not in ALLOWED_RISK_GROUPS:
+                msg = f'Value ({risk_gr}) not in the allowed options: '
+                msg += f"{', '.join(ALLOWED_RISK_GROUPS)}"
+                raise ValueError(msg)
             self._data[RISK_GROUP] = str(risk_gr)
 
     @property
