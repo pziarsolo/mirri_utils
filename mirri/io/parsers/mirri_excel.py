@@ -20,7 +20,7 @@ NAGOYA_TRANSLATOR = {
 }
 
 
-def excel_dict_reader(path, sheet_name):
+def excel_dict_reader(path, sheet_name, mandatory_column_name=None):
     wb = load_workbook(filename=str(path), data_only=True)
     try:
         sheet = wb[sheet_name]
@@ -34,7 +34,10 @@ def excel_dict_reader(path, sheet_name):
             header = values
             first = False
             continue
-        yield dict(zip(header, values))
+        data = dict(zip(header, values))
+        if mandatory_column_name is not None and not data[mandatory_column_name]:
+            break
+        yield data
 
 
 def parse_mirri_excel(path, version, fail_if_error=True):
@@ -72,7 +75,7 @@ def _parse_mirri_v20200601(path, fail_if_error):
 def _parse_strains(path, indexed_locations, indexed_growth_media,
                    indexed_markers, error_logs, fail_if_error):
 
-    for strain_row in excel_dict_reader(path, STRAINS):
+    for strain_row in excel_dict_reader(path, STRAINS, 'Accession number'):
         strain = Strain()
         strain_id = None
         for field in MIRRI_FIELDS:

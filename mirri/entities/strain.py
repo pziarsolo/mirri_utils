@@ -99,7 +99,7 @@ class OrganismType():
 
             value_is_code = False
         except TypeError:
-            print(value)
+            # print(value)
             raise
 
         if value_is_code:
