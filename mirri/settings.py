@@ -279,7 +279,7 @@ SUBTAXAS = {'subsp.': 'subspecies',
             'f.': 'forma'}
 
 # Excel sheet name
-LOCATIONS = 'Locations'
+LOCATIONS = 'Geographic origin'  # 'Locations'
 GROWTH_MEDIA = 'Growth media'
 GENOMIC_INFO = 'Genomic information'
 STRAINS = 'Strains'

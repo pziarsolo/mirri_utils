@@ -173,7 +173,7 @@ def _parse_strains(path, indexed_locations, indexed_growth_media,
                     rsetattr(strain, attribute, value)
                 else:
                     rsetattr(strain, attribute, value)
-            except (ValueError, IndexError, KeyError) as error:
+            except (ValueError, IndexError, KeyError, TypeError, AttributeError) as error:
                 if fail_if_error:
                     raise
                 if strain_id not in error_logs:
@@ -182,13 +182,20 @@ def _parse_strains(path, indexed_locations, indexed_growth_media,
 
         # add markers
         strain_id = f'{strain.id.collection} {strain.id.number}'
-        if strain_id in indexed_markers:
-            for marker in indexed_markers[strain_id]:
-                _marker = GenomicSequence()
-                _marker.marker_id = marker['INSDC AN']
-                _marker.marker_type = marker['Marker']
-                _marker.marker_seq = marker['Sequence']
-                strain.genetics.markers.append(_marker)
+        try:
+            if strain_id in indexed_markers:
+                for marker in indexed_markers[strain_id]:
+                    _marker = GenomicSequence()
+                    _marker.marker_id = marker['INSDC AN']
+                    _marker.marker_type = marker['Marker']
+                    _marker.marker_seq = marker['Sequence']
+                    strain.genetics.markers.append(_marker)
+        except (ValueError, IndexError, KeyError, TypeError) as error:
+            if fail_if_error:
+                raise
+            if strain_id not in error_logs:
+                error_logs[strain_id] = []
+            error_logs[strain_id].append(f'Markers: {error}')
 
         yield strain
         # count += 1

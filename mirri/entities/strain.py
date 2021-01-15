@@ -50,6 +50,10 @@ RANK_TRANSLATOR = {'subspecies': 'subsp.', 'convarietas': 'convar.',
 ORG_TYPES = {'algae': 1, 'archaea': 2, 'bacteria': 3, 'fungi': 4, 'virus': 5,
              'yeast': 6}
 
+ORG_TYPES = {'algae': 1, 'archaea': 2, 'bacteria': 3, 'cyanobacteria': 4,
+             'filamentous fungi': 5, 'phage': 6, 'plasmid': 7, 'virus': 8,
+             'yeast': 9}
+
 
 class OrganismType():
 
@@ -92,7 +96,11 @@ class OrganismType():
             value = int(value)
             value_is_code = True
         except ValueError:
+
             value_is_code = False
+        except TypeError:
+            print(value)
+            raise
 
         if value_is_code:
             self.code = value
