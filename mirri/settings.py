@@ -101,7 +101,7 @@ MIRRI_FIELDS = [
     {'attribute': 'risk_group', 'label': 'Risk Group',
      'mandatory': True},
     {'attribute': 'dual_use', 'label': 'Dual use', 'mandatory': False},
-    {'attribute': 'is_subject_to_quarantine', 'label': 'Quarantinein Europe',
+    {'attribute': 'is_subject_to_quarantine', 'label': 'Quarantine in Europe',
      'mandatory': False},
 
     {'attribute': 'taxonomy.organism_type', 'label': 'Organism type',

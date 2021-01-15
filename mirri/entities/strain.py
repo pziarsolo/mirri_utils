@@ -73,6 +73,12 @@ class OrganismType():
 
     @code.setter
     def code(self, code: int):
+        try:
+            code = int(code)
+        except TypeError as error:
+            msg = f'code {code} not accepted for organism type'
+            raise ValueError(msg) from error
+
         if code not in ORG_TYPES.values():
             raise ValueError(f'code {code} not accepted for organism type')
         self._data['code'] = code
@@ -88,19 +94,25 @@ class OrganismType():
 
     @name.setter
     def name(self, name: str):
+        error_msg = f'name {name} not accepted for organism type'
+        try:
+            name = name.lower()
+        except TypeError as error:
+            raise ValueError(error_msg) from error
+
+        if name not in ORG_TYPES.keys():
+            raise ValueError(error_msg)
         self._data['name'] = name
         self._data['code'] = ORG_TYPES[name]
 
     def guess_type(self, value):
+        if value is None or not value:
+            raise ValueError(' Can not set an empty value')
         try:
             value = int(value)
             value_is_code = True
         except ValueError:
-
             value_is_code = False
-        except TypeError:
-            # print(value)
-            raise
 
         if value_is_code:
             self.code = value

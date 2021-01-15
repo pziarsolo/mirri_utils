@@ -35,7 +35,13 @@ def excel_dict_reader(path, sheet_name, mandatory_column_name=None):
             first = False
             continue
         data = dict(zip(header, values))
-        if mandatory_column_name is not None and not data[mandatory_column_name]:
+
+        if (mandatory_column_name is not None and
+                not data[mandatory_column_name]):
+            msg = f'Exiting before end of sheet {sheet_name} ends.\n'
+            msg += f'Mandatory column ({mandatory_column_name}) empty. \n'
+            msg += 'Check file for empty lines'
+            print(msg)
             break
         yield data
 
@@ -82,7 +88,11 @@ def _parse_strains(path, indexed_locations, indexed_growth_media,
             try:
                 label = field['label']
                 attribute = field['attribute']
-                value = strain_row[label]
+                try:
+                    value = strain_row[label]
+                except KeyError:
+                    msg = f'#{label}# column not in Strain sheet'
+                    raise KeyError(msg)
                 if attribute == 'id':
                     strain_id = value
 
@@ -90,8 +100,8 @@ def _parse_strains(path, indexed_locations, indexed_growth_media,
                 if attribute == 'id':
                     try:
                         collection, number = value.split(' ', 1)
-                    except AttributeError as error:
-                        raise ValueError('malformed accession number') from error
+                    except AttributeError as err:
+                        raise ValueError('malformed accession number') from err
                     value = StrainId(collection=collection, number=number)
                     rsetattr(strain, attribute, value)
 
@@ -110,8 +120,9 @@ def _parse_strains(path, indexed_locations, indexed_growth_media,
                             except ValueError:
                                 collection = None
                                 number = on
-                            other_numbers.append(StrainId(collection=collection,
-                                                          number=number))
+                            _id = StrainId(collection=collection,
+                                           number=number)
+                            other_numbers.append(_id)
                         rsetattr(strain, attribute, other_numbers)
                 elif attribute == 'taxonomy.taxon_name':
                     add_taxon_to_strain(strain, value)
@@ -148,10 +159,15 @@ def _parse_strains(path, indexed_locations, indexed_growth_media,
                         strain.collect.location.latitude = items[0]
                         strain.collect.location.longitude = items[1]
                         if len(items) > 2:
-                            strain.collect.location.coord_uncertainty = items[2]
+                            uncert = items[2]
+                            strain.collect.location.coord_uncertainty = uncert
 
                 elif attribute == 'collect.location':
-                    location = indexed_locations[value]
+                    try:
+                        location = indexed_locations[value]
+                    except KeyError as error:
+                        msg = f'#{value}# not in geographic origin sheet'
+                        raise KeyError(msg) from error
                     strain.collect.location.country = location['country']
                     strain.collect.location.state = location['region']
                     strain.collect.location.municipality = location['city']
@@ -176,7 +192,8 @@ def _parse_strains(path, indexed_locations, indexed_growth_media,
                     rsetattr(strain, attribute, value)
                 else:
                     rsetattr(strain, attribute, value)
-            except (ValueError, IndexError, KeyError, TypeError, AttributeError) as error:
+            except (ValueError, IndexError, KeyError, TypeError,
+                    AttributeError) as error:
                 if fail_if_error:
                     raise
                 if strain_id not in error_logs:
