@@ -15,7 +15,7 @@ class ErrorMessage():
             else:
                 return self.error_messages[code]()
         else:
-            return None
+            return ''
             
 
     """
@@ -368,10 +368,10 @@ class ErrorLog():
             cc: culture collection identifier
             date: date the inputed file was submited for validation
     """
-    def __init__(self, input_filename: str, cc: str, date: str = None):
+    def __init__(self, input_filename: str, cc: str=None, date: str = None):
         self.input_filename = input_filename
         self.cc = cc
-        self.date = date
+        self.date = datetime.strptime(date, '%d-%m-%Y').date()
         self.id = 0
         self.errors = {}
         self.document = Document()
@@ -410,16 +410,23 @@ class ErrorLog():
 
     def __str__(self):
         limit = 100
-        to_print = f'Error log for file {self.input_filename} sent by {self.cc} on {self.date}\n'
-        to_print += f'printing first {limit} errors (message and description will only be printed up to the 100th char)\n\n'
-        for count, (_, error) in enumerate(self.errors.items()):
+        count = 0
+        to_print = f'Error log for file <{self.input_filename}> sent by <{self.cc}> on <{self.date}>\n'
+        to_print += f'printing first {limit} errors\n\n'
+        to_print += '{:<10} | {:<10} | {:<250}\n'.format('ENTITY', 'CODE', 'MESSAGE')
+        for entity, errors in self.errors.items():
             if count == limit:
-                break
-            to_print += f'{error.category:<20}'
-            to_print += f' | {error.code:<10}'
-            to_print += f' | {error.message[:98]:<100}...' if len(error.message) > 100 else f'| {error.message:<100}'
-            to_print += f' | {error.description[:98]:<100}...' if len(error.description) > 100 else f'| {error.description:<100}'
-            to_print += '\n'
+                    break
+
+            for error in errors:
+                count += 1
+                if count == limit:
+                    break
+                to_print += f'{error.entity:<10}'
+                to_print += f' | {error.code:<10}'
+                to_print += f' | {error.message[:248]:<250}...' if len(error.message) > 250 else f' | {error.message:<250}'
+                to_print += '\n'
+    
         return to_print
 
 
@@ -479,7 +486,7 @@ class ErrorLog():
 
 
     @date.setter
-    def date(self, date: str):
+    def date(self, date):
         """
             Setter for date the inputed file was submited for validation
 
@@ -489,26 +496,14 @@ class ErrorLog():
         self._date = date
 
 
-    @property
-    def errors(self):
+    def get_errors(self):
         """
             Getter for errors identified
 
             return
                 errors [dict]: errors identified
         """
-        return self._errors
-
-
-    @errors.setter
-    def errors(self, errors: dict):
-        """
-            Setter for errors identified
-
-            params
-                errors [dict]: errors identified
-        """
-        self._errors = errors
+        return self.errors
 
 
     def add_error(self, error: Error):
@@ -518,41 +513,26 @@ class ErrorLog():
             params
                 error [Error]: error to be added
         """
-        if error.code not in self._errors:
-            self.errors[error.code] = error
+        if error.entity not in self.errors:
+            self.errors[error.entity] = [error]
         else:
-            raise ValueError(f'Can not add duplicate of error {error.code}.')
-
-
-    def remove_error(self, error_code):
-        """
-            Remove an error
-
-            params
-                error: error to be removed
-        """
-        if error.code in self._errors:
-            del self._errors[error.code]
-        else:
-            raise KeyError(f'Error {error.code} not found.')
+            self.errors[error.entity].append(error)
 
 
 if __name__ == '__main__':
-    error = Error('EFS01')
-    print(error.code, error.entity, error.message)
-    # error_log = ErrorLog('MIRRI-IS_dataset_BEA_template_30092020', 'BEA')
-    # errors = [
-    #     Error('Structure', 'ERR01', 'Error Message', 'Error Description'),
-    #     Error('Structure', 'ERR02', 'Error Message', 'Error Description'),
-    #     Error('Structure', 'ERR03', 'Error Message', 'Error Description'),
-    #     Error('Structure', 'ERR04', 'Error Message', 'Error Description'),
-    #     Error('Structure', 'ERR05', 'Error Message', 'Error Description')
-    # ]
+    error_log = ErrorLog('MIRRI-IS_dataset_BEA_template_30092020', 'BEA', '30-09-2020')
+    errors = [
+        Error('EFS01'),
+        Error('EFS02'),
+        Error('STD01'),
+        Error('GOD01'),
+        Error('LID01')
+    ]
 
-    # for error in errors:
-    #     error_log.add_error(error)
+    for error in errors:
+        error_log.add_error(error)
 
-    # print(error_log)
+    print(error_log)
     # print('Writing to file \'Error_Log_Example.docx\'')
     # error_log.write('.\\Error_Log_Example.docx')
     
