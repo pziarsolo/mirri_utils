@@ -101,7 +101,7 @@ MIRRI_FIELDS = [
     {'attribute': 'risk_group', 'label': 'Risk Group',
      'mandatory': True},
     {'attribute': 'dual_use', 'label': 'Dual use', 'mandatory': False},
-    {'attribute': 'is_subject_to_quarantine', 'label': 'Quarantinein Europe',
+    {'attribute': 'is_subject_to_quarantine', 'label': 'Quarantine in Europe',
      'mandatory': False},
 
     {'attribute': 'taxonomy.organism_type', 'label': 'Organism type',
@@ -209,6 +209,9 @@ COMMERCIAL_USE_WITH_AGREEMENT = 'commercial_use_with_agreement'
 
 ALLOWED_RESTRICTION_USE_OPTIONS = [NO_RESTRICTION, ONLY_RESEARCH,
                                    COMMERCIAL_USE_WITH_AGREEMENT]
+
+ALLOWED_RISK_GROUPS = ['1', '2', '3', '4']
+
 AGAR = 'agar'
 CRYO = 'cryo'
 DRY_ICE = 'dry ice'
@@ -274,3 +277,9 @@ SUBTAXAS = {'subsp.': 'subspecies',
             'convar.': 'convarietas',
             'group.': 'group',
             'f.': 'forma'}
+
+# Excel sheet name
+LOCATIONS = 'Geographic origin'  # 'Locations'
+GROWTH_MEDIA = 'Growth media'
+GENOMIC_INFO = 'Genomic information'
+STRAINS = 'Strains'

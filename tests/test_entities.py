@@ -1,45 +1,64 @@
-'''
+"""
 Created on 2020(e)ko abe. 2(a)
 
 @author: peio
-'''
+"""
 import unittest
 
 from mirri.entities.date_range import DateRange
 from mirri.entities.location import Location
-from mirri.entities.strain import (Collect, Deposit, GenomicSequence,
-                                   Isolation, OrganismType, Strain, StrainId,
-                                   Taxonomy)
-from mirri.settings import (COLLECT, COUNTRY, DATE_OF_ISOLATION, DEPOSIT,
-                            DEPOSITOR, GENETICS, GROWTH, ISOLATED_BY,
-                            ISOLATION, LOCATION, NAGOYA_APPLIES,
-                            NAGOYA_PROTOCOL, ORGANISM_TYPE,
-                            OTHER_CULTURE_NUMBERS, PLOIDY,
-                            RECOMMENDED_GROWTH_MEDIUM, TAXONOMY)
+from mirri.entities.strain import (
+    Collect,
+    Deposit,
+    GenomicSequence,
+    Isolation,
+    OrganismType,
+    Strain,
+    StrainId,
+    Taxonomy,
+)
+from mirri.settings import (
+    COLLECT,
+    COUNTRY,
+    DATE_OF_ISOLATION,
+    DEPOSIT,
+    DEPOSITOR,
+    GENETICS,
+    GROWTH,
+    ISOLATED_BY,
+    ISOLATION,
+    LOCATION,
+    NAGOYA_APPLIES,
+    NAGOYA_PROTOCOL,
+    ORGANISM_TYPE,
+    OTHER_CULTURE_NUMBERS,
+    PLOIDY,
+    RECOMMENDED_GROWTH_MEDIUM,
+    TAXONOMY,
+)
 
 
 class TestDataRange(unittest.TestCase):
-
     def test_data_range_init(self):
         dr = DateRange()
 
         self.assertFalse(dr)
 
-        self.assertEqual(dr.__str__(), '--------')
-        self.assertEqual(dr.range['start'], None)
-        self.assertEqual(dr.range['end'], None)
+        self.assertEqual(dr.__str__(), "--------")
+        self.assertEqual(dr.range["start"], None)
+        self.assertEqual(dr.range["end"], None)
 
-        dr.strpdate('2012')
-        self.assertEqual(dr.strfdate, '2012----')
+        dr.strpdate("2012")
+        self.assertEqual(dr.strfdate, "2012----")
         self.assertTrue(dr)
 
-        dr.strpdate('2012----')
-        self.assertEqual(dr.strfdate, '2012----')
+        dr.strpdate("2012----")
+        self.assertEqual(dr.strfdate, "2012----")
 
-        dr.strpdate('201212--')
-        self.assertEqual(dr.strfdate, '201212--')
+        dr.strpdate("201212--")
+        self.assertEqual(dr.strfdate, "201212--")
         try:
-            dr.strpdate('201213--')
+            dr.strpdate("201213--")
             self.fail()
         except ValueError:
             pass
@@ -51,46 +70,46 @@ class TestDataRange(unittest.TestCase):
             pass
 
         dr = DateRange(year=2020)
-        self.assertEqual(dr.strfdate, '2020----')
+        self.assertEqual(dr.strfdate, "2020----")
 
-        dr2 = dr.strpdate('2012')
-        self.assertEqual(dr2.range['start'].year, 2012)
-        self.assertEqual(dr2.range['start'].month, 1)
-        self.assertEqual(dr2.range['start'].day, 1)
+        dr2 = dr.strpdate("2012")
+        self.assertEqual(dr2.range["start"].year, 2012)
+        self.assertEqual(dr2.range["start"].month, 1)
+        self.assertEqual(dr2.range["start"].day, 1)
 
-        self.assertEqual(dr2.range['end'].year, 2012)
-        self.assertEqual(dr2.range['end'].month, 12)
-        self.assertEqual(dr2.range['end'].day, 31)
+        self.assertEqual(dr2.range["end"].year, 2012)
+        self.assertEqual(dr2.range["end"].month, 12)
+        self.assertEqual(dr2.range["end"].day, 31)
 
 
 class TestCollect(unittest.TestCase):
-
     def test_collect_basic(self):
         collect = Collect()
         self.assertEqual(collect.dict(), {})
 
-        collect.location.country = 'spain'
-        collect.date = DateRange().strpdate('2012----')
+        collect.location.country = "spain"
+        collect.date = DateRange().strpdate("2012----")
 
-        collect.who = 'pepito'
-        self.assertEqual(dict(collect.dict()),
-                         {'location': {'countryOfOriginCode': 'spain'},
-                          'collected_by': 'pepito',
-                          'date_of_collection': '2012----'})
-        self.assertEqual(collect.__str__(),
-                         'Collected: spain in 2012---- by pepito')
+        collect.who = "pepito"
+        self.assertEqual(
+            dict(collect.dict()),
+            {
+                "location": {"countryOfOriginCode": "spain"},
+                "collected_by": "pepito",
+                "date_of_collection": "2012----",
+            },
+        )
+        self.assertEqual(collect.__str__(), "Collected: spain in 2012---- by pepito")
 
 
 class TestOrganismType(unittest.TestCase):
-
     def test_basic_usage(self):
         org_type = OrganismType(2)
-        self.assertEqual(org_type.name, 'archaea')
+        self.assertEqual(org_type.name, "archaea")
         self.assertEqual(org_type.code, 2)
 
 
 class TestTaxonomy(unittest.TestCase):
-
     def test_taxonomy_basic(self):
         taxonomy = Taxonomy()
         self.assertEqual(taxonomy.dict(), {})
@@ -98,16 +117,15 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_taxonomy_with_data(self):
         taxonomy = Taxonomy()
-        taxonomy.genus = 'Bacilus'
-        taxonomy.organism_type = 'archaea'
-        taxonomy.species = 'vulgaris'
-        self.assertEqual(taxonomy.long_name, 'Bacilus vulgaris')
+        taxonomy.genus = "Bacilus"
+        taxonomy.organism_type = "archaea"
+        taxonomy.species = "vulgaris"
+        self.assertEqual(taxonomy.long_name, "Bacilus vulgaris")
 
         # print(taxonomy.dict())
 
 
 class TestLocation(unittest.TestCase):
-
     def test_empty_init(self):
         loc = Location()
         self.assertEqual(loc.dict(), {})
@@ -115,14 +133,13 @@ class TestLocation(unittest.TestCase):
 
     def test_add_data(self):
         loc = Location()
-        loc.country = 'esp'
-        self.assertEqual(loc.dict(), {COUNTRY: 'esp'})
+        loc.country = "esp"
+        self.assertEqual(loc.dict(), {COUNTRY: "esp"})
         loc.state = None
-        self.assertEqual(loc.dict(), {COUNTRY: 'esp'})
+        self.assertEqual(loc.dict(), {COUNTRY: "esp"})
 
 
 class TestStrain(unittest.TestCase):
-
     def test_empty_strain(self):
         strain = Strain()
         self.assertEqual(strain.dict(), {})
@@ -130,12 +147,12 @@ class TestStrain(unittest.TestCase):
     def test_strain_add_data(self):
         strain = Strain()
 
-        strain.id.number = '5433'
-        strain.id.collection = 'CECT'
-        strain.id.url = 'https://cect/2342'
+        strain.id.number = "5433"
+        strain.id.collection = "CECT"
+        strain.id.url = "https://cect/2342"
 
         try:
-            strain.nagoya_protocol = 'asdas'
+            strain.nagoya_protocol = "asdas"
             self.fail()
         except ValueError:
             pass
@@ -143,71 +160,70 @@ class TestStrain(unittest.TestCase):
         strain.nagoya_protocol = NAGOYA_APPLIES
         strain.dict()[NAGOYA_PROTOCOL] = NAGOYA_APPLIES
 
-        strain.collect.location.country = 'spain'
+        strain.collect.location.country = "spain"
 
-        self.assertEqual(strain.dict()[COLLECT][LOCATION][COUNTRY], 'spain')
+        self.assertEqual(strain.dict()[COLLECT][LOCATION][COUNTRY], "spain")
 
         strain.genetics.ploidy = 9
         self.assertEqual(strain.dict()[GENETICS][PLOIDY], 9)
 
-        strain.growth.recommended_medium = ['asd']
+        strain.growth.recommended_medium = ["asd"]
         strain.isolation.date = DateRange(year=1900)
-        self.assertEqual(strain.dict()[ISOLATION][DATE_OF_ISOLATION],
-                         '1900----')
+        self.assertEqual(strain.dict()[ISOLATION][DATE_OF_ISOLATION], "1900----")
 
-        strain.deposit.who = 'pepe'
-        self.assertEqual(strain.dict()[DEPOSIT][DEPOSITOR], 'pepe')
+        strain.deposit.who = "pepe"
+        self.assertEqual(strain.dict()[DEPOSIT][DEPOSITOR], "pepe")
 
-        strain.growth.recommended_medium = ['11']
-        self.assertEqual(strain.dict()[GROWTH][RECOMMENDED_GROWTH_MEDIUM],
-                         ['11'])
+        strain.growth.recommended_medium = ["11"]
+        self.assertEqual(strain.dict()[GROWTH][RECOMMENDED_GROWTH_MEDIUM], ["11"])
 
         strain.taxonomy.organism_type = 2
-        self.assertEqual(strain.dict()[TAXONOMY][ORGANISM_TYPE],
-                         {'code': 2, 'name': 'archaea'})
+        self.assertEqual(
+            strain.dict()[TAXONOMY][ORGANISM_TYPE], {"code": 2, "name": "archaea"}
+        )
 
-        strain.taxonomy.organism_type = 'algae'
-        self.assertEqual(strain.dict()[TAXONOMY][ORGANISM_TYPE],
-                         {'code': 1, 'name': 'algae'})
+        strain.taxonomy.organism_type = "algae"
+        self.assertEqual(
+            strain.dict()[TAXONOMY][ORGANISM_TYPE], {"code": 1, "name": "algae"}
+        )
 
-        strain.other_numbers.append(StrainId(collection='aaa', number='a'))
-        strain.other_numbers.append(StrainId(collection='aaa3', number='a3'))
-        self.assertEqual(strain.dict()[OTHER_CULTURE_NUMBERS],
-                         [{'collection_code': 'aaa', 'accession_number': 'a'},
-                          {'collection_code': 'aaa3', 'accession_number': 'a3'}
-                          ])
+        strain.other_numbers.append(StrainId(collection="aaa", number="a"))
+        strain.other_numbers.append(StrainId(collection="aaa3", number="a3"))
+        self.assertEqual(
+            strain.dict()[OTHER_CULTURE_NUMBERS],
+            [
+                {"collection_code": "aaa", "accession_number": "a"},
+                {"collection_code": "aaa3", "accession_number": "a3"},
+            ],
+        )
         import pprint
+
         pprint.pprint(strain.dict())
 
 
 class TestIsolation(unittest.TestCase):
-
     def test_iniatialize_isollation(self):
         isolation = Isolation()
         self.assertEqual(isolation.dict(), {})
-        isolation.who = 'pepito'
+        isolation.who = "pepito"
         self.assertTrue(ISOLATED_BY in isolation.dict())
-        isolation.date = DateRange().strpdate('2012----')
+        isolation.date = DateRange().strpdate("2012----")
         self.assertTrue(DATE_OF_ISOLATION in isolation.dict())
 
         try:
-            isolation.location.site = 'spain'
+            isolation.location.site = "spain"
             self.fail()
         except (ValueError, AttributeError):
             pass
 
 
 class TestGenomicSequence(unittest.TestCase):
-
     def test_empty_init(self):
         gen_seq = GenomicSequence()
         self.assertEqual(gen_seq.dict(), {})
-        gen_seq.marker_id = 'pepe'
-        gen_seq.marker_type = '16S rRNA'
-        self.assertEqual(gen_seq.dict(),
-                         {'marker_type': '16S rRNA', 'INSDC': 'pepe'})
-
-        validate_strain(strain)
+        gen_seq.marker_id = "pepe"
+        gen_seq.marker_type = "16S rRNA"
+        self.assertEqual(gen_seq.dict(), {"marker_type": "16S rRNA", "INSDC": "pepe"})
 
 
 if __name__ == "__main__":
