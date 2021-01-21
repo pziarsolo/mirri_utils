@@ -118,6 +118,7 @@ def _parse_strains(
                 attribute = field["attribute"]
                 try:
                     value = strain_row[label]
+                    orig_value = str(value)
                 except KeyError:
                     msg = f"#{label}# column not in Strain sheet"
                     raise KeyError(msg)
@@ -212,8 +213,6 @@ def _parse_strains(
                 elif attribute in ("abs_related_files", "mta_files"):
                     if value is not None:
                         rsetattr(strain, attribute, value.split(";"))
-                elif attribute == "":
-                    rsetattr(strain, attribute, value)
                 elif attribute in (
                     "is_from_registered_collection",
                     "is_subject_to_quarantine",
@@ -244,7 +243,7 @@ def _parse_strains(
                 if strain_id not in error_logs:
                     error_logs[strain_id] = []
                 error_logs[strain_id].append(
-                    {"excel_sheet": "Strain", "excel column": label, "msg": str(error)}
+                    {"excel_sheet": "Strain", "excel column": label, "error_code": str(error), "value": orig_value}
                 )
 
         # add markers
