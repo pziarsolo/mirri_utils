@@ -87,7 +87,7 @@ MIRRI_FIELDS = [
     {'attribute': 'restriction_on_use', 'label': 'Restrictions on use',
      'mandatory': True},
     {'attribute': 'nagoya_protocol',
-     'label': 'Nagoya protocol compliance conditions',
+     'label': 'Nagoya protocol restrictions and compliance conditions',
      'mandatory': True},
     {'attribute': ABS_RELATED_FILES, 'label': 'ABS related files',
      'mandatory': False},
@@ -98,10 +98,10 @@ MIRRI_FIELDS = [
     {'attribute': 'is_from_registered_collection',
      'label': 'Strain from a registered collection',
      'mandatory': False},
-    {'attribute': 'risk_group', 'label': 'Risk group',
+    {'attribute': 'risk_group', 'label': 'Risk Group',
      'mandatory': True},
     {'attribute': 'dual_use', 'label': 'Dual use', 'mandatory': False},
-    {'attribute': 'is_subject_to_quarantine', 'label': 'Quarantine in europe',
+    {'attribute': 'is_subject_to_quarantine', 'label': 'Quarantine in Europe',
      'mandatory': False},
 
     {'attribute': 'taxonomy.organism_type', 'label': 'Organism type',
@@ -283,3 +283,10 @@ LOCATIONS = 'Geographic origin'  # 'Locations'
 GROWTH_MEDIA = 'Growth media'
 GENOMIC_INFO = 'Genomic information'
 STRAINS = 'Strains'
+LITERATURE_SHEET = 'Literature'
+SEXUAL_STATE_SHEET = 'Sexual state'
+RESOURCE_TYPES_VALUEs = 'Resource types values'
+FORM_OF_SUPPLY_SHEET = 'Forms of supply'
+PLOIDY_SHEET = 'Ploidy'
+ONTOBIOTOPE = 'Ontobiotope'
+MARKERS = 'Markers'
