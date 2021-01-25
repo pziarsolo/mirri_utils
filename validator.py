@@ -78,8 +78,8 @@ def validate_excel(excel, strain, excelDict):
         else:
             # print(f'{sheet["name"]} is not present')
             errors.append(Error(category='Structure', entity='EFS', column=sheet['name']))
-    if len(errors) == 0:
-        errors.extend(validation_data(strain, excelDict))
+    # if len(errors) == 0:
+    errors.extend(validation_data(strain, excelDict))
 
     for error in errors:
         error_log.add_error(error)
@@ -136,7 +136,7 @@ def checkTypes(strain, MIRRI_FIELDS, excelDict):
 
 def validation_data(strain, excelDict):
     required = [field['label'] for field in MIRRI_FIELDS if field['mandatory']]
-    erros = []
+    errors = []
 
     for _, row in strain.iterrows():
         for col, value in row.items():
@@ -146,8 +146,8 @@ def validation_data(strain, excelDict):
                    
     # checkTypes(strain, MIRRI_FIELDS, excelDict)
 
-    # parsed_excel = _parse_mirri_v20200601(fhand, False)
-
+    parsed_excel = _parse_mirri_v20200601(fhand, False)
+    # print(parsed_excel['errors'])
     return errors
     
 

@@ -6,6 +6,7 @@ from openpyxl import load_workbook
 from mirri import rsetattr
 from mirri.entities.date_range import DateRange
 from mirri.entities.strain import GenomicSequence, Strain, StrainId
+from mirri.io.writers.error import Error
 from mirri.settings import (
     COMMERCIAL_USE_WITH_AGREEMENT,
     GENOMIC_INFO,
@@ -120,8 +121,11 @@ def _parse_strains(
                     value = strain_row[label]
                     orig_value = str(value)
                 except KeyError:
-                    msg = f"#{label}# column not in Strain sheet"
-                    raise KeyError(msg)
+                    if field['mandatory']:
+                        msg = Error(category='Mandatory', entity='STD', column=label, data=orig_value).code
+                        print(msg, 'Mandatory', 'STD', label, orig_value)
+                        # msg = f"#{label}# column not in Strain sheet"
+                        raise KeyError(msg)
                 if attribute == "id":
                     strain_id = value
 
@@ -130,7 +134,10 @@ def _parse_strains(
                     try:
                         collection, number = value.split(" ", 1)
                     except AttributeError as err:
-                        raise ValueError("malformed accession number") from err
+                        # raise ValueError("malformed accession number") from err
+                        msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
+                        print(msg, 'Specification', 'STD', label, orig_value)
+                        raise ValueError(msg) from err
                     value = StrainId(collection=collection, number=number)
                     rsetattr(strain, attribute, value)
 
@@ -139,15 +146,19 @@ def _parse_strains(
                         value = RESTRICTION_USE_TRANSLATOR[value]
                     except KeyError as err:
                         allowed = [str(i) for i in RESTRICTION_USE_TRANSLATOR.keys()]
-                        msg = f"{value} not in the allowed restriction on "
-                        msg += f'values: {", ".join(allowed)})'
+                        # msg = f"{value} not in the allowed restriction on "
+                        # msg += f'values: {", ".join(allowed)})'
+                        msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
+                        print(msg, 'Specification', 'STD', label, orig_value)
                         raise ValueError(msg) from err
                     rsetattr(strain, attribute, value)
                 elif attribute == "nagoya_protocol":
                     try:
                         rsetattr(strain, attribute, NAGOYA_TRANSLATOR[value])
                     except KeyError as err:
-                        msg = "Not allowed Nagoya field value"
+                        # msg = "Not allowed Nagoya field value"
+                        msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
+                        print(msg, 'Specification', 'STD', label, orig_value)
                         raise ValueError(msg) from err
                 elif attribute == "other_numbers":
                     other_numbers = []
@@ -184,8 +195,10 @@ def _parse_strains(
                         for growth_medium in growth_media:
                             growth_medium = growth_medium.strip()
                             if growth_medium not in indexed_growth_media:
-                                msg = f"{growth_medium} Growth medium not in "
-                                msg += "growth media sheet"
+                                # msg = f"{growth_medium} Growth medium not in "
+                                # msg += "growth media sheet"
+                                msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
+                                print(msg, 'Specification', 'STD', label, orig_value)
                                 raise ValueError(msg)
                         rsetattr(strain, attribute, growth_media)
                 elif attribute == "form_of_supply":
@@ -204,7 +217,9 @@ def _parse_strains(
                     try:
                         location = indexed_locations[value]
                     except KeyError as error:
-                        msg = f"#{value}# not in geographic origin sheet"
+                        msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
+                        print(msg, 'Specification', 'STD', label, orig_value)
+                        # msg = f"#{value}# not in geographic origin sheet"
                         raise KeyError(msg) from error
                     strain.collect.location.country = location["country"]
                     strain.collect.location.state = location["region"]
@@ -226,7 +241,9 @@ def _parse_strains(
                     elif value is None:
                         value = None
                     else:
-                        msg = f"Only 1, 2 or empty are allowed: {value}"
+                        msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
+                        print(msg, 'Specification', 'STD', label, orig_value)
+                        # msg = f"Only 1, 2 or empty are allowed: {value}"
                         raise ValueError(msg)
                     rsetattr(strain, attribute, value)
                 else:
@@ -243,7 +260,7 @@ def _parse_strains(
                 if strain_id not in error_logs:
                     error_logs[strain_id] = []
                 error_logs[strain_id].append(
-                    {"excel_sheet": "Strain", "excel column": label, "error_code": str(error), "value": orig_value}
+                    {"excel_sheet": "Strain", "excel column": label, "error_code": error, "value": orig_value}
                 )
 
         # add markers

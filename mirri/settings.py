@@ -87,7 +87,7 @@ MIRRI_FIELDS = [
     {'attribute': 'restriction_on_use', 'label': 'Restrictions on use',
      'mandatory': True},
     {'attribute': 'nagoya_protocol',
-     'label': 'Nagoya protocol restrictions and compliance conditions',
+     'label': 'Nagoya protocol compliance conditions',
      'mandatory': True},
     {'attribute': ABS_RELATED_FILES, 'label': 'ABS related files',
      'mandatory': False},

@@ -118,7 +118,7 @@ class Error():
             elif self.entity.acronym == 'STD':
                 if self.column == 'Accession number': return f'{self.entity.acronym}01'
                 elif self.column == 'Restriction on use': return f'{self.entity.acronym}04'
-                elif self.column == 'Nagoya protocol restrictions and compliance conditions': return f'{self.entity.acronym}06'
+                elif self.column == 'Nagoya protocol compliance conditions': return f'{self.entity.acronym}06'
                 elif self.column == 'Risk Group': return f'{self.entity.acronym}11'
                 elif self.column == 'Organism type': return f'{self.entity.acronym}15'
                 elif self.column == 'Taxon name': return f'{self.entity.acronym}17'
@@ -147,7 +147,7 @@ class Error():
                 if self.column == 'Accession number': return f'{self.entity.acronym}02'
                 elif self.column == 'Other culture collection numbers': return f'{self.entity.acronym}03'
                 elif self.column == 'Restriction on use': return f'{self.entity.acronym}05'
-                elif self.column == 'Nagoya protocol restrictions and compliance conditions': return f'{self.entity.acronym}07'
+                elif self.column == 'Nagoya protocol compliance conditions': return f'{self.entity.acronym}07'
                 elif self.column == 'ABS related files': return f'{self.entity.acronym}08'
                 elif self.column == 'MTA file': return f'{self.entity.acronym}09'
                 elif self.column == 'Strain from a registered collection': return f'{self.entity.acronym}10'
@@ -396,10 +396,10 @@ class Error():
             return f"The 'Restriction on Use' for strain with Accession Number {accession_number} is not according to the specification."
 
         def STD06(self):
-            return "The 'Nagoya protocol restrictions and compliance conditions' is a mandatory field for each strain. The column can not be empty."
+            return "The 'Nagoya protocol compliance conditions' is a mandatory field for each strain. The column can not be empty."
 
         def STD07(self, accession_number):
-            return f"The 'Nagoya protocol restrictions and compliance conditions' for strain with Accession Number {accession_number} is not according to the specification."
+            return f"The 'Nagoya protocol compliance conditions' for strain with Accession Number {accession_number} is not according to the specification."
 
         def STD08(self, accession_number):
             return f"The 'ABS related files' for strain with Accession Number {accession_number} is not a valid URL."
