@@ -259,7 +259,7 @@ def _parse_strains(
                 if strain_id not in error_logs:
                     error_logs[strain_id] = []
                 error_logs[strain_id].append(
-                    {"excel_sheet": "Strain", "excel column": label, "message": error, "value": orig_value}
+                    {"excel_sheet": "Strain", "excel column": label, "message": str(error), "value": orig_value}
                 )
 
         # add markers

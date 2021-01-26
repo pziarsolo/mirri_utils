@@ -143,7 +143,8 @@ def validation_data(strain, excelDict):
     # checkTypes(strain, MIRRI_FIELDS, excelDict)
 
     parsed_excel = _parse_mirri_v20200601(fhand, False)
-    print(parsed_excel['errors'])
+    for strain_id, error in parsed_excel:
+        errors.append(Error(error['errors']['message'], strain_id))
     return errors
     
 
