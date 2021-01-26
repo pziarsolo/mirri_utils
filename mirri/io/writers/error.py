@@ -7,6 +7,7 @@ from docx.shared import Cm, RGBColor
 from datetime import datetime
 from inspect import signature
 from difflib import SequenceMatcher
+from docx2pdf import convert
 
 ERROR_LOG_FOLDER = '.\\logs'
 DOCS_FOLDER = '..\\docs' # relative path originating from ERROR_LOG_FOLDER
@@ -602,6 +603,7 @@ class ErrorLog():
 
         try:
             self.document.save(f'{path}\\{self.input_filename}_error_log.docx')
+            convert(f'{path}\\{self.input_filename}_error_log.docx', f'{path}\\{self.input_filename}_error_log.pdf')
         except:
             raise
 
