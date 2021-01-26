@@ -39,7 +39,8 @@ def excel_dict_reader(path, sheet_name, mandatory_column_name=None):
     try:
         sheet = wb[sheet_name]
     except KeyError as error:
-        raise ValueError(f"{sheet_name} sheet not in excel file") from error
+        raise ValueError(f"The '{sheet_name}' sheet is missing. Please check the provided excel template.") from error
+        # raise ValueError(f"{sheet_name} sheet not in excel file") from error
 
     first = True
     header = []
@@ -122,10 +123,7 @@ def _parse_strains(
                     orig_value = str(value)
                 except KeyError:
                     if field['mandatory']:
-                        if attribute == 'id':
-                            msg = f'The "{label}" is a mandatory field. The Column can not be empty.'
-                        else:
-                            msg = f'The "{label}" is a mandatory field for each Strain. The Column can not be empty.'
+                        msg = f"The '{label}' is a mandatory field. The Column can not be empty."
                         # msg = f"#{label}# column not in Strain sheet"
                         raise KeyError(msg)
                 if attribute == "id":
@@ -137,7 +135,7 @@ def _parse_strains(
                         collection, number = value.split(" ", 1)
                     except AttributeError as err:
                         # raise ValueError("malformed accession number") from err
-                        raise ValueError(f'The {label} is not according to the specification.') from err
+                        raise ValueError(f"The '{label}' is not according to the specification.") from err
                     value = StrainId(collection=collection, number=number)
                     rsetattr(strain, attribute, value)
 
@@ -145,10 +143,10 @@ def _parse_strains(
                     try:
                         value = RESTRICTION_USE_TRANSLATOR[value]
                     except KeyError as err:
-                        allowed = [str(i) for i in RESTRICTION_USE_TRANSLATOR.keys()]
+                        # allowed = [str(i) for i in RESTRICTION_USE_TRANSLATOR.keys()]
                         # msg = f"{value} not in the allowed restriction on "
                         # msg += f'values: {", ".join(allowed)})'
-                        msg = f'The {label} for strain with Accession Number {strain_id} is not according to the specification.'
+                        msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
                         raise ValueError(msg) from err
                     rsetattr(strain, attribute, value)
                 elif attribute == "nagoya_protocol":
@@ -156,7 +154,7 @@ def _parse_strains(
                         rsetattr(strain, attribute, NAGOYA_TRANSLATOR[value])
                     except KeyError as err:
                         # msg = "Not allowed Nagoya field value"
-                        msg = f'The {label} for strain with Accession Number {strain_id} is not according to the specification.'
+                        msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
                         raise ValueError(msg) from err
                 elif attribute == "other_numbers":
                     other_numbers = []
@@ -175,17 +173,21 @@ def _parse_strains(
                     try:
                         add_taxon_to_strain(strain, value)
                     except ValueError:
-                        msg = f'The {label} for strain with Accession Number {strain_id} is not according to the specification.'
+                        msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
                         raise ValueError(msg)
                 elif attribute in ("deposit.date", "collect.date", "isolation.date"):
-                    if isinstance(value, date):
-                        value = DateRange(
-                            year=value.year, month=value.month, day=value.day
-                        )
-                    elif isinstance(value, str):
-                        value = DateRange().strpdate(value)
+                    try:
+                        if isinstance(value, date):
+                            value = DateRange(
+                                year=value.year, month=value.month, day=value.day
+                            )
+                        elif isinstance(value, str):
+                            value = DateRange().strpdate(value)
 
-                    rsetattr(strain, attribute, value)
+                        rsetattr(strain, attribute, value)
+                    except ValueError:
+                        msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
+                        raise ValueError(msg)
 
                 elif attribute == "growth.recommended_medium":
                     if value is not None:
@@ -199,7 +201,7 @@ def _parse_strains(
                             if growth_medium not in indexed_growth_media:
                                 # msg = f"{growth_medium} Growth medium not in "
                                 # msg += "growth media sheet"
-                                msg = f'The Growth Medium {growth_medium} is not in the Growth Media datasheet.'
+                                msg = f'The Growth Medium {growth_medium} for strain with Accession Number {strain_id} is not in the Growth Media datasheet.'
                                 raise ValueError(msg)
                         rsetattr(strain, attribute, growth_media)
                 elif attribute == "form_of_supply":
@@ -217,14 +219,14 @@ def _parse_strains(
                 elif attribute == "collect.location":
                     try:
                         location = indexed_locations[value]
-                    except KeyError as error:
-                        msg = f'The Location {value} is not in the geographic Origin datasheet.'
+                    except KeyError:
+                        msg = f'The Location {value} for strain with Accession Number {strain_id} is not in the geographic origin datasheet.'
                         # msg = f"#{value}# not in geographic origin sheet"
-                        raise KeyError(msg) from error
-                    strain.collect.location.country = location["country"]
-                    strain.collect.location.state = location["region"]
-                    strain.collect.location.municipality = location["city"]
-                    strain.collect.location.site = location["locality"]
+                        raise KeyError(msg)
+                    strain.collect.location.country = location["Country"]
+                    strain.collect.location.state = location["Region"]
+                    strain.collect.location.municipality = location["City"]
+                    strain.collect.location.site = location["Locality"]
                 elif attribute in ("abs_related_files", "mta_files"):
                     if value is not None:
                         rsetattr(strain, attribute, value.split(";"))
@@ -241,7 +243,7 @@ def _parse_strains(
                     elif value is None:
                         value = None
                     else:
-                        msg = f'The {label} for strain with Accession Number {strain_id} is not according to the specification.'
+                        msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
                         # msg = f"Only 1, 2 or empty are allowed: {value}"
                         raise ValueError(msg)
                     rsetattr(strain, attribute, value)
@@ -259,7 +261,7 @@ def _parse_strains(
                 if strain_id not in error_logs:
                     error_logs[strain_id] = []
                 error_logs[strain_id].append(
-                    {"excel_sheet": "Strain", "excel column": label, "message": str(error), "value": orig_value}
+                    {"excel_sheet": "Strain", "excel column": label, "message": f"{str(error)}", "value": orig_value}
                 )
 
         # add markers

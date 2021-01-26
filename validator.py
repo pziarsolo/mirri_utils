@@ -65,7 +65,7 @@ SHEETS = [
 def validate_excel(excel, strain, excelDict):
     sheets = excel.sheet_names()
     errors = []
-    excel_name = fhand.split('\\')[-1]
+    excel_name = fhand.split('\\')[-1].rstrip('.xlsx')
     error_log = ErrorLog(excel_name)
 
     #see if all sheets are there
@@ -77,15 +77,17 @@ def validate_excel(excel, strain, excelDict):
                 #validate columns of each sheet
                 errors.extend(validate_sheet(sheetEx, sheet))
         else:
-            # print(f'{sheet["name"]} is not present')
-            errors.append(Error(f'The "{sheet["name"]}" is missing. Please check the provided excel template'))
+            if (sheet['name'] not in ["Ploidy", "Forms of supply", "Resource types values"]):
+                # print(f'{sheet["name"]} is not present')
+                errors.append(Error(f"The '{sheet['name']}' sheet is missing. Please check the provided excel template", sheet['name']))
     # if len(errors) == 0:
     errors.extend(validation_data(strain, excelDict))
 
     for error in errors:
         error_log.add_error(error)
 
-    print(error_log)
+    print('Writing to file...')
+    error_log.write(f'.\logs')
 
     
 #validate columns
@@ -94,8 +96,7 @@ def validate_sheet(sheetEx, sheet):
     for col in sheet['columns']:
         columns = columnsGM(sheetEx)
         if col[0] not in columns and col[1]:
-            # print(f'{col[0]} from {sheet_name} is not present')
-            errors.append(Error(f'The "{col[0]}" is a mandatory field. The column can not be empty.'))
+            errors.append(Error(f"The '{col[0]}' is a mandatory field. The column can not be empty.", col[0]))
     return errors
     
 #get columns in sheet
@@ -116,7 +117,7 @@ def checkTypes(strain, MIRRI_FIELDS, excelDict):
         stra["Recommended growth temperature"] = pd.to_numeric(stra["Recommended growth temperature"], errors='coerce')
     except ValueError:
         # print("string cannot be float")
-        error.append(Error(f'The "Recommended growth temperature" column has an invalide data type.'))
+        error.append(Error("The 'Recommended growth temperature' column has an invalide data type."))
     
     for col, type1 in zip(types1.index, types1):
         if type1.name not in list(TYPES_TRANSLATOR.keys()):
@@ -128,7 +129,6 @@ def checkTypes(strain, MIRRI_FIELDS, excelDict):
         if field['label'] in types2:
             if types2[field['label']] != field['type']:
                 error.append(Error(f'The "{field["label"]}" column has an invalide data type.'))
-        #print(error, '76')
 
 def validation_data(strain, excelDict):
     required = [field['label'] for field in MIRRI_FIELDS if field['mandatory']]
@@ -138,13 +138,14 @@ def validation_data(strain, excelDict):
         for col, value in row.items():
             #verify where the value is nan and required
             if str(value) == 'nan' and col in required:
-                errors.append(Error(f'The "{col}" is missing for strain with Accession Number {row["Accession number"]}.'))
+                errors.append(Error(f"The '{col}' is missing for strain with Accession Number {row['Accession number']}.", row['Accession number']))
                    
     # checkTypes(strain, MIRRI_FIELDS, excelDict)
 
     parsed_excel = _parse_mirri_v20200601(fhand, False)
-    for strain_id, error in parsed_excel['errors']:
-        errors.append(Error(error['message'], strain_id))
+    for _strain, _errors in parsed_excel['errors'].items():
+        for error in _errors:
+            errors.append(Error(error['message'].strip('\"'), _strain))
     return errors
     
 

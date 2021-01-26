@@ -75,7 +75,7 @@ class Error():
         threshold: minimum value of similarity between the specified message and the default messages. Should be a value between 0.0 and 1.0. This param \
             is ignoref if a code is specified in code_or_message param.
     """
-    def __init__(self, code_or_message, data=None, threshold=0.9):
+    def __init__(self, code_or_message, data=None, threshold=0.95):
         self.encoder = self.ErrorMessage()
         self.data = data
         self.threshold = threshold
@@ -207,16 +207,16 @@ class Error():
             Excel File Structure Error Codes
         """
         def EFS01(self):
-            return "The 'Growth Media' sheet is missing. Please check the provided excel template."
+            return "The 'Growth media' sheet is missing. Please check the provided excel template."
 
         def EFS02(self):
-            return "The 'Geographic Origin' sheet is missing. Please check the provided excel template."
+            return "The 'Geographic origin' sheet is missing. Please check the provided excel template."
 
         def EFS03(self):
             return "The 'Literature' sheet is missing. Please check the provided excel template."
 
         def EFS04(self):
-            return "The 'Sexual State' sheet is missing. Please check the provided excel template."
+            return "The 'Sexual state' sheet is missing. Please check the provided excel template."
 
         def EFS05(self):
             return "The 'Strains' sheet is missing. Please check the provided excel template."
@@ -228,7 +228,7 @@ class Error():
             return "The 'Markers' sheet is missing. Please check the provided excel template."
 
         def EFS08(self):
-            return "The 'Genomic Information' sheet is missing. Please check the provided excel template."
+            return "The 'Genomic information' sheet is missing. Please check the provided excel template."
 
 
         """
@@ -254,7 +254,7 @@ class Error():
             return f"The 'Country' named as {name} is incorrect."
 
         def GOD04(self, country):
-            return f"The 'Locality' is a mandatory field, for each country. It is missing for country {country}."
+            return f"The 'Locality' is missing for Country {country}."
 
         """
             Literature Error Codes
@@ -263,7 +263,7 @@ class Error():
             return "The 'ID' is a mandatory field. The column can not be empty."
 
         def LID02(self):
-            return "The 'Full Reference' is a mandatory field. The column can not be empty."
+            return "The 'Full reference' is a mandatory field. The column can not be empty."
 
         def LID03(self):
             return "The 'Authors' is a mandatory field. The column can not be empty."
@@ -296,31 +296,31 @@ class Error():
             return f"The 'Volume' is missing for ID number {id}."
 
         def LID13(self):
-            return "The 'First Page' is a mandatory field. The column can not be empty."
+            return "The 'First page' is a mandatory field. The column can not be empty."
 
         def LID14(self, id):
-            return f"The 'First Page' is missing for ID number {id}."
+            return f"The 'First page' is missing for ID number {id}."
 
         """
             Strains Error Codes
         """
         def STD01(self):
-            return "The 'Accession Number' is a mandatory field. The column can not be empty."
+            return "The 'Accession number' is a mandatory field. The column can not be empty."
 
         def STD02(self):
-            return "The 'Accession Number' is not according to the specification."
+            return "The 'Accession number' is not according to the specification."
 
         def STD03(self, accession_number):
-            return f"The 'Other Culture collection Numbers' for strain with Accession Number {accession_number} is not according to the specification."
+            return f"The 'Other culture collection numbers' for strain with Accession Number {accession_number} is not according to the specification."
 
         def STD04(self):
-            return "The 'Restriction on Use' is a mandatory field for each strain. The column can not be empty."
+            return "The 'Restriction on use' is a mandatory field. The column can not be empty."
 
         def STD05(self, accession_number):
-            return f"The 'Restriction on Use' for strain with Accession Number {accession_number} is not according to the specification."
+            return f"The 'Restriction on use' for strain with Accession Number {accession_number} is not according to the specification."
 
         def STD06(self):
-            return "The 'Nagoya protocol compliance conditions' is a mandatory field for each strain. The column can not be empty."
+            return "The 'Nagoya protocol compliance conditions' is a mandatory field. The column can not be empty."
 
         def STD07(self, accession_number):
             return f"The 'Nagoya protocol compliance conditions' for strain with Accession Number {accession_number} is not according to the specification."
@@ -332,82 +332,82 @@ class Error():
             return f"The 'MTA file' for strain with Accession Number {accession_number} is not a valid URL."
 
         def STD10(self, accession_number):
-            return f"The 'Strain from a Registered Collection' for strain with Accession Number {accession_number} is not according to specification."
+            return f"The 'Strain from a registered collection' for strain with Accession Number {accession_number} is not according to specification."
 
         def STD11(self):
-            return "The 'Risk Group' is a mandatory field for each strain. The column can not be empty."
+            return "The 'Risk group' is a mandatory field. The column can not be empty."
 
         def STD12(self, accession_number):
-            return f"The 'Risk Group' for strain with Accession Number {accession_number} is not according to specification."
+            return f"The 'Risk group' for strain with Accession Number {accession_number} is not according to specification."
 
         def STD13(self, accession_number):
-            return f"The 'Dual Use' for strain with Accession Number {accession_number} is not according to specification."
+            return f"The 'Dual use' for strain with Accession Number {accession_number} is not according to specification."
 
         def STD14(self, accession_number):
-            return f"The “Quarentine in Europe” entered for strain with Accession Number {accession_number} is incorrect."
+            return f"The “Quarentine in europe” entered for strain with Accession Number {accession_number} is incorrect."
 
         def STD15(self):
-            return "The 'Organism Type' is a mandatory field for each strain. The column can not be empty."
+            return "The 'Organism type' is a mandatory field. The column can not be empty."
 
         def STD16(self, accession_number):
-            return f"The 'Organism Type' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Organism type' for strain with Accession Number {accession_number} is incorrect."
 
         def STD17(self):
-            return "The 'Taxon Name' is a mandatory field for each strain. The column can not be empty."
+            return "The 'Taxon name' is a mandatory field. The column can not be empty."
 
         def STD18(self, accession_number):
-            return f"The 'Taxon Name' is missing for strain with Accession Number {accession_number}."
+            return f"The 'Taxon name' is missing for strain with Accession Number {accession_number}."
 
         def STD19(self, accession_number):
-            return f"The 'Infrasubspecific Names' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Infrasubspecific names' for strain with Accession Number {accession_number} is incorrect."
 
         def STD20(self, accession_number):
-            return f"The 'History of Deposit' sequence for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'History of deposit' sequence for strain with Accession Number {accession_number} is incorrect."
 
         def STD21(self, accession_number):
-            return f"The 'Date of Deposit' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Date of deposit' for strain with Accession Number {accession_number} is incorrect."
 
         def STD22(self, accession_number):
-            return f"The 'Date of Collection' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Date of collection' for strain with Accession Number {accession_number} is incorrect."
 
         def STD23(self, accession_number):
-            return f"The 'Date of Isolation' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Date of isolation' for strain with Accession Number {accession_number} is incorrect."
 
         def STD24(self, accession_number):
-            return f"The 'Date of Inclusion in the Catalogue' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Date of inclusion in the catalogue' for strain with Accession Number {accession_number} is incorrect."
 
         def STD25(self, accession_number):
-            return f"The 'Tested Temperature Growth Range' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Tested temperature growth range' for strain with Accession Number {accession_number} is incorrect."
 
         def STD26(self):
-            return f"The 'Recommended Growth Temperature' is a mandatory field for eash strain. The column can not be empty."
+            return f"The 'Recommended growth temperature' is a mandatory field for eash strain. The column can not be empty."
 
         def STD27(self, accession_number):
-            return f"The 'Recommended Growth Temperature' is missing for strain with Accession Number {accession_number}."
+            return f"The 'Recommended growth temperature' is missing for strain with Accession Number {accession_number}."
 
         def STD28(self):
-            return "The 'Recommended Medium for Growth' is a mandatory field for each strain. The column can not be empty."
+            return "The 'Recommended medium for growth' is a mandatory field. The column can not be empty."
 
         def STD29(self, accession_number):
-            return f"The 'Recommended Medium for Growth' is missing for strain with Accession Number {accession_number}."
+            return f"The 'Recommended medium for growth' is missing for strain with Accession Number {accession_number}."
 
         def STD30(self):
-            return "The 'Forms of Supply' is a mandatory field for each Strain. The column can not be empty."
+            return "The 'Forms of supply' is a mandatory field. The column can not be empty."
 
         def STD31(self, accession_number):
-            return f"The 'Forms of Supply' is missing for strain with Accession Number {accession_number}."
+            return f"The 'Forms of supply' is missing for strain with Accession Number {accession_number}."
 
         def STD32(self, accession_number):
-            return f"The 'Coordinates of Geographic Origin' for strain with Accession Number {accession_number} are incorrect."
+            return f"The 'Coordinates of geographic origin' for strain with Accession Number {accession_number} are incorrect."
 
         def STD33(self, accession_number):
-            return f"The 'Altitude of Geographic Origin' for strain with Accession Number {accession_number} are incorrect."
+            return f"The 'Altitude of geographic origin' for strain with Accession Number {accession_number} are incorrect."
 
         def STD34(self):
-            return "The 'Geographic Origin' is a mandatory field for each strain. The column can not be empty."
+            return "The 'Geographic origin' is a mandatory field. The column can not be empty."
 
         def STD35(self, accession_number):
-            return f"The 'Geographic Origin' is missing or incorrect for strain with Accession Number {accession_number}."
+            return f"The 'Geographic origin' is missing for strain with Accession Number {accession_number}."
 
         def STD36(self, accession_number):
             return f"The 'GMO' for strain with Accession Number {accession_number} is incorrect."
@@ -416,22 +416,22 @@ class Error():
             return f"The 'Literature' for strain with Accession Number {accession_number} is incorrect."
 
         def STD38(self, accession_number):
-            return f"The 'Sexual State' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Sexual state' for strain with Accession Number {accession_number} is incorrect."
 
         def STD39(self, accession_number):
             return f"The 'Ploidy' for strain with Accession Number {accession_number} is incorrect."
 
         def STD40(self, accession_number):
-            return f"The 'Interspecific Hybrid' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Interspecific hybrid' for strain with Accession Number {accession_number} is incorrect."
 
         def STD41(self, accession_number):
-            return f"The 'Plasmids Collection Fields' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Plasmids collection fields' for strain with Accession Number {accession_number} is incorrect."
 
         def STD42(self, accession_number):
-            return f"The 'Ontobiotope Term for the Isolation Habitat' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Ontobiotope term for the isolation habitat' for strain with Accession Number {accession_number} is incorrect."
 
         def STD43(self, accession_number):
-            return f"The 'Literature Linked to the Sequence/Genome' for strain with Accession Number {accession_number} is incorrect."
+            return f"The 'Literature linked to the sequence/genome' for strain with Accession Number {accession_number} is incorrect."
 
         """
             Genomic Information Error Codes
@@ -527,14 +527,14 @@ class ErrorLog():
         subhdr_cells[1].text = 'Error Message'
         subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
 
-
-        for error in self.errors['EFS']:
-            row_cells = table.add_row().cells
-            row_cells[0].text = error.code
-            row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
-            row_cells[0].width = Cm(4.0)
-            row_cells[1].text = error.message
-            row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+        if 'EFS' in self.errors:
+            for error in self.errors['EFS']:
+                row_cells = table.add_row().cells
+                row_cells[0].text = error.code
+                row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
+                row_cells[0].width = Cm(4.0)
+                row_cells[1].text = error.message
+                row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
 
         self.document.add_page_break()
 
@@ -562,14 +562,14 @@ class ErrorLog():
             subhdr_cells[1].text = 'Error Message'
             subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
 
-
-            for error in self.errors[entity.acronym]:
-                row_cells = table.add_row().cells
-                row_cells[0].text = error.code
-                row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
-                row_cells[0].width = Cm(4.0)
-                row_cells[1].text = error.message
-                row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+            if entity.acronym in self.errors:
+                for error in self.errors[entity.acronym]:
+                    row_cells = table.add_row().cells
+                    row_cells[0].text = error.code
+                    row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
+                    row_cells[0].width = Cm(4.0)
+                    row_cells[1].text = error.message
+                    row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
                 
         if 'UCT' in self.errors:
             self.document.add_page_break()
@@ -608,12 +608,12 @@ class ErrorLog():
 
 
     def __str__(self):
-        limit = 100
+        limit = 200
         count = 0
         to_print = f'Error log for file <{self.input_filename}> sent by <{self.cc}> on <{self.date}>\n'
         to_print += f'printing first {limit} errors\n\n'
-        to_print += '{:<10} | {:<10} | {:<250}\n'.format('ENTITY', 'CODE', 'MESSAGE')
-        for entity, errors in self.errors.items():
+        to_print += '{:<5} | {:<10} | {:<10} | {:<250}\n'.format('#', 'ENTITY', 'CODE', 'MESSAGE')
+        for _, errors in self.errors.items():
             if count == limit:
                     break
 
@@ -621,7 +621,8 @@ class ErrorLog():
                 count += 1
                 if count == limit:
                     break
-                to_print += f'{error.entity.acronym:<10}'
+                to_print += f'{count:>05}'
+                to_print += f' | {error.entity.acronym:<10}'
                 to_print += f' | {error.code:<10}'
                 to_print += f' | {error.message[:248]:<250}...' if len(error.message) > 250 else f' | {error.message:<250}'
                 to_print += '\n'
