@@ -6,6 +6,7 @@ from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.shared import Cm, RGBColor
 from datetime import datetime
 from inspect import signature
+from difflib import SequenceMatcher
 
 ERROR_LOG_FOLDER = '.\\logs'
 DOCS_FOLDER = '..\\docs' # relative path originating from ERROR_LOG_FOLDER
@@ -56,128 +57,51 @@ class Entity():
         def GID(self):
             return 'Genomic Information'
 
+        def UCT(self):
+            return 'Uncategorized'
+
 
 class Error():
-    # def __init__(self, code, data=''):
-    #     """
-    #         Error class to store error infomration
+    """Error information
 
-    #         params
-    #             code: code of the error
-    #             data: data used by some error messages that require some data associated with the error
-    #     """
-    #     self.code = code
-    #     self.data = data
-    #     self.message = self.ErrorMessage().message(self.code, self.data)
-    #     self.entity = Entity(self.code[:3])
+    @params
+        code_or_message: code or message related to the error. If an error code is specified, param threshold is ignored and the error message is derived \
+            from error code. If an error message is specified, an attempt to deduct the error code from the similarity between the specified message and the \
+            default messages is performed; If no code is found, a general error code UCT is used instead.
 
-    def __init__(self, **kwargs):
-        if 'code' in kwargs:
-            self.code = kwargs['code']
-            self.entity = Entity(self.code[:3])
-        elif 'category' in kwargs and 'entity' in kwargs and 'column' in kwargs:
-            self.category = kwargs['category']
-            self.entity = Entity(kwargs['entity'])
-            self.column = kwargs['column']
-            self.code = self.find_error_code()
-        elif len(kwargs) == 0:
-            raise TypeError('Error requires at least 1 keyword argument but none were given.')
+        data: data to be passed to the default messages that require some value. If an error message is specified in code_or_message parameter, this data \
+            will be used to help identify the error code.
+
+        threshold: minimum value of similarity between the specified message and the default messages. Should be a value between 0.0 and 1.0. This param \
+            is ignoref if a code is specified in code_or_message param.
+    """
+    def __init__(self, code_or_message, data=None, threshold=0.9):
+        self.encoder = self.ErrorMessage()
+        self.data = data
+        self.threshold = threshold
+
+        if code_or_message in self.encoder.error_codes:
+            self.code = code_or_message
+            self.message = self.encoder.message(self.code, self.data)
         else:
-            raise TypeError(f'')
+            self.message = code_or_message
+            code = self.find_error_code_v2()
+            self.code = code if code != '' else 'UCT'
 
-        self.data = kwargs['data'] if 'data' in kwargs else ''
-        self.message = self.ErrorMessage().message(self.code, self.data)
+        self.entity = Entity(self.code[:3])
 
-    def find_error_code(self):
-        if self.category == 'Structure':
-            if self.column == 'Growth media': return f'{self.entity.acronym}01'
-            elif self.column == 'Geographic origin': return f'{self.entity.acronym}02'
-            elif self.column == 'Literature': return f'{self.entity.acronym}03'
-            elif self.column == 'Sexual state': return f'{self.entity.acronym}04'
-            elif self.column == 'Strains': return f'{self.entity.acronym}05'
-            elif self.column == 'Ontobiotope': return f'{self.entity.acronym}06'
-            elif self.column == 'Markers': return f'{self.entity.acronym}07'
-            elif self.column == 'Genomic information': return f'{self.entity.acronym}08'
-        elif self.category == 'Mandatory':
-            if self.entity.acronym == 'GMD':
-                if self.column == 'Acronym': return f'{self.entity.acronym}01'
-                elif self.column == 'Description': return f'{self.entity.acronym}02'
-            elif self.entity.acronym == 'GOD':
-                if self.column == 'ID': return f'{self.entity.acronym}01'
-                elif self.column == 'Country': return f'{self.entity.acronym}02'
-                elif self.column == 'Locality': return f'{self.entity.acronym}04'
-            elif self.entity.acronym == 'LID':
-                if self.column == 'ID': return f'{self.entity.acronym}01'
-                elif self.column == 'Full reference': return f'{self.entity.acronym}02'
-                elif self.column == 'Authors': return f'{self.entity.acronym}03'
-                elif self.column == 'Title': return f'{self.entity.acronym}05'
-                elif self.column == 'Journal': return f'{self.entity.acronym}07'
-                elif self.column == 'Year': return f'{self.entity.acronym}09'
-                elif self.column == 'Volume': return f'{self.entity.acronym}11'
-                elif self.column == 'First page': return f'{self.entity.acronym}13'
-            elif self.entity.acronym == 'STD':
-                if self.column == 'Accession number': return f'{self.entity.acronym}01'
-                elif self.column == 'Restriction on use': return f'{self.entity.acronym}04'
-                elif self.column == 'Nagoya protocol compliance conditions': return f'{self.entity.acronym}06'
-                elif self.column == 'Risk Group': return f'{self.entity.acronym}11'
-                elif self.column == 'Organism type': return f'{self.entity.acronym}15'
-                elif self.column == 'Taxon name': return f'{self.entity.acronym}17'
-                elif self.column == 'Recommended growth temperature': return f'{self.entity.acronym}26'
-                elif self.column == 'Recommended medium for growth': return f'{self.entity.acronym}28'
-                elif self.column == 'Form of supply': return f'{self.entity.acronym}30'
-                elif self.column == 'Geographic origin': return f'{self.entity.acronym}34'
-        elif self.category == 'Missing':
-            if self.entity.acronym == 'LID':
-                if self.column == 'Authors': return f'{self.entity.acronym}04'
-                elif self.column == 'Title': return f'{self.entity.acronym}06'
-                elif self.column == 'Journal': return f'{self.entity.acronym}08'
-                elif self.column == 'Year': return f'{self.entity.acronym}10'
-                elif self.column == 'Volume': return f'{self.entity.acronym}12'
-                elif self.column == 'First page': return f'{self.entity.acronym}14'
-            elif self.entity.acronym == 'STD':
-                if self.column == 'Taxon name': return f'{self.entity.acronym}18'
-                elif self.column == 'Recommended growth temperature': return f'{self.entity.acronym}27'
-                elif self.column == 'Recommended medium': return f'{self.entity.acronym}29'
-                elif self.column == 'Forms of supply': return f'{self.entity.acronym}31'
-                elif self.column == 'Geographic origin': return f'{self.entity.acronym}35'
-        elif self.category == 'Specification':
-            if self.entity.acronym == 'GOD':
-                if self.column == 'Country': return f'{self.entity.acronym}03'
-            elif self.entity.acronym == 'STD':
-                if self.column == 'Accession number': return f'{self.entity.acronym}02'
-                elif self.column == 'Other culture collection numbers': return f'{self.entity.acronym}03'
-                elif self.column == 'Restriction on use': return f'{self.entity.acronym}05'
-                elif self.column == 'Nagoya protocol compliance conditions': return f'{self.entity.acronym}07'
-                elif self.column == 'ABS related files': return f'{self.entity.acronym}08'
-                elif self.column == 'MTA file': return f'{self.entity.acronym}09'
-                elif self.column == 'Strain from a registered collection': return f'{self.entity.acronym}10'
-                elif self.column == 'Risk group': return f'{self.entity.acronym}12'
-                elif self.column == 'Dual use': return f'{self.entity.acronym}13'
-                elif self.column == 'Quarentine in europe': return f'{self.entity.acronym}14'
-                elif self.column == 'Organism type': return f'{self.entity.acronym}16'
-                elif self.column == 'Taxon name': return f'{self.entity.acronym}18'
-                elif self.column == 'Infrasubspecific names': return f'{self.entity.acronym}19'
-                elif self.column == 'History of deposit': return f'{self.entity.acronym}20'
-                elif self.column == 'Date of deposit': return f'{self.entity.acronym}21'
-                elif self.column == 'Date of collection': return f'{self.entity.acronym}22'
-                elif self.column == 'Date of isolation': return f'{self.entity.acronym}23'
-                elif self.column == 'Date of inclusion in the catalogue': return f'{self.entity.acronym}24'
-                elif self.column == 'Tested temperature growth range': return f'{self.entity.acronym}25'
-                elif self.column == 'Coordinates of geographic origin': return f'{self.entity.acronym}32'
-                elif self.column == 'Altitude of geographic origin': return f'{self.entity.acronym}33'
-                elif self.column == 'GMO': return f'{self.entity.acronym}36'
-                elif self.column == 'Literature': return f'{self.entity.acronym}37'
-                elif self.column == 'Sexual state': return f'{self.entity.acronym}38'
-                elif self.column == 'Ploidy': return f'{self.entity.acronym}39'
-                elif self.column == 'interspecific hybrid': return f'{self.entity.acronym}40'
-                elif self.column == 'Plasmids collections fields': return f'{self.entity.acronym}41'
-                elif self.column == 'Ontobiotope term for the isolation habitat': return f'{self.entity.acronym}42'
-                elif self.column == 'Literature linked to the sequence/genome': return f'{self.entity.acronym}43'
-            elif self.entity.acronym == 'GID':
-                if self.column == 'Strain AN': return f'{self.entity.acronym}01'
-                elif self.column == 'Marker': return f'{self.entity.acronym}02'
-                elif self.column == 'INSDC AN': return f'{self.entity.acronym}03'
-                elif self.column == 'Sequence': return f'{self.entity.acronym}04'
+
+    def find_error_code_v2(self):
+        error = {'code': '', 'ratio': 0.0}
+        messages = {code: self.encoder.message(code, self.data) for code in self.encoder.error_codes}
+        
+        for code, message in messages.items():
+            ratio = SequenceMatcher(None, self.message, message).ratio()
+            if ratio >= self.threshold and ratio > error['ratio']:
+                error['code'] = code
+                error['ratio'] = ratio
+
+        return error['code']
 
     @property
     def entity(self):
@@ -387,7 +311,7 @@ class Error():
             return "The 'Accession Number' is not according to the specification."
 
         def STD03(self, accession_number):
-            return f"The 'Other Culture collection Numbers' for strain with Accession Number {accession_number} is not according to the specified syntax."
+            return f"The 'Other Culture collection Numbers' for strain with Accession Number {accession_number} is not according to the specification."
 
         def STD04(self):
             return "The 'Restriction on Use' is a mandatory field for each strain. The column can not be empty."
@@ -452,7 +376,7 @@ class Error():
         def STD24(self, accession_number):
             return f"The 'Date of Inclusion in the Catalogue' for strain with Accession Number {accession_number} is incorrect."
 
-        def STD25(self):
+        def STD25(self, accession_number):
             return f"The 'Tested Temperature Growth Range' for strain with Accession Number {accession_number} is incorrect."
 
         def STD26(self):
@@ -619,7 +543,7 @@ class ErrorLog():
         self.document.add_paragraph('Your Data shows the following errors or missing items:')
 
         for entity_acronym in self.errors:
-            if entity_acronym == 'EFS': continue
+            if entity_acronym in ['EFS', 'UCT']: continue
             
             entity = Entity(entity_acronym)
             self.document.add_heading(entity.name, level=2).style = self.document.styles['Heading 2']
@@ -640,6 +564,34 @@ class ErrorLog():
 
 
             for error in self.errors[entity.acronym]:
+                row_cells = table.add_row().cells
+                row_cells[0].text = error.code
+                row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
+                row_cells[0].width = Cm(4.0)
+                row_cells[1].text = error.message
+                row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+                
+        if 'UCT' in self.errors:
+            self.document.add_page_break()
+            self.document.add_heading('Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
+            self.document.add_paragraph('The following errors were also identified while validating your data:')
+            
+            entity = Entity('UCT')
+
+            table = self.document.add_table(rows=2, cols=2)
+            table.style = 'Table Grid'
+            hdr_cells = table.rows[0].cells
+            hdr_cells = hdr_cells[0].merge(hdr_cells[1])
+            hdr_cells.text = entity.name
+            hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
+            subhdr_cells = table.rows[1].cells
+            subhdr_cells[0].text = 'Error Code'
+            subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
+            subhdr_cells[0].width = Cm(4.0)
+            subhdr_cells[1].text = 'Error Message'
+            subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
+            
+            for error in self.errors['UCT']:
                 row_cells = table.add_row().cells
                 row_cells[0].text = error.code
                 row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
@@ -768,24 +720,23 @@ class ErrorLog():
 
 if __name__ == '__main__':
     error_log = ErrorLog('MIRRI-IS_dataset_BEA_template_30092020', 'BEA', '30-09-2020')
-    # errors = [
-    #     Error('EFS01'),
-    #     Error('EFS02'),
-    #     Error('GOD01'),
-    #     Error('GOD04', 'Brazil'),
-    #     Error('LID01'),
-    #     Error('STD02'),
-    #     Error('STD07', 'AN 123'),
-    #     Error('STD16'),
-    #     Error('STD23', 'AN 123'),
-    #     Error('GID01', 'AN 456'),
-    #     Error('GID03', 'AN 456'),
-    # ]
     errors = [
-        Error(category='Missing', entity='STD', column='Taxon name', data='AN 123'),
-        Error(category='Mandatory', entity='GMD', column='Acronym'),
-        Error(category='Specification', entity='GOD', column='Country', data='Brazil')
+        Error('EFS01'),
+        Error('EFS02'),
+        Error('GOD01'),
+        Error('GOD04', 'Brazil'),
+        Error('LID01'),
+        Error('STD02'),
+        Error('STD07', 'AN 123'),
+        Error('STD16'),
+        Error('STD23', 'AN 123'),
+        Error('GID01', 'AN 456'),
+        Error('GID03', 'AN 456'),
+        Error('The “Acronym” is a mandatory field. The Column can not be empty.'),
+        Error('The “Country” named as Spain is incorrect', 'Spain'),
+        Error('The Growth Medium ABC 123 is not in the Growth Media datasheet.')
     ]
+    
     for error in errors:
         error_log.add_error(error)
 

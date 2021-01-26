@@ -122,8 +122,10 @@ def _parse_strains(
                     orig_value = str(value)
                 except KeyError:
                     if field['mandatory']:
-                        msg = Error(category='Mandatory', entity='STD', column=label, data=orig_value).code
-                        print(msg, 'Mandatory', 'STD', label, orig_value)
+                        if attribute == 'id':
+                            msg = f'The "{label}" is a mandatory field. The Column can not be empty.'
+                        else:
+                            msg = f'The "{label}" is a mandatory field for each Strain. The Column can not be empty.'
                         # msg = f"#{label}# column not in Strain sheet"
                         raise KeyError(msg)
                 if attribute == "id":
@@ -135,9 +137,7 @@ def _parse_strains(
                         collection, number = value.split(" ", 1)
                     except AttributeError as err:
                         # raise ValueError("malformed accession number") from err
-                        msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
-                        print(msg, 'Specification', 'STD', label, orig_value)
-                        raise ValueError(msg) from err
+                        raise ValueError(f'The {label} is not according to the specification.') from err
                     value = StrainId(collection=collection, number=number)
                     rsetattr(strain, attribute, value)
 
@@ -148,8 +148,7 @@ def _parse_strains(
                         allowed = [str(i) for i in RESTRICTION_USE_TRANSLATOR.keys()]
                         # msg = f"{value} not in the allowed restriction on "
                         # msg += f'values: {", ".join(allowed)})'
-                        msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
-                        print(msg, 'Specification', 'STD', label, orig_value)
+                        msg = f'The {label} for strain with Accession Number {strain_id} is not according to the specification.'
                         raise ValueError(msg) from err
                     rsetattr(strain, attribute, value)
                 elif attribute == "nagoya_protocol":
@@ -157,8 +156,7 @@ def _parse_strains(
                         rsetattr(strain, attribute, NAGOYA_TRANSLATOR[value])
                     except KeyError as err:
                         # msg = "Not allowed Nagoya field value"
-                        msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
-                        print(msg, 'Specification', 'STD', label, orig_value)
+                        msg = f'The {label} for strain with Accession Number {strain_id} is not according to the specification.'
                         raise ValueError(msg) from err
                 elif attribute == "other_numbers":
                     other_numbers = []
@@ -174,7 +172,11 @@ def _parse_strains(
                             other_numbers.append(_id)
                         rsetattr(strain, attribute, other_numbers)
                 elif attribute == "taxonomy.taxon_name":
-                    add_taxon_to_strain(strain, value)
+                    try:
+                        add_taxon_to_strain(strain, value)
+                    except ValueError:
+                        msg = f'The {label} for strain with Accession Number {strain_id} is not according to the specification.'
+                        raise ValueError(msg)
                 elif attribute in ("deposit.date", "collect.date", "isolation.date"):
                     if isinstance(value, date):
                         value = DateRange(
@@ -197,8 +199,7 @@ def _parse_strains(
                             if growth_medium not in indexed_growth_media:
                                 # msg = f"{growth_medium} Growth medium not in "
                                 # msg += "growth media sheet"
-                                msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
-                                print(msg, 'Specification', 'STD', label, orig_value)
+                                msg = f'The Growth Medium {growth_medium} is not in the Growth Media datasheet.'
                                 raise ValueError(msg)
                         rsetattr(strain, attribute, growth_media)
                 elif attribute == "form_of_supply":
@@ -217,8 +218,7 @@ def _parse_strains(
                     try:
                         location = indexed_locations[value]
                     except KeyError as error:
-                        msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
-                        print(msg, 'Specification', 'STD', label, orig_value)
+                        msg = f'The Location {value} is not in the geographic Origin datasheet.'
                         # msg = f"#{value}# not in geographic origin sheet"
                         raise KeyError(msg) from error
                     strain.collect.location.country = location["country"]
@@ -241,8 +241,7 @@ def _parse_strains(
                     elif value is None:
                         value = None
                     else:
-                        msg = Error(category='Specification', entity='STD', column=label, data=orig_value).code
-                        print(msg, 'Specification', 'STD', label, orig_value)
+                        msg = f'The {label} for strain with Accession Number {strain_id} is not according to the specification.'
                         # msg = f"Only 1, 2 or empty are allowed: {value}"
                         raise ValueError(msg)
                     rsetattr(strain, attribute, value)
@@ -260,7 +259,7 @@ def _parse_strains(
                 if strain_id not in error_logs:
                     error_logs[strain_id] = []
                 error_logs[strain_id].append(
-                    {"excel_sheet": "Strain", "excel column": label, "error_code": error, "value": orig_value}
+                    {"excel_sheet": "Strain", "excel column": label, "message": error, "value": orig_value}
                 )
 
         # add markers
@@ -306,7 +305,7 @@ def add_taxon_to_strain(strain, value):
             for index in range(0, len(items[2:]), 2):
                 rank = SUBTAXAS.get(items[index + 2], None)
                 if rank is None:
-                    raise ValueError(f"Not valid value: {value}")
+                    raise ValueError
 
                 name = items[index + 3]
             strain.taxonomy.add_subtaxa(rank, name)

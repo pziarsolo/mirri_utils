@@ -65,7 +65,8 @@ SHEETS = [
 def validate_excel(excel, strain, excelDict):
     sheets = excel.sheet_names()
     errors = []
-    error_log = ErrorLog('MIRRI-IS_dataset_BEA_template_30092020', 'BEA', '30-09-2020')
+    excel_name = fhand.split('\\')[-1]
+    error_log = ErrorLog(excel_name)
 
     #see if all sheets are there
     for sheet in SHEETS:
@@ -77,7 +78,7 @@ def validate_excel(excel, strain, excelDict):
                 errors.extend(validate_sheet(sheetEx, sheet))
         else:
             # print(f'{sheet["name"]} is not present')
-            errors.append(Error(category='Structure', entity='EFS', column=sheet['name']))
+            errors.append(Error(f'The "{sheet["name"]}" is missing. Please check the provided excel template'))
     # if len(errors) == 0:
     errors.extend(validation_data(strain, excelDict))
 
@@ -87,8 +88,6 @@ def validate_excel(excel, strain, excelDict):
     print(error_log)
 
     
-
-    
 #validate columns
 def validate_sheet(sheetEx, sheet):
     errors = []
@@ -96,7 +95,7 @@ def validate_sheet(sheetEx, sheet):
         columns = columnsGM(sheetEx)
         if col[0] not in columns and col[1]:
             # print(f'{col[0]} from {sheet_name} is not present')
-            errors.append(Error(category='Mandatory', entity=sheet['acronym'], column=col[0]))
+            errors.append(Error(f'The "{col[0]}" is a mandatory field. The column can not be empty.'))
     return errors
     
 #get columns in sheet
@@ -109,14 +108,16 @@ def columnsGM(sheet):
 def checkTypes(strain, MIRRI_FIELDS, excelDict):
     # Find the columns where each value is null
     stra = strain.dropna(how='all', axis=1)
-    try:
-        stra["Recommended growth temperature"] = pd.to_numeric(stra["Recommended growth temperature"], errors='coerce')
-    except ValueError:
-        print("string cannot be float")
-    
     types1 = stra.dtypes
     error = []
     types2 = {}
+    
+    try:
+        stra["Recommended growth temperature"] = pd.to_numeric(stra["Recommended growth temperature"], errors='coerce')
+    except ValueError:
+        # print("string cannot be float")
+        error.append(Error(f'The "Recommended growth temperature" column has an invalide data type.'))
+    
     for col, type1 in zip(types1.index, types1):
         if type1.name not in list(TYPES_TRANSLATOR.keys()):
             error.append(Error(col))
@@ -125,13 +126,8 @@ def checkTypes(strain, MIRRI_FIELDS, excelDict):
 
     for field in MIRRI_FIELDS: 
         if field['label'] in types2:
-            if types2[field['label']] == field['type']:
-                pass
-                #print(f'{field["label"]} is valid and has type {field["type"]}')
-                #print("Data Type Valid")
-            else:
-                print(f'{field["label"]} is invalid and has type {types2[field["label"]]} but should have type {field["type"]}')
-                error.append(Error(field['label']))
+            if types2[field['label']] != field['type']:
+                error.append(Error(f'The "{field["label"]}" column has an invalide data type.'))
         #print(error, '76')
 
 def validation_data(strain, excelDict):
@@ -142,12 +138,12 @@ def validation_data(strain, excelDict):
         for col, value in row.items():
             #verify where the value is nan and required
             if str(value) == 'nan' and col in required:
-                errors.append(Error(category='Missing', entity='STD', column=col, data=row['Accession number']))
+                errors.append(Error(f'The "{col}" is missing for strain with Accession Number {row["Accession number"]}.'))
                    
     # checkTypes(strain, MIRRI_FIELDS, excelDict)
 
     parsed_excel = _parse_mirri_v20200601(fhand, False)
-    # print(parsed_excel['errors'])
+    print(parsed_excel['errors'])
     return errors
     
 
