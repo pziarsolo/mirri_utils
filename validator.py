@@ -40,7 +40,7 @@ from mirri.settings import (ABS_RELATED_FILES, ACCESSION_NAME,
 TYPES_TRANSLATOR = {'object': str, 'datetime64[ns]': 'datetime', 'int64': int, 'float64': float, 'float32': float}
 fhand = sys.argv[1]
 excel = xlrd.open_workbook(fhand)
-typesfile = open("dt_types.txt", 'a', encoding='utf-8', errors='ignore')
+# typesfile = open("dt_types.txt", 'a', encoding='utf-8', errors='ignore')
 strain = pd.read_excel(fhand, 'Strains', index_col=None)
 excelDict = strain.to_dict()  
 
@@ -121,8 +121,7 @@ def checkTypes(strain, MIRRI_FIELDS, excelDict):
     
     for col, type1 in zip(types1.index, types1):
         if type1.name not in list(TYPES_TRANSLATOR.keys()):
-            error.append(Error(col))
-            col = TYPES_TRANSLATOR[type1.name]
+            error.append(Error(f'The "{col}" column has an invalide data type.'))
         types2[col] = TYPES_TRANSLATOR[type1.name]
 
     for field in MIRRI_FIELDS: 

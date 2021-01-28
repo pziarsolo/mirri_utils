@@ -76,7 +76,7 @@ class Error():
         threshold: minimum value of similarity between the specified message and the default messages. Should be a value between 0.0 and 1.0. This param \
             is ignoref if a code is specified in code_or_message param.
     """
-    def __init__(self, code_or_message, data=None, threshold=1.0):
+    def __init__(self, code_or_message, data=None, threshold=0.9):
         self.encoder = self.ErrorMessage()
         self.data = data
         self.threshold = threshold
@@ -321,10 +321,10 @@ class Error():
             return f"The 'Restriction on use' for strain with Accession Number {accession_number} is not according to the specification."
 
         def STD06(self):
-            return "The 'Nagoya protocol compliance conditions' is a mandatory field. The column can not be empty."
+            return "The 'Nagoya protocol restrictions and compliance conditions' is a mandatory field. The column can not be empty."
 
         def STD07(self, accession_number):
-            return f"The 'Nagoya protocol compliance conditions' for strain with Accession Number {accession_number} is not according to the specification."
+            return f"The 'Nagoya protocol restrictions and compliance conditions' for strain with Accession Number {accession_number} is not according to the specification."
 
         def STD08(self, accession_number):
             return f"The 'ABS related files' for strain with Accession Number {accession_number} is not a valid URL."
