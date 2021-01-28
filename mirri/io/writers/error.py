@@ -76,7 +76,7 @@ class Error():
         threshold: minimum value of similarity between the specified message and the default messages. Should be a value between 0.0 and 1.0. This param \
             is ignoref if a code is specified in code_or_message param.
     """
-    def __init__(self, code_or_message, data=None, threshold=0.95):
+    def __init__(self, code_or_message, data=None, threshold=1.0):
         self.encoder = self.ErrorMessage()
         self.data = data
         self.threshold = threshold
@@ -529,7 +529,7 @@ class ErrorLog():
         subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
 
         if 'EFS' in self.errors:
-            for error in self.errors['EFS']:
+            for error in sorted(self.errors['EFS'], key=lambda e: e.code):
                 row_cells = table.add_row().cells
                 row_cells[0].text = error.code
                 row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
@@ -564,7 +564,7 @@ class ErrorLog():
             subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
 
             if entity.acronym in self.errors:
-                for error in self.errors[entity.acronym]:
+                for error in sorted(self.errors[entity.acronym], key=lambda e: e.code):
                     row_cells = table.add_row().cells
                     row_cells[0].text = error.code
                     row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
@@ -603,7 +603,7 @@ class ErrorLog():
 
         try:
             self.document.save(f'{path}\\{self.input_filename}_error_log.docx')
-            convert(f'{path}\\{self.input_filename}_error_log.docx', f'{path}\\{self.input_filename}_error_log.pdf')
+            convert(f'{path}\\{self.input_filename}_error_log.docx')
         except:
             raise
 

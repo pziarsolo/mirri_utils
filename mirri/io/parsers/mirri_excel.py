@@ -53,11 +53,11 @@ def excel_dict_reader(path, sheet_name, mandatory_column_name=None):
         data = dict(zip(header, values))
 
         if mandatory_column_name is not None and not data[mandatory_column_name]:
-            msg = f"Exiting before end of sheet {sheet_name} ends.\n"
-            msg += f"Mandatory column ({mandatory_column_name}) empty. \n"
-            msg += "Check file for empty lines"
-            print(msg)
-            break
+            # msg = f"Exiting before end of sheet {sheet_name} ends.\n"
+            # msg += f"Mandatory column ({mandatory_column_name}) empty. \n"
+            # msg += "Check file for empty lines"
+            # print(msg)
+            continue
         yield data
 
 
@@ -186,7 +186,7 @@ def _parse_strains(
 
                         rsetattr(strain, attribute, value)
                     except ValueError:
-                        msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
+                        msg = f"The '{label}' for strain with Accession Number {strain_id} is incorrect."
                         raise ValueError(msg)
 
                 elif attribute == "growth.recommended_medium":
@@ -296,7 +296,7 @@ def add_taxon_to_strain(strain, value):
     strain.taxonomy.genus = genus
     if len(items) > 1:
         species = items[1]
-        if species in ("sp", "spp", ".sp"):
+        if species in ("sp", "spp", ".sp", "sp."):
             species = None
             return
         strain.taxonomy.species = species

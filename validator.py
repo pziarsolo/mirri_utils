@@ -145,7 +145,7 @@ def validation_data(strain, excelDict):
     parsed_excel = _parse_mirri_v20200601(fhand, False)
     for _strain, _errors in parsed_excel['errors'].items():
         for error in _errors:
-            errors.append(Error(error['message'].strip('\"'), _strain))
+            errors.append(Error(error['message'].strip('\"\''), _strain))
     return errors
     
 
