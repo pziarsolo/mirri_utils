@@ -362,7 +362,7 @@ class Error():
             return f"The 'Dual use' for strain with Accession Number {accession_number} is not according to specification."
 
         def STD14(self, accession_number):
-            return f"The “Quarentine in europe” entered for strain with Accession Number {accession_number} is incorrect."
+            return f"The “Quarantine in europe” for strain with Accession Number {accession_number} is not according to specification."
 
         def STD15(self):
             return "The 'Organism type' is a mandatory field. The column can not be empty."
