@@ -15,57 +15,62 @@ DOCS_FOLDER = '..\\docs' # relative path originating from ERROR_LOG_FOLDER
 
 
 class Entity():
-        def __init__(self, acronym):
-            self.entity_acronyms = [func for func in dir(self) if func.isupper() and callable(getattr(self, func)) and not func.startswith("__")]
-            self.entity_names = {acr: getattr(self, acr) for acr in self.entity_acronyms}
-            self.acronym = acronym
-            try:
-                self.name = self.entity_names[self.acronym]()
-            except KeyError:
-                raise ValueError(f'Unknown acronym {self.acronym}.')
+    """Entity information
 
-        @property
-        def name(self):
-            return self._name
+    Args:
+        acronym: acronym of the entity. Must be a 3-characters captalized string
+    """
+    def __init__(self, acronym):
+        self.entity_acronyms = [func for func in dir(self) if func.isupper() and callable(getattr(self, func)) and not func.startswith("__")]
+        self.entity_names = {acr: getattr(self, acr) for acr in self.entity_acronyms}
+        self.acronym = acronym
+        try:
+            self.name = self.entity_names[self.acronym]()
+        except KeyError:
+            raise ValueError(f'Unknown acronym {self.acronym}.')
 
-        @name.setter
-        def name(self, name):
-            self._name = name
+    @property
+    def name(self):
+        return self._name
 
-        @property
-        def acronym(self):
-            return self._acronym
-        
-        @acronym.setter
-        def acronym(self, acronym):
-            self._acronym = acronym
+    @name.setter
+    def name(self, name):
+        self._name = name
 
-        def EFS(self):
-            return 'Excel File Structure'
+    @property
+    def acronym(self):
+        return self._acronym
+    
+    @acronym.setter
+    def acronym(self, acronym):
+        self._acronym = acronym
 
-        def GMD(self):
-            return 'Growth Media'
+    def EFS(self):
+        return 'Excel File Structure'
 
-        def GOD(self):
-            return 'Geographic Origin'
+    def GMD(self):
+        return 'Growth Media'
 
-        def LID(self):
-            return 'Literature'
+    def GOD(self):
+        return 'Geographic Origin'
 
-        def STD(self):
-            return 'Strains'
+    def LID(self):
+        return 'Literature'
 
-        def GID(self):
-            return 'Genomic Information'
+    def STD(self):
+        return 'Strains'
 
-        def UCT(self):
-            return 'Uncategorized'
+    def GID(self):
+        return 'Genomic Information'
+
+    def UCT(self):
+        return 'Uncategorized'
 
 
 class Error():
     """Error information
 
-    @params
+    Args
         code_or_message: code or message related to the error. If an error code is specified, param threshold is ignored and the error message is derived \
             from error code. If an error message is specified, an attempt to deduct the error code from the similarity between the specified message and the \
             default messages is performed; If no code is found, a general error code UCT is used instead.
@@ -93,6 +98,11 @@ class Error():
 
 
     def find_error_code_v2(self):
+        """Find error code based on the similarity between the default error message and the specified error message
+
+        Returns:
+            code (str): error code if any was found or empty string otherwise.
+        """
         error = {'code': '', 'ratio': 0.0}
         messages = {code: self.encoder.message(code, self.data) for code in self.encoder.error_codes}
         
@@ -119,7 +129,7 @@ class Error():
         """
             Setter for attribute entity
 
-            params
+            Args:
                 entity: entity related to the error (ESF, GMD, GOD, LID, STD, or GID)
         """
         self._entity = entity
@@ -139,7 +149,7 @@ class Error():
         """
             Setter for attribute code
 
-            params
+            Args:
                 code: code of the error
         """
         self._code = code
@@ -159,7 +169,7 @@ class Error():
         """
             Setter for attribute message
 
-            params
+            Args:
                 message: message associated with the error
         """
         self._message = message
@@ -179,21 +189,28 @@ class Error():
         """
             Setter for attribute data
 
-            params
+            Args:
                 data: data used by some error messages. Usually is the primary key of the entry related to the error.
         """
         self._data = data
 
-    """Inner Error Message"""
+    # Inner Error Message
     class ErrorMessage():
+        """Error messages for each error code"""
         def __init__(self):
-            """
-                Error messages for each error code
-            """
             self.error_codes = [func for func in dir(self) if callable(getattr(self, func)) and not func.startswith("__")]
             self.error_messages = {code: getattr(self, code) for code in self.error_codes}
 
+        """
+            Get the message associated with the specified error code
+        """
         def message(self, code, data=''):
+            """get the error message associated with the specified error code
+            
+            Args:
+                code: error code
+                data [optional]: a value to be passed to some messages that require some data, for instance, and ID
+            """
             if code in self.error_codes:
                 sig = signature(self.error_messages[code])
                 if len(sig.parameters) > 0:
@@ -452,12 +469,12 @@ class Error():
 
 class ErrorLog():
     """
-        Error Log class to write identified errors to log file
+        Error Logging
 
-        params
+        Args:
             input_filename: name of the file which the error log is derived from
-            cc: culture collection identifier
-            date: date the inputed file was submited for validation (date of last modification)
+            cc [optional]: culture collection identifier
+            date [optional]: date the inputed file was submited for validation (date of last modification)
     """
     def __init__(self, input_filename: str, cc: str=None, date: str = None):
         self.input_filename = input_filename
@@ -469,7 +486,22 @@ class ErrorLog():
             
 
     def write(self, path: str):
+        """Write erros to log file
+
+        Args:
+            path (str): path of the file to write the errors log
+        """
         def hyperlink(paragraph, text, url):
+            """Generate a hyperlink text
+
+            Args:
+                paragraph (Paragraph): Paragraph object to append the hyperlink
+                text (str): text of the hyperlink
+                url (str): the url to which the hyperlink points to
+
+            Returns:
+                hyperlink: hyperlink object
+            """
             part = paragraph.part
             r_id = part.relate_to(url, docx.opc.constants.RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
 
@@ -648,8 +680,8 @@ class ErrorLog():
         """
             Setter for input filename
 
-            params
-                input filename [str]: name of the file which the error log is derived from
+            Args:
+                input filename (str): name of the file which the error log is derived from
         """
         self._input_filename = input_filename
 
@@ -670,8 +702,8 @@ class ErrorLog():
         """
             Setter for culture collection identifier
 
-            params
-                cc [str]: culture collection identifier
+            Args:
+                cc (str): culture collection identifier
         """
         self._cc = cc
 
@@ -692,8 +724,8 @@ class ErrorLog():
         """
             Setter for date the inputed file was submited for validation
 
-            params
-                date [str]: date the inputed file was submited for validation
+            Args:
+                date (str): date the inputed file was submited for validation
         """
         self._date = date
 
@@ -712,8 +744,8 @@ class ErrorLog():
         """
             Add an error
 
-            params
-                error [Error]: error to be added
+            Args:
+                error (Error): error to be added
         """
         if error.entity.acronym not in self.errors:
             self.errors[error.entity.acronym] = [error]
