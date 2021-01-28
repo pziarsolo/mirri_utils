@@ -40,7 +40,6 @@ from mirri.settings import (ABS_RELATED_FILES, ACCESSION_NAME,
 TYPES_TRANSLATOR = {'object': str, 'datetime64[ns]': 'datetime', 'int64': int, 'float64': float, 'float32': float}
 fhand = sys.argv[1]
 excel = xlrd.open_workbook(fhand)
-# typesfile = open("dt_types.txt", 'a', encoding='utf-8', errors='ignore')
 strain = pd.read_excel(fhand, 'Strains', index_col=None)
 excelDict = strain.to_dict()  
 
@@ -88,8 +87,8 @@ def validate_excel(excel, strain, excelDict):
 
     print('Writing to file...')
     error_log.write(f'.\logs')
-
     
+
 #validate columns
 def validate_sheet(sheetEx, sheet):
     errors = []

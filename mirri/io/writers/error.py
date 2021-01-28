@@ -604,33 +604,33 @@ class ErrorLog():
                     row_cells[1].text = error.message
                     row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
                 
-        if 'UCT' in self.errors:
-            self.document.add_page_break()
-            self.document.add_heading('Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
-            self.document.add_paragraph('The following errors were also identified while validating your data:')
+        # if 'UCT' in self.errors:
+        #     self.document.add_page_break()
+        #     self.document.add_heading('Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
+        #     self.document.add_paragraph('The following errors were also identified while validating your data:')
             
-            entity = Entity('UCT')
+        #     entity = Entity('UCT')
 
-            table = self.document.add_table(rows=2, cols=2)
-            table.style = 'Table Grid'
-            hdr_cells = table.rows[0].cells
-            hdr_cells = hdr_cells[0].merge(hdr_cells[1])
-            hdr_cells.text = entity.name
-            hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
-            subhdr_cells = table.rows[1].cells
-            subhdr_cells[0].text = 'Error Code'
-            subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
-            subhdr_cells[0].width = Cm(4.0)
-            subhdr_cells[1].text = 'Error Message'
-            subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
+        #     table = self.document.add_table(rows=2, cols=2)
+        #     table.style = 'Table Grid'
+        #     hdr_cells = table.rows[0].cells
+        #     hdr_cells = hdr_cells[0].merge(hdr_cells[1])
+        #     hdr_cells.text = entity.name
+        #     hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
+        #     subhdr_cells = table.rows[1].cells
+        #     subhdr_cells[0].text = 'Error Code'
+        #     subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
+        #     subhdr_cells[0].width = Cm(4.0)
+        #     subhdr_cells[1].text = 'Error Message'
+        #     subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
             
-            for error in self.errors['UCT']:
-                row_cells = table.add_row().cells
-                row_cells[0].text = error.code
-                row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
-                row_cells[0].width = Cm(4.0)
-                row_cells[1].text = error.message
-                row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+        #     for error in self.errors['UCT']:
+        #         row_cells = table.add_row().cells
+        #         row_cells[0].text = error.code
+        #         row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
+        #         row_cells[0].width = Cm(4.0)
+        #         row_cells[1].text = error.message
+        #         row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
 
 
         try:
