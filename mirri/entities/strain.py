@@ -896,8 +896,9 @@ class Strain:
     def nagoya_protocol(self, nagoya):
         if nagoya is not None:
             if nagoya not in ALLOWED_NAGOYA_OPTIONS:
-                msg = f"Nagoya protocol options not matched: {nagoya}"
-                msg += f' options: {", ".join(ALLOWED_NAGOYA_OPTIONS)}'
+                msg = f"The 'Nagoya protocol restrictions and compliance conditions' for strain with Accession Number {self.id.collection}{self.id.number} is not according to the specification."
+                # msg = f"Nagoya protocol options not matched: {nagoya}"
+                # msg += f' options: {", ".join(ALLOWED_NAGOYA_OPTIONS)}'
                 raise ValueError(msg)
             self._data[NAGOYA_PROTOCOL] = nagoya
 
@@ -911,8 +912,9 @@ class Strain:
         if risk_gr is not None:
             risk_gr = str(risk_gr)
             if risk_gr not in ALLOWED_RISK_GROUPS:
-                msg = f"Value ({risk_gr}) not in the allowed options: "
-                msg += f"{', '.join(ALLOWED_RISK_GROUPS)}"
+                msg = f"The 'Risk group' for strain with Accession Number {self.id.collection}{self.id.number} is not according to specification."
+                # msg = f"Value ({risk_gr}) not in the allowed options: "
+                # msg += f"{', '.join(ALLOWED_RISK_GROUPS)}"
                 raise ValueError(msg)
             self._data[RISK_GROUP] = str(risk_gr)
 
@@ -925,9 +927,10 @@ class Strain:
 
         if restriction is not None:
             if restriction not in ALLOWED_RESTRICTION_USE_OPTIONS:
-                msg = f"Restriction use options not matched: {restriction}."
-                msg += " Options: "
-                msg += f'{" ,".join(ALLOWED_RESTRICTION_USE_OPTIONS)}'
+                msg = f"The 'Restriction on use' for strain with Accession Number {self.id.collection}{self.id.number} is not according to the specification."
+                # msg = f"Restriction use options not matched: {restriction}."
+                # msg += " Options: "
+                # msg += f'{" ,".join(ALLOWED_RESTRICTION_USE_OPTIONS)}'
                 raise ValueError(msg)
 
             self._data[RESTRICTION_ON_USE] = restriction
@@ -975,7 +978,7 @@ class Strain:
     @abs_related_files.setter
     def abs_related_files(self, value: List[str]):
         if value is not None and not isinstance(value, list):
-            raise ValueError("Value must be alist")
+            raise ValueError("Value must be a list")
         if value is not None:
             self._data[ABS_RELATED_FILES] = value
 
@@ -986,7 +989,7 @@ class Strain:
     @mta_files.setter
     def mta_files(self, value: List[str]):
         if value is not None and not isinstance(value, list):
-            raise ValueError("Value must be alist")
+            raise ValueError("Value must be a list")
         if value is not None:
             self._data[MTA_FILES] = value
 
