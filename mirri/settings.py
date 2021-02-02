@@ -1,8 +1,6 @@
 from pathlib import Path
 
-
 DATA_DIR = Path(__file__).parent / "data"
-
 
 ACCESSION_NUMBER = "accession_number"
 RESTRICTION_ON_USE = "restriction_on_use"
@@ -98,158 +96,139 @@ COLLECTION_CODE = "collection_code"
 STRAIN_PUI = "strain_pui"
 STRAIN_URL = "strain_url"
 
+# Taxonomy
+GENUS = 'genus'
+SPECIES = 'species'
+
+# Location
+COUNTRY = 'countryOfOriginCode'
+SITE = 'site'
+STATE = 'state'
+PROVINCE = 'province'
+MUNICIPALITY = 'municipality'
+ISLAND = 'island'
+OTHER = 'other'
+LATITUDE = 'latitude'
+LONGITUDE = 'longitude'
+ALTITUDE = 'altitude'
+GEOREF_METHOD = 'georeferencingMethod'
+COORDUNCERTAINTY = 'coordUncertainty'
+COORD_SPATIAL_REFERENCE = 'coordenatesSpatialReference'
+LOCATION = 'location'
+
+ALLOWED_COLLECTING_SITE_KEYS = [COUNTRY, STATE, PROVINCE, ISLAND,
+                                MUNICIPALITY, OTHER, SITE, LATITUDE,
+                                LONGITUDE, ALTITUDE, GEOREF_METHOD,
+                                COORDUNCERTAINTY, COORD_SPATIAL_REFERENCE]
+
 MIRRI_FIELDS = [
-    {"attribute": "id", "label": "Accession number", "mandatory": True},
-    {
-        "attribute": "restriction_on_use",
-        "label": "Restrictions on use",
-        "mandatory": True,
-    },
-    {
-        "attribute": "nagoya_protocol",
-        "label": "Nagoya protocol restrictions and compliance conditions",
-        "mandatory": True,
-    },
-    {"attribute": ABS_RELATED_FILES, "label": "ABS related files", "mandatory": False},
-    {"attribute": MTA_FILES, "label": "MTA file", "mandatory": False},
-    {
-        "attribute": "other_numbers",
-        "label": "Other culture collection numbers",
-        "mandatory": False,
-    },
-    {
-        "attribute": "is_from_registered_collection",
-        "label": "Strain from a registered collection",
-        "mandatory": False,
-    },
-    {"attribute": "risk_group", "label": "Risk Group", "mandatory": True},
-    {"attribute": "dual_use", "label": "Dual use", "mandatory": False},
-    {
-        "attribute": "is_subject_to_quarantine",
-        "label": "Quarantine in Europe",
-        "mandatory": False,
-    },
-    {
-        "attribute": "taxonomy.organism_type",
-        "label": "Organism type",
-        "mandatory": True,
-    },
-    {"attribute": "taxonomy.taxon_name", "label": "Taxon name", "mandatory": True},
-    {
-        "attribute": "taxonomy.infrasubspecific_name",
-        "label": "Infrasubspecific names",
-        "mandatory": False,
-    },
-    {
-        "attribute": "taxonomy.comments",
-        "label": "Comment on taxonomy",
-        "mandatory": False,
-    },
-    {
-        "attribute": "taxonomy.interspecific_hybrid",
-        "label": "Interspecific hybrid",
-        "mandatory": False,
-    },
-    {"attribute": "status", "label": "Status", "mandatory": False},
-    {"attribute": "history", "label": "History of deposit", "mandatory": False},
-    {"attribute": "deposit.who", "label": "Depositor", "mandatory": False},
-    {"attribute": "deposit.date", "label": "Date of deposit", "mandatory": False},
-    {
-        "attribute": "deposit.date",
-        "label": "Date of inclusion in the catalogue",
-        "mandatory": False,
-    },
-    {"attribute": "collect.who", "label": "Collected by", "mandatory": False},
-    {"attribute": "collect.date", "label": "Date of collection", "mandatory": False},
-    {"attribute": "isolation.who", "label": "Isolated by", "mandatory": False},
-    {"attribute": "isolation.date", "label": "Date of isolation", "mandatory": False},
-    {
-        "attribute": "isolation.substrate_host_of_isolation",
-        "label": "Substrate/host of isolation",
-        "mandatory": False,
-    },
-    {
-        "attribute": "growth.tested_temp_range",
-        "label": "Tested temperature growth range",
-        "mandatory": False,
-    },
-    {
-        "attribute": "growth.recommended_temp",
-        "label": "Recommended growth temperature",
-        "mandatory": True,
-    },
-    {
-        "attribute": "growth.recommended_medium",
-        "label": "Recommended medium for growth",
-        "mandatory": True,
-    },
-    {"attribute": "form_of_supply", "label": "Form of supply", "mandatory": True},
-    {
-        "attribute": "other_denominations",
-        "label": "Other denomination",
-        "mandatory": False,
-    },
-    {
-        "attribute": "collect.location.coords",
-        "label": "Coordinates of geographic origin",
-        "mandatory": False,
-    },
-    {
-        "attribute": "collect.location.altidude",
-        "label": "Altitude of geographic origin",
-        "mandatory": False,
-    },
-    {"attribute": "collect.location", "label": "Geographic origin", "mandatory": True},
-    {"attribute": "collect.habitat", "label": "Isolation habitat", "mandatory": False},
-    {
-        "attribute": "collect.habitat_ontotype",
-        "label": "Ontobiotope term for the isolation habitat",
-        "mandatory": False,
-    },
-    {"attribute": "genetics.gmo", "label": "GMO", "mandatory": False},
-    {
-        "attribute": "genetics.gmo_construction",
-        "label": "GMO construction information",
-        "mandatory": False,
-    },
-    {
-        "attribute": "genetics.mutant_info",
-        "label": "Mutant information",
-        "mandatory": False,
-    },
-    {"attribute": "genetics.genotype", "label": "Genotype", "mandatory": False},
-    {"attribute": "genetics.sexual_state", "label": "Sexual state", "mandatory": False},
-    {"attribute": "genetics.ploidy", "label": "Ploidy", "mandatory": False},
-    {"attribute": "genetics.plasmids", "label": "Plasmids", "mandatory": False},
-    {
-        "attribute": "genetics.plasmid_collections_fields",
-        "label": "Plasmids collections fields",
-        "mandatory": False,
-    },
-    {"attribute": "publications", "label": "Literature", "mandatory": False},
-    {
-        "attribute": PLANT_PATHOGENICITY_CODE,
-        "label": "Plant pathogenicity code",
-        "mandatory": False,
-    },
-    {"attribute": "pathogenity", "label": "Pathogenicity", "mandatory": False},
-    {
-        "attribute": "enzyme_production",
-        "label": "Enzyme production",
-        "mandatory": False,
-    },
-    {
-        "attribute": "production_of_metabolites",
-        "label": "Production of metabolites",
-        "mandatory": False,
-    },
-    {"attribute": "applications", "label": "Applications", "mandatory": False},
-    {"attribute": "remarks", "label": "Remarks", "mandatory": False},
-    {
-        "attribute": LITERATURE_LINKED_TO_SEQ_GENOME,
-        "label": "Literature linked to the sequence/genome",
-        "mandatory": False,
-    },
+    {'attribute': 'id', 'label': 'Accession number',
+     'mandatory': True, "type": str},
+    {'attribute': 'restriction_on_use', 'label': 'Restrictions on use',
+     'mandatory': True, "type": int},
+    {'attribute': 'nagoya_protocol',
+     'label': 'Nagoya protocol restrictions and compliance conditions',
+     'mandatory': True, "type": int},
+    {'attribute': ABS_RELATED_FILES, 'label': 'ABS related files',
+     'mandatory': False, "type": str},
+    {'attribute': MTA_FILES, 'label': 'MTA file', 'mandatory': False, "type": str},
+    {'attribute': 'other_numbers',
+     'label': 'Other culture collection numbers',
+     'mandatory': False, "type": str},
+    {'attribute': 'is_from_registered_collection',
+     'label': 'Strain from a registered collection',
+     'mandatory': False, "type": int},
+    {'attribute': 'risk_group', 'label': 'Risk Group',
+     'mandatory': True, "type": int},
+    {'attribute': 'dual_use', 'label': 'Dual use', 'mandatory': False, "type": int},
+    {'attribute': 'is_subject_to_quarantine', 'label': 'Quarantine in Europe',
+     'mandatory': False, "type": int},
+
+    {'attribute': 'taxonomy.organism_type', 'label': 'Organism type',
+     'mandatory': True, "type": str},
+    {'attribute': 'taxonomy.taxon_name', 'label': 'Taxon name',
+     'mandatory': True, "type": str},
+    {'attribute': 'taxonomy.infrasubspecific_name',
+     'label': 'Infrasubspecific names', 'mandatory': False, "type": str},
+    {'attribute': 'taxonomy.comments', 'label': 'Comment on taxonomy',
+     'mandatory': False, "type": str},
+    {'attribute': 'taxonomy.interspecific_hybrid',
+     'label': 'Interspecific hybrid', 'mandatory': False, "type": int},
+
+    {'attribute': 'status', 'label': 'Status', 'mandatory': False, "type": str},
+    {'attribute': 'history', 'label': 'History of deposit',
+     'mandatory': False, "type": str},
+
+    {'attribute': 'deposit.who', 'label': 'Depositor', 'mandatory': False, "type": str},
+    {'attribute': 'deposit.date', 'label': 'Date of deposit',
+     'mandatory': False, "type": "datetime"},
+    {'attribute': 'deposit.date',
+     'label': 'Date of inclusion in the catalogue', 'mandatory': False, "type": "datetime"},
+
+    {'attribute': 'collect.who', 'label': 'Collected by', 'mandatory': False, "type": str},
+    {'attribute': 'collect.date', 'label': 'Date of collection',
+     'mandatory': False, "type": "datetime"},
+
+    {'attribute': 'isolation.who', 'label': 'Isolated by', 'mandatory': False, "type": str},
+    {'attribute': 'isolation.date', 'label': 'Date of isolation',
+     'mandatory': False, "type": "datetime"},
+    {'attribute': 'isolation.substrate_host_of_isolation',
+     'label': 'Substrate/host of isolation', 'mandatory': False, "type": str},
+
+    {'attribute': 'growth.tested_temp_range',
+     'label': 'Tested temperature growth range', 'mandatory': False, "type": float},
+    {'attribute': 'growth.recommended_temp',
+     'label': 'Recommended growth temperature', 'mandatory': True, "type": float},
+    {'attribute': 'growth.recommended_medium',
+     'label': 'Recommended medium for growth', 'mandatory': True, "type": str},
+
+    {'attribute': 'form_of_supply', 'label': 'Form of supply',
+     'mandatory': True, "type": str},
+    {'attribute': 'other_denominations', 'label': 'Other denomination',
+     'mandatory': False, "type": str},
+
+    {'attribute': 'collect.location.coords',
+     'label': 'Coordinates of geographic origin', 'mandatory': False, "type": float},
+    {'attribute': 'collect.location.altidude',
+     'label': 'Altitude of geographic origin', 'mandatory': False, "type": float},
+    {'attribute': 'collect.location', 'label': 'Geographic origin',
+     'mandatory': True, "type": str},
+    {'attribute': 'collect.habitat', 'label': 'Isolation habitat',
+     'mandatory': False, "type": str},
+    {'attribute': 'collect.habitat_ontotype',
+     'label': 'Ontobiotope term for the isolation habitat',
+     'mandatory': False, "type": str},
+
+    {'attribute': 'genetics.gmo', 'label': 'GMO', 'mandatory': False, "type": int},
+    {'attribute': 'genetics.gmo_construction',
+     'label': 'GMO construction information', 'mandatory': False, "type": str},
+    {'attribute': 'genetics.mutant_info', 'label': 'Mutant information',
+     'mandatory': False, "type": str},
+    {'attribute': 'genetics.genotype', 'label': 'Genotype',
+     'mandatory': False, "type": str},
+    {'attribute': 'genetics.sexual_state', 'label': 'Sexual state',
+     'mandatory': False, "type": str},
+    {'attribute': 'genetics.ploidy', 'label': 'Ploidy', 'mandatory': False, "type": int},
+    {'attribute': 'genetics.plasmids', 'label': 'Plasmids',
+     'mandatory': False, "type": str},
+    {'attribute': 'genetics.plasmid_collections_fields',
+     'label': 'Plasmids collections fields', 'mandatory': False, "type": str},
+
+    {'attribute': 'publications', 'label': 'Literature', 'mandatory': False, "type": float},
+    {'attribute': PLANT_PATHOGENICITY_CODE,
+     'label': 'Plant pathogenicity code', 'mandatory': False, "type": str},
+    {'attribute': 'pathogenity', 'label': 'Pathogenicity',
+     'mandatory': False, "type": str},
+    {'attribute': 'enzyme_production', 'label': 'Enzyme production',
+     'mandatory': False, "type": str},
+    {'attribute': 'production_of_metabolites',
+     'label': 'Production of metabolites', 'mandatory': False, "type": str},
+    {'attribute': 'applications', 'label': 'Applications', 'mandatory': False, "type": str},
+    {'attribute': 'remarks', 'label': 'Remarks', 'mandatory': False, "type": str},
+
+    {'attribute': LITERATURE_LINKED_TO_SEQ_GENOME,
+     'label': 'Literature linked to the sequence/genome',
+     'mandatory': False, "type": float}
 ]
 
 ALLOWED_SUBTAXA = ["subspecies", "variety", "convarietas", "group", "forma"]
@@ -341,7 +320,14 @@ SUBTAXAS = {
 }
 
 # Excel sheet name
-LOCATIONS = "Geographic origin"  # 'Locations'
-GROWTH_MEDIA = "Growth media"
-GENOMIC_INFO = "Genomic information"
-STRAINS = "Strains"
+LOCATIONS = 'Geographic origin'  # 'Locations'
+GROWTH_MEDIA = 'Growth media'
+GENOMIC_INFO = 'Genomic information'
+STRAINS = 'Strains'
+LITERATURE_SHEET = 'Literature'
+SEXUAL_STATE_SHEET = 'Sexual state'
+RESOURCE_TYPES_VALUEs = 'Resource types values'
+FORM_OF_SUPPLY_SHEET = 'Forms of supply'
+PLOIDY_SHEET = 'Ploidy'
+ONTOBIOTOPE = 'Ontobiotope'
+MARKERS = 'Markers'
