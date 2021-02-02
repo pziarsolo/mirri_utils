@@ -117,6 +117,10 @@ ORG_TYPES = {
 }
 
 
+class MirriValidationError(Exception):
+    pass
+
+
 class OrganismType:
     def __init__(self, value=None):
         self._data = {}
@@ -138,10 +142,10 @@ class OrganismType:
             code = int(code)
         except TypeError as error:
             msg = f"code {code} not accepted for organism type"
-            raise ValueError(msg) from error
+            raise MirriValidationError(msg) from error
 
         if code not in ORG_TYPES.values():
-            raise ValueError(f"code {code} not accepted for organism type")
+            raise MirriValidationError(f"code {code} not accepted for organism type")
         self._data["code"] = code
         name = None
         for _name, _code in ORG_TYPES.items():
@@ -159,16 +163,16 @@ class OrganismType:
         try:
             name = name.lower()
         except TypeError as error:
-            raise ValueError(error_msg) from error
+            raise MirriValidationError(error_msg) from error
 
         if name not in ORG_TYPES.keys():
-            raise ValueError(error_msg)
+            raise MirriValidationError(error_msg)
         self._data["name"] = name
         self._data["code"] = ORG_TYPES[name]
 
     def guess_type(self, value):
         if value is None or not value:
-            raise ValueError(" Can not set an empty value")
+            raise MirriValidationError(" Can not set an empty value")
         try:
             value = int(value)
             value_is_code = True
@@ -272,7 +276,7 @@ class Taxonomy(object):
     def species_author(self, species_author):
         if not self.species:
             msg = "Can not set species author if species is not set"
-            raise ValueError(msg)
+            raise MirriValidationError(msg)
         self._data[SPECIES]["author"] = species_author
 
     @property
@@ -379,7 +383,7 @@ class _GeneralStep:
     @location.setter
     def location(self, location: Location):
         if self._location_tag is None:
-            return ValueError("Can set location on this class")
+            return ValueError("Can't set location on this class")
         if not isinstance(location, Location):
             raise ValueError("Location must be a Location instance")
         self._data[self._location_tag] = location
@@ -765,7 +769,7 @@ class Growth(_FieldBasedClass):
             if "min" in val and "max" in val:
                 self._data[TESTED_TEMPERATURE_GROWTH_RANGE] = val
             else:
-                raise ValueError("A dict with min and max is required")
+                raise MirriValidationError("A dict with min and max is required")
 
     @property
     def recommended_medium(self) -> List[str]:
@@ -776,7 +780,7 @@ class Growth(_FieldBasedClass):
         if value is not None:
             if not isinstance(value, (list, set)):
                 msg = "Recommendedn medium must be a list"
-                raise ValueError(msg)
+                raise MirriValidationError(msg)
             self._data[RECOMMENDED_GROWTH_MEDIUM] = value
 
     @property
@@ -832,29 +836,6 @@ class Strain:
     def __str__(self):
         return f"Strain {self.id.collection} {self.id.number}"
 
-    #     def dict2(self):
-    #         data = deepcopy(self._data)
-    #         for child in [STRAIN_ID, COLLECT, DEPOSIT, ISOLATION, GROWTH,
-    #                       GENETICS]:
-    #             if child in data:
-    #                 if data[child]:
-    #                     data[child] = data[child].dict()
-    #                 else:
-    #                     del data[child]
-    #         if OTHER_CULTURE_NUMBERS in data:
-    #             if data[OTHER_CULTURE_NUMBERS]:
-    #                 o_n_data = [on.dict() for on in data[OTHER_CULTURE_NUMBERS]]
-    #                 data[OTHER_CULTURE_NUMBERS] = o_n_data
-    #             else:
-    #                 del data[OTHER_CULTURE_NUMBERS]
-    #         if PUBLICATIONS in data:
-    #             if data[PUBLICATIONS]:
-    #                 data[PUBLICATIONS] = [pub.dict()
-    #                                        for pub in data[PUBLICATIONS]]
-    #             else:
-    #                 del data[PUBLICATIONS]
-    #         return data
-
     def dict(self):
         data = {}
         for field, value in self._data.items():
@@ -896,10 +877,13 @@ class Strain:
     def nagoya_protocol(self, nagoya):
         if nagoya is not None:
             if nagoya not in ALLOWED_NAGOYA_OPTIONS:
-                msg = f"The 'Nagoya protocol restrictions and compliance conditions' for strain with Accession Number {self.id.collection}{self.id.number} is not according to the specification."
+                msg = "The 'Nagoya protocol restrictions and compliance "
+                msg += "conditions' for strain with Accession Number "
+                msg += f"{self.id.collection}{self.id.number} is not "
+                msg += "according to the specification."
                 # msg = f"Nagoya protocol options not matched: {nagoya}"
                 # msg += f' options: {", ".join(ALLOWED_NAGOYA_OPTIONS)}'
-                raise ValueError(msg)
+                raise MirriValidationError(msg)
             self._data[NAGOYA_PROTOCOL] = nagoya
 
     @property
@@ -912,10 +896,12 @@ class Strain:
         if risk_gr is not None:
             risk_gr = str(risk_gr)
             if risk_gr not in ALLOWED_RISK_GROUPS:
-                msg = f"The 'Risk group' for strain with Accession Number {self.id.collection}{self.id.number} is not according to specification."
+                msg = "The 'Risk group' for strain with Accession Number "
+                msg += f"{self.id.collection}{self.id.number} is not according "
+                msg += "to specification."
                 # msg = f"Value ({risk_gr}) not in the allowed options: "
                 # msg += f"{', '.join(ALLOWED_RISK_GROUPS)}"
-                raise ValueError(msg)
+                raise MirriValidationError(msg)
             self._data[RISK_GROUP] = str(risk_gr)
 
     @property
@@ -927,11 +913,10 @@ class Strain:
 
         if restriction is not None:
             if restriction not in ALLOWED_RESTRICTION_USE_OPTIONS:
-                msg = f"The 'Restriction on use' for strain with Accession Number {self.id.collection}{self.id.number} is not according to the specification."
-                # msg = f"Restriction use options not matched: {restriction}."
-                # msg += " Options: "
-                # msg += f'{" ,".join(ALLOWED_RESTRICTION_USE_OPTIONS)}'
-                raise ValueError(msg)
+                msg = "The 'Restriction on use' for strain with Accession "
+                msg += f"Number {self.id.collection} {self.id.number} is not "
+                msg += "according to the specification."
+                raise MirriValidationError(msg)
 
             self._data[RESTRICTION_ON_USE] = restriction
 
@@ -947,7 +932,8 @@ class Strain:
         # and corrections
         if is_harmful is not None:
             if not isinstance(is_harmful, bool):
-                raise ValueError("is_potentially harmful must be True/False")
+                msg = "is_potentially harmful must be True/False"
+                raise MirriValidationError(msg)
             self._data[DUAL_USE] = is_harmful
 
     @property
@@ -957,7 +943,8 @@ class Strain:
     @is_subject_to_quarantine.setter
     def is_subject_to_quarantine(self, quarantine: bool):
         if quarantine is not None and not isinstance(quarantine, bool):
-            raise ValueError("is subject to quarantine must be boolean")
+            msg = "Is subject to quarantine must be boolean"
+            raise MirriValidationError(msg)
         self._data[QUARANTINE] = quarantine
 
     @property
@@ -968,7 +955,7 @@ class Strain:
     def is_from_registered_collection(self, value: bool):
         if value is not None:
             if not isinstance(value, bool):
-                raise ValueError("is from reg_collection must be boolean")
+                raise MirriValidationError("is from reg_collection must be boolean")
             self._data[STRAIN_FROM_REGISTERED_COLLECTION] = value
 
     @property
@@ -978,7 +965,7 @@ class Strain:
     @abs_related_files.setter
     def abs_related_files(self, value: List[str]):
         if value is not None and not isinstance(value, list):
-            raise ValueError("Value must be a list")
+            raise MirriValidationError("Value must be a list")
         if value is not None:
             self._data[ABS_RELATED_FILES] = value
 
@@ -989,7 +976,7 @@ class Strain:
     @mta_files.setter
     def mta_files(self, value: List[str]):
         if value is not None and not isinstance(value, list):
-            raise ValueError("Value must be a list")
+            raise MirriValidationError("Value must be a list")
         if value is not None:
             self._data[MTA_FILES] = value
 
@@ -1002,7 +989,7 @@ class Strain:
         for on in value:
             if not isinstance(on, StrainId):
                 msg = "Other number must be a list of Strain Id instances"
-                raise ValueError(msg)
+                raise MirriValidationError(msg)
         self._data[OTHER_CULTURE_NUMBERS] = value
 
     @property
@@ -1034,7 +1021,7 @@ class Strain:
 
         if {v.lower() for v in value}.difference(allowed):
             msg = "Not allowed forms of suplly"
-            raise ValueError(msg)
+            raise MirriValidationError(msg)
         self._data[FORM_OF_SUPPLY] = value
 
     @property
@@ -1095,7 +1082,7 @@ class Strain:
             for pub in value:
                 if not isinstance(pub, Publication):
                     msg = "Publications must be Publication instaces"
-                    raise ValueError(msg)
+                    raise MirriValidationError(msg)
             self._data[PUBLICATIONS] = value
 
     # mierder

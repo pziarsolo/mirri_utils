@@ -5,7 +5,12 @@ from openpyxl import load_workbook
 
 from mirri import rsetattr
 from mirri.entities.date_range import DateRange
-from mirri.entities.strain import GenomicSequence, Strain, StrainId
+from mirri.entities.strain import (
+    GenomicSequence,
+    MirriValidationError,
+    Strain,
+    StrainId,
+)
 from mirri.io.writers.error import Error
 from mirri.settings import (
     COMMERCIAL_USE_WITH_AGREEMENT,
@@ -20,7 +25,6 @@ from mirri.settings import (
     ONLY_RESEARCH,
     STRAINS,
     SUBTAXAS,
-    UNKNOWN,
 )
 
 RESTRICTION_USE_TRANSLATOR = {
@@ -40,7 +44,9 @@ def excel_dict_reader(path, sheet_name, mandatory_column_name=None):
     try:
         sheet = wb[sheet_name]
     except KeyError as error:
-        raise ValueError(f"The '{sheet_name}' sheet is missing. Please check the provided excel template.") from error
+        raise ValueError(
+            f"The '{sheet_name}' sheet is missing. Please check the provided excel template."
+        ) from error
         # raise ValueError(f"{sheet_name} sheet not in excel file") from error
 
     first = True
@@ -69,9 +75,17 @@ def parse_mirri_excel(path, version, fail_if_error=True):
 
 def _parse_mirri_v20200601(path, fail_if_error):
     locations = excel_dict_reader(path, LOCATIONS)
-    indexed_locations = {loc["ID"]: loc for loc in locations}
+    indexed_locations = {loc["Locality"]: loc for loc in locations}
 
     growth_media = list(excel_dict_reader(path, GROWTH_MEDIA))
+    growth_media = [
+        {
+            "Acronym": str(gm["Acronym"]),
+            "Description": gm["Description"],
+            "Full description": gm["Full description"],
+        }
+        for gm in growth_media
+    ]
     indexed_growth_media = {str(gm["Acronym"]): gm for gm in growth_media}
 
     markers = excel_dict_reader(path, GENOMIC_INFO)
@@ -123,7 +137,7 @@ def _parse_strains(
                     value = strain_row[label]
                     orig_value = str(value)
                 except KeyError:
-                    if field['mandatory']:
+                    if field["mandatory"]:
                         msg = f"The '{label}' is a mandatory field. The Column can not be empty."
                         # msg = f"#{label}# column not in Strain sheet"
                         raise KeyError(msg)
@@ -136,7 +150,9 @@ def _parse_strains(
                         collection, number = value.split(" ", 1)
                     except AttributeError as err:
                         # raise ValueError("malformed accession number") from err
-                        raise ValueError(f"The '{label}' is not according to the specification.") from err
+                        raise ValueError(
+                            f"The '{label}' is not according to the specification."
+                        ) from err
                     value = StrainId(collection=collection, number=number)
                     rsetattr(strain, attribute, value)
 
@@ -202,7 +218,7 @@ def _parse_strains(
                             if growth_medium not in indexed_growth_media:
                                 # msg = f"{growth_medium} Growth medium not in "
                                 # msg += "growth media sheet"
-                                msg = f'The Growth Medium {growth_medium} for strain with Accession Number {strain_id} is not in the Growth Media datasheet.'
+                                msg = f"The Growth Medium {growth_medium} for strain with Accession Number {strain_id} is not in the Growth Media datasheet."
                                 raise ValueError(msg)
                         rsetattr(strain, attribute, growth_media)
                 elif attribute == "form_of_supply":
@@ -221,7 +237,7 @@ def _parse_strains(
                     try:
                         location = indexed_locations[value]
                     except KeyError:
-                        msg = f'The Location {value} for strain with Accession Number {strain_id} is not in the geographic origin datasheet.'
+                        msg = f"The Location {value} for strain with Accession Number {strain_id} is not in the geographic origin datasheet."
                         # msg = f"#{value}# not in geographic origin sheet"
                         raise KeyError(msg)
                     strain.collect.location.country = location["Country"]
@@ -246,11 +262,12 @@ def _parse_strains(
                     else:
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
                         # msg = f"Only 1, 2 or empty are allowed: {value}"
-                        raise ValueError(msg)
+                        raise MirriValidationError(msg)
                     rsetattr(strain, attribute, value)
                 else:
                     rsetattr(strain, attribute, value)
             except (
+                MirriValidationError,
                 ValueError,
                 IndexError,
                 KeyError,
@@ -262,7 +279,12 @@ def _parse_strains(
                 if strain_id not in error_logs:
                     error_logs[strain_id] = []
                 error_logs[strain_id].append(
-                    {"excel_sheet": "Strain", "excel column": label, "message": f"{str(error)}", "value": orig_value}
+                    {
+                        "excel_sheet": "Strain",
+                        "excel column": label,
+                        "message": f"{str(error)}",
+                        "value": orig_value,
+                    }
                 )
 
         # add markers
