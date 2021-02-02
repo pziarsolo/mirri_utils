@@ -3,37 +3,39 @@
 from typing import Union
 
 from mirri.entities._private_classes import _FieldBasedClass
-from mirri.settings import (ALTITUDE, COORD_SPATIAL_REFERENCE,
-                            COORDUNCERTAINTY, COUNTRY, GEOREF_METHOD, ISLAND,
-                            LATITUDE, LONGITUDE, MUNICIPALITY, OTHER, PROVINCE,
-                            SITE, STATE)
+from mirri.settings import (
+    ALTITUDE,
+    COORD_SPATIAL_REFERENCE,
+    COORDUNCERTAINTY,
+    COUNTRY,
+    GEOREF_METHOD,
+    ISLAND,
+    LATITUDE,
+    LONGITUDE,
+    MUNICIPALITY,
+    OTHER,
+    PROVINCE,
+    SITE,
+    STATE,
+)
 
 
 class Location(_FieldBasedClass):
     _fields = [
-        {'attribute': 'country', 'label': COUNTRY},
-        {'attribute': 'state', 'label': STATE},
-        {'attribute': 'province', 'label': PROVINCE},
-        {'attribute': 'municipality', 'label': MUNICIPALITY},
-        {'attribute': 'site', 'label': SITE},
-        {'attribute': 'other', 'label': OTHER},
-        {'attribute': 'island', 'label': ISLAND},
-        {'attribute': 'longitude', 'label': LONGITUDE},
-        {'attribute': 'latitude', 'label': LATITUDE},
-        {'attribute': 'altitude', 'label': ALTITUDE},
-        {'attribute': 'coord_spatial_reference',
-         'label': COORD_SPATIAL_REFERENCE},
-        {'attribute': 'coord_uncertainty', 'label': COORDUNCERTAINTY},
-        {'attribute': 'georef_method', 'label': GEOREF_METHOD}
+        {"attribute": "country", "label": COUNTRY},
+        {"attribute": "state", "label": STATE},
+        {"attribute": "province", "label": PROVINCE},
+        {"attribute": "municipality", "label": MUNICIPALITY},
+        {"attribute": "site", "label": SITE},
+        {"attribute": "other", "label": OTHER},
+        {"attribute": "island", "label": ISLAND},
+        {"attribute": "longitude", "label": LONGITUDE},
+        {"attribute": "latitude", "label": LATITUDE},
+        {"attribute": "altitude", "label": ALTITUDE},
+        {"attribute": "coord_spatial_reference", "label": COORD_SPATIAL_REFERENCE},
+        {"attribute": "coord_uncertainty", "label": COORDUNCERTAINTY},
+        {"attribute": "georef_method", "label": GEOREF_METHOD},
     ]
-
-#     def __init__(self, data=None):
-#         self._data = {}
-#         if data is not None:
-#             self._data = deepcopy(data)
-#
-#     def __bool__(self):
-#         return bool(self._data)
 
     def __str__(self):
         _site = []
@@ -46,16 +48,7 @@ class Location(_FieldBasedClass):
         if self.municipality:
             _site.append(self.municipality)
 
-        return ': '.join(_site)
-
-#     def dict(self):
-#         _data = OrderedDict()
-#         for allowed_key in ALLOWED_COLLECTING_SITE_KEYS:
-#             value = self._data.get(allowed_key, None)
-#             if value:
-#                 _data[allowed_key] = value
-#         # print(_data), print(self._data)
-#         return _data
+        return ": ".join(_site)
 
     @property
     def country(self) -> Union[str, None]:

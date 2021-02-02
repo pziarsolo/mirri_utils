@@ -455,7 +455,7 @@ class Collect(_GeneralStep):
 
     @property
     def habitat(self):
-        return self._data[ISOLATION_HABITAT]
+        return self._data.get(ISOLATION_HABITAT, None)
 
     @habitat.setter
     def habitat(self, habitat: str):
@@ -464,7 +464,7 @@ class Collect(_GeneralStep):
 
     @property
     def habitat_ontotype(self):
-        return self._data[ONTOTYPE_ISOLATION_HABITAT]
+        return self._data.get(ONTOTYPE_ISOLATION_HABITAT, None)
 
     @habitat_ontotype.setter
     def habitat_ontotype(self, habitat: str):

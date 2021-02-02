@@ -19,6 +19,7 @@ from mirri.settings import (
     ONLY_RESEARCH,
     STRAINS,
     SUBTAXAS,
+    UNKNOWN,
 )
 
 RESTRICTION_USE_TRANSLATOR = {
@@ -68,7 +69,7 @@ def _parse_mirri_v20200601(path, fail_if_error):
     locations = excel_dict_reader(path, LOCATIONS)
     indexed_locations = {loc["ID"]: loc for loc in locations}
 
-    growth_media = excel_dict_reader(path, GROWTH_MEDIA)
+    growth_media = list(excel_dict_reader(path, GROWTH_MEDIA))
     indexed_growth_media = {str(gm["Acronym"]): gm for gm in growth_media}
 
     markers = excel_dict_reader(path, GENOMIC_INFO)
@@ -94,7 +95,7 @@ def _parse_mirri_v20200601(path, fail_if_error):
 
     return {
         "strains": strains,
-        "growth_media": indexed_growth_media,
+        "growth_media": growth_media,
         "errors": indexed_errors,
     }
 
@@ -205,10 +206,15 @@ def _parse_strains(
                     except KeyError as error:
                         msg = f"#{value}# not in geographic origin sheet"
                         raise KeyError(msg) from error
-                    strain.collect.location.country = location["country"]
-                    strain.collect.location.state = location["region"]
-                    strain.collect.location.municipality = location["city"]
-                    strain.collect.location.site = location["locality"]
+                    if location["country"] != UNKNOWN:
+                        strain.collect.location.country = location["country"]
+                    if location["region"] != UNKNOWN:
+                        strain.collect.location.state = location["region"]
+                    if location["city"] != UNKNOWN:
+                        strain.collect.location.municipality = location["city"]
+                    if location["locality"] != UNKNOWN:
+                        strain.collect.location.site = location["locality"]
+
                 elif attribute in ("abs_related_files", "mta_files"):
                     if value is not None:
                         rsetattr(strain, attribute, value.split(";"))
