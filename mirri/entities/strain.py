@@ -105,15 +105,15 @@ ORG_TYPES = {
 }
 
 ORG_TYPES = {
-    "algae": 1,
-    "archaea": 2,
-    "bacteria": 3,
-    "cyanobacteria": 4,
-    "filamentous fungi": 5,
-    "phage": 6,
-    "plasmid": 7,
-    "virus": 8,
-    "yeast": 9,
+    "Algae": 1,
+    "Archaea": 2,
+    "Bacteria": 3,
+    "Cyanobacteria": 4,
+    "Filamentous Fungi": 5,
+    "Phage": 6,
+    "Plasmid": 7,
+    "Virus": 8,
+    "Yeast": 9,
 }
 
 
@@ -160,10 +160,6 @@ class OrganismType:
     @name.setter
     def name(self, name: str):
         error_msg = f"name {name} not accepted for organism type"
-        try:
-            name = name.lower()
-        except TypeError as error:
-            raise MirriValidationError(error_msg) from error
 
         if name not in ORG_TYPES.keys():
             raise MirriValidationError(error_msg)
@@ -190,14 +186,14 @@ class Taxonomy(object):
         self._data = {}
         if data is not None:
             if ORGANISM_TYPE in data:
-                self.organism_type = data[ORGANISM_TYPE]
+                self.organism_type = [OrganismType(ot) for ot in data[ORGANISM_TYPE]]
             if GENUS in data:
                 self.genus = data[GENUS]
             if SPECIES in data:
                 self.species = data[SPECIES]
             if INFRASUBSPECIFIC_NAME in data:
                 self.infrasubespecific_name = data[INFRASUBSPECIFIC_NAME]
-            if COMMENTS_ON_TAXONOMY:
+            if COMMENTS_ON_TAXONOMY in data:
                 self.comments = data[COMMENTS_ON_TAXONOMY]
             if INTERSPECIFIC_HYBRID in data:
                 self.interspecific_hybrid = data[INTERSPECIFIC_HYBRID]
@@ -211,7 +207,7 @@ class Taxonomy(object):
             if value is None:
                 continue
             if key == ORGANISM_TYPE:
-                value = value.dict()
+                value = [val.dict() for val in value]
             data[key] = value
         return data
 
@@ -223,8 +219,14 @@ class Taxonomy(object):
         return self._data.get(ORGANISM_TYPE, None)
 
     @organism_type.setter
-    def organism_type(self, organism_type):
-        self._data[ORGANISM_TYPE] = OrganismType(organism_type)
+    def organism_type(self, organism_type: List[OrganismType]):
+        if isinstance(organism_type, list) and all(
+            isinstance(x, OrganismType) for x in organism_type
+        ):
+            self._data[ORGANISM_TYPE] = organism_type
+        else:
+            msg = "organism_type must be a list of OrganismType instances"
+            raise MirriValidationError(msg)
 
     @property
     def infrasubspecific_name(self):
@@ -650,6 +652,8 @@ class Genetics:
         for key, value in self._data.items():
             if value is None or value == []:
                 continue
+            elif isinstance(value, list):
+                value = [v.dict() for v in value]
             data[key] = value
         return data
 
@@ -1018,9 +1022,9 @@ class Strain:
     @form_of_supply.setter
     def form_of_supply(self, value: List[str]):
         allowed = {f.lower() for f in ALLOWED_FORMS_OF_SUPPLY}
-
         if {v.lower() for v in value}.difference(allowed):
-            msg = "Not allowed forms of suplly"
+            msg = f"Not allowed forms of supply {value}: "
+            msg += f"{', '.join(ALLOWED_FORMS_OF_SUPPLY)}"
             raise MirriValidationError(msg)
         self._data[FORM_OF_SUPPLY] = value
 

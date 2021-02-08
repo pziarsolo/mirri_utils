@@ -16,10 +16,8 @@ class _FieldBasedClass:
             if val1 != val2:
                 return False
         return True
-        return super().__eq__(o)
 
     def __bool__(self):
-        print("bool", self.dict())
         return bool(self.dict())
 
     def dict(self):

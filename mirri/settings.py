@@ -97,26 +97,41 @@ ALLOWED_COLLECTING_SITE_KEYS = [
 ]
 
 MIRRI_FIELDS = [
-    {"attribute": "id", "label": "Accession number", "mandatory": True, "type": str},
+    {
+        "attribute": "id",
+        "label": "Accession number",
+        "mandatory": True,
+        "type": str,
+        "biolomics": {"field": "Collection accession number", "type": "E"},
+    },
     {
         "attribute": "restriction_on_use",
         "label": "Restrictions on use",
         "mandatory": True,
         "type": int,
+        "biolomics": {"field": "Restrictions on user", "type": "T"},
     },
     {
         "attribute": "nagoya_protocol",
         "label": "Nagoya protocol restrictions and compliance conditions",
         "mandatory": True,
         "type": int,
+        "biolomics": {"field": "Restrictions on user", "type": "T"},
     },
     {
         "attribute": ABS_RELATED_FILES,
         "label": "ABS related files",
         "mandatory": False,
         "type": str,
+        "biolomics": {"field": "ABS files URL", "type": "U"},
     },
-    {"attribute": MTA_FILES, "label": "MTA file", "mandatory": False, "type": str},
+    {
+        "attribute": MTA_FILES,
+        "label": "MTA file",
+        "mandatory": False,
+        "type": str,
+        "biolomics": {"field": "MTA files URL", "type": "U"},
+    },
     {
         "attribute": "other_numbers",
         "label": "Other culture collection numbers",
@@ -128,9 +143,22 @@ MIRRI_FIELDS = [
         "label": "Strain from a registered collection",
         "mandatory": False,
         "type": int,
+        # "biolomics": {"field": "MTA files URL", "type": "U"},
     },
-    {"attribute": "risk_group", "label": "Risk Group", "mandatory": True, "type": int},
-    {"attribute": "dual_use", "label": "Dual use", "mandatory": False, "type": int},
+    {
+        "attribute": "risk_group",
+        "label": "Risk Group",
+        "mandatory": True,
+        "type": int,
+        "biolomics": {"field": "Risk group", "type": "T"},
+    },
+    {
+        "attribute": "dual_use",
+        "label": "Dual use",
+        "mandatory": False,
+        "type": int,
+        # "biolomics": {"field": "Risk group", "type": "T"},
+    },
     {
         "attribute": "is_subject_to_quarantine",
         "label": "Quarantine in Europe",
@@ -142,12 +170,14 @@ MIRRI_FIELDS = [
         "label": "Organism type",
         "mandatory": True,
         "type": str,
+        "biolomics": {"field": "Organism type", "type": "C"},
     },
     {
         "attribute": "taxonomy.taxon_name",
         "label": "Taxon name",
         "mandatory": True,
         "type": str,
+        # "biolomics": {"field": "Organism type", "type": "C"},
     },
     {
         "attribute": "taxonomy.infrasubspecific_name",
@@ -174,7 +204,13 @@ MIRRI_FIELDS = [
         "mandatory": False,
         "type": str,
     },
-    {"attribute": "deposit.who", "label": "Depositor", "mandatory": False, "type": str},
+    {
+        "attribute": "deposit.who",
+        "label": "Depositor",
+        "mandatory": False,
+        "type": str,
+        "biolomics": {"field": "Depositor", "type": "E"},
+    },
     {
         "attribute": "deposit.date",
         "label": "Date of deposit",
@@ -192,24 +228,28 @@ MIRRI_FIELDS = [
         "label": "Collected by",
         "mandatory": False,
         "type": str,
+        "biolomics": {"field": "Collector", "type": "E"},
     },
     {
         "attribute": "collect.date",
         "label": "Date of collection",
         "mandatory": False,
         "type": "datetime",
+        "biolomics": {"field": "Collection date", "type": "H"},
     },
     {
         "attribute": "isolation.who",
         "label": "Isolated by",
         "mandatory": False,
         "type": str,
+        "biolomics": {"field": "Isolator", "type": "E"},
     },
     {
         "attribute": "isolation.date",
         "label": "Date of isolation",
         "mandatory": False,
         "type": "datetime",
+        "biolomics": {"field": "Isolation date", "type": "H"},
     },
     {
         "attribute": "isolation.substrate_host_of_isolation",
@@ -228,6 +268,7 @@ MIRRI_FIELDS = [
         "label": "Recommended growth temperature",
         "mandatory": True,
         "type": float,
+        "biolomics": {"field": "Recommended growth temperature", "type": "S"},
     },
     {
         "attribute": "growth.recommended_medium",
@@ -240,6 +281,7 @@ MIRRI_FIELDS = [
         "label": "Form of supply",
         "mandatory": True,
         "type": str,
+        "biolomics": {"field": "Form", "type": "C"},
     },
     {
         "attribute": "other_denominations",
@@ -388,13 +430,13 @@ ALLOWED_RESTRICTION_USE_OPTIONS = [
 
 ALLOWED_RISK_GROUPS = ["1", "2", "3", "4"]
 
-AGAR = "agar"
-CRYO = "cryo"
-DRY_ICE = "dry ice"
-LIQUID_CULTURE_MEDIUM = "liquid culture medium"
-LYO = "lyo"
-OIL = "oil"
-WATER = "water"
+AGAR = "Agar"
+CRYO = "Cryo"
+DRY_ICE = "Dry Ice"
+LIQUID_CULTURE_MEDIUM = "Liquid Culture Medium"
+LYO = "Lyo"
+OIL = "Oil"
+WATER = "Water"
 ALLOWED_FORMS_OF_SUPPLY = [AGAR, CRYO, DRY_ICE, LIQUID_CULTURE_MEDIUM, LYO, OIL, WATER]
 
 DEPOSIT = "deposit"

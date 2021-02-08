@@ -12,6 +12,7 @@ from mirri.entities.strain import (
     Deposit,
     GenomicSequence,
     Isolation,
+    MirriValidationError,
     OrganismType,
     Strain,
     StrainId,
@@ -28,6 +29,7 @@ from mirri.settings import (
     ISOLATED_BY,
     ISOLATION,
     LOCATION,
+    MARKERS,
     NAGOYA_APPLIES,
     NAGOYA_PROTOCOL,
     ORGANISM_TYPE,
@@ -44,7 +46,7 @@ class TestDataRange(unittest.TestCase):
 
         self.assertFalse(dr)
 
-        self.assertEqual(dr.__str__(), "--------")
+        self.assertEqual(dr.__str__(), "")
         self.assertEqual(dr.range["start"], None)
         self.assertEqual(dr.range["end"], None)
 
@@ -105,7 +107,7 @@ class TestCollect(unittest.TestCase):
 class TestOrganismType(unittest.TestCase):
     def test_basic_usage(self):
         org_type = OrganismType(2)
-        self.assertEqual(org_type.name, "archaea")
+        self.assertEqual(org_type.name, "Archaea")
         self.assertEqual(org_type.code, 2)
 
 
@@ -118,7 +120,7 @@ class TestTaxonomy(unittest.TestCase):
     def test_taxonomy_with_data(self):
         taxonomy = Taxonomy()
         taxonomy.genus = "Bacilus"
-        taxonomy.organism_type = "archaea"
+        taxonomy.organism_type = [OrganismType("Archaea")]
         taxonomy.species = "vulgaris"
         self.assertEqual(taxonomy.long_name, "Bacilus vulgaris")
 
@@ -154,7 +156,7 @@ class TestStrain(unittest.TestCase):
         try:
             strain.nagoya_protocol = "asdas"
             self.fail()
-        except ValueError:
+        except MirriValidationError:
             pass
 
         strain.nagoya_protocol = NAGOYA_APPLIES
@@ -177,14 +179,14 @@ class TestStrain(unittest.TestCase):
         strain.growth.recommended_medium = ["11"]
         self.assertEqual(strain.dict()[GROWTH][RECOMMENDED_GROWTH_MEDIUM], ["11"])
 
-        strain.taxonomy.organism_type = 2
+        strain.taxonomy.organism_type = [OrganismType(2)]
         self.assertEqual(
-            strain.dict()[TAXONOMY][ORGANISM_TYPE], {"code": 2, "name": "archaea"}
+            strain.dict()[TAXONOMY][ORGANISM_TYPE], [{"code": 2, "name": "Archaea"}]
         )
 
-        strain.taxonomy.organism_type = "algae"
+        strain.taxonomy.organism_type = [OrganismType("Algae")]
         self.assertEqual(
-            strain.dict()[TAXONOMY][ORGANISM_TYPE], {"code": 1, "name": "algae"}
+            strain.dict()[TAXONOMY][ORGANISM_TYPE], [{"code": 1, "name": "Algae"}]
         )
 
         strain.other_numbers.append(StrainId(collection="aaa", number="a"))
@@ -196,9 +198,19 @@ class TestStrain(unittest.TestCase):
                 {"collection_code": "aaa3", "accession_number": "a3"},
             ],
         )
+        strain.form_of_supply = ["Agar", "Lyo"]
+        gen_seq = GenomicSequence()
+        self.assertEqual(gen_seq.dict(), {})
+        gen_seq.marker_id = "pepe"
+        gen_seq.marker_type = "16S rRNA"
+        strain.genetics.markers.append(gen_seq)
+        self.assertEqual(
+            strain.dict()[GENETICS][MARKERS],
+            [{"marker_type": "16S rRNA", "INSDC": "pepe"}],
+        )
         import pprint
 
-        pprint.pprint(strain.dict())
+        # pprint.pprint(strain.dict())
 
 
 class TestIsolation(unittest.TestCase):

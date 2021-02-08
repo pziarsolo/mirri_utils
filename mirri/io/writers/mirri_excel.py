@@ -219,6 +219,11 @@ def _deserialize_strains(
                 value = rgetattr(strain, attribute)
                 if value:
                     sexual_states.add(value)
+            elif attribute == "taxonomy.organism_type":
+                organism_types = rgetattr(strain, attribute)
+                if organism_types is not None:
+                    value = [org_type.code for org_type in organism_types]
+                    value = ";".join(value)
             else:
                 value = rgetattr(strain, attribute)
 
