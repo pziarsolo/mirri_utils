@@ -8,6 +8,7 @@ from mirri.entities.date_range import DateRange
 from mirri.entities.strain import (
     GenomicSequence,
     MirriValidationError,
+    OrganismType,
     Strain,
     StrainId,
 )
@@ -192,6 +193,10 @@ def _parse_strains(
                     except ValueError:
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
                         raise MirriValidationError(msg)
+                elif attribute == "taxonomy.organism_type":
+                    if value is not None:
+                        value = [OrganismType(val) for val in str(value).split(";")]
+                        rsetattr(strain, attribute, value)
                 elif attribute in ("deposit.date", "collect.date", "isolation.date"):
                     try:
                         if isinstance(value, date):

@@ -1,3 +1,4 @@
+from mirri.entities.strain import MirriValidationError
 import unittest
 from pathlib import Path
 
@@ -13,12 +14,15 @@ class MirriExcelTests(unittest.TestCase):
             in_path, version="20200601", fail_if_error=False
         )
         print(parsed_data["errors"])
+
         self.assertEqual(parsed_data["errors"], {})
 
-        media = parsed_data["growth_media"]
-        self.assertIn("1", media)
-        self.assertEqual(media["1"]["Description"], "NUTRIENT BROTH/AGAR I")
+        medium = parsed_data["growth_media"][0]
+        self.assertEqual("1", medium["Acronym"])
+        self.assertEqual(medium["Description"], "NUTRIENT BROTH/AGAR I")
+
         strains = parsed_data["strains"]
+        print(strains[0].dict())
         self.assertEqual(strains[0].id.number, "1")
 
     def test_mirri_excel_parser_invalid_fail(self):
@@ -26,7 +30,7 @@ class MirriExcelTests(unittest.TestCase):
         try:
             parse_mirri_excel(in_path, version="20200601", fail_if_error=True)
             self.fail()
-        except ValueError:
+        except MirriValidationError:
             pass
 
     def test_mirri_excel_parser_invalid(self):

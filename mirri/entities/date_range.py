@@ -4,16 +4,15 @@ from copy import copy
 from datetime import date
 
 
-class DateRange():
-
+class DateRange:
     def __init__(self, year=None, month=None, day=None):
         self._year = year
 
         if month is not None and (month < 1 or month > 12):
-            raise ValueError('Month must be between 1 and 12')
+            raise ValueError("Month must be between 1 and 12")
         self._month = month
         if day is not None and (day < 1 or day > 31):
-            raise ValueError('Day must be between 1 and 31')
+            raise ValueError("Day must be between 1 and 31")
         self._day = day
 
         self._start = None
@@ -22,7 +21,11 @@ class DateRange():
             self._create_range()
 
     def __str__(self):
-        return self.strfdate
+        _strdate = self.strfdate
+        if _strdate is None:
+            return ""
+
+        return _strdate
 
     def __bool__(self):
         return True if self._year or self._month or self._day else False
@@ -48,9 +51,9 @@ class DateRange():
     def strpdate(self, date_str: str):
         date_str = str(date_str)
         orig_date = copy(date_str)
-        date_str = date_str.replace('/', '').replace('-', '')
+        date_str = date_str.replace("/", "").replace("-", "")
         if len(date_str) > 8:
-            msg = f'Malformed date, Mora caracters than expected: {orig_date}'
+            msg = f"Malformed date, Mora caracters than expected: {orig_date}"
             raise ValueError(msg)
         month = None
         day = None
@@ -59,11 +62,11 @@ class DateRange():
         if len(date_str) >= 6:
             month = int(date_str[4:6])
             if month < 1 or month > 12:
-                raise ValueError('Month must be between 1 and 12')
+                raise ValueError("Month must be between 1 and 12")
         if len(date_str) >= 8:
             day = int(date_str[6:8])
             if day is not None and (day < 1 or day > 31):
-                raise ValueError('Day must be between 1 and 31')
+                raise ValueError("Day must be between 1 and 31")
         self._year = year
         self._month = month
         self._day = day
@@ -72,11 +75,14 @@ class DateRange():
 
     @property
     def strfdate(self):
-        year = '----' if self._year is None else f'{self._start.year:04}'
-        month = '--' if self._month is None else f'{self._start.month:02}'
-        day = '--' if self._day is None else f'{self._start.day:02}'
-        return f'{year}{month}{day}'
+        year = "----" if self._year is None else f"{self._start.year:04}"
+        month = "--" if self._month is None else f"{self._start.month:02}"
+        day = "--" if self._day is None else f"{self._start.day:02}"
+        _date = str(f"{year}{month}{day}")
+        if _date == "--------":
+            return None
+        return _date
 
     @property
     def range(self):
-        return OrderedDict([('start', self._start), ('end', self._end)])
+        return OrderedDict([("start", self._start), ("end", self._end)])
