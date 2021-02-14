@@ -8,6 +8,7 @@ from datetime import datetime
 from inspect import signature
 from difflib import SequenceMatcher
 from docx2pdf import convert
+from mirri.entities.strain import MirriValidationError
 
 ERROR_LOG_FOLDER = '.\\logs'
 DOCS_FOLDER = '..\\docs' # relative path originating from ERROR_LOG_FOLDER
@@ -27,7 +28,7 @@ class Entity():
         try:
             self.name = self.entity_names[self.acronym]()
         except KeyError:
-            raise ValueError(f'Unknown acronym {self.acronym}.')
+            raise MirriValidationError(f'Unknown acronym {self.acronym}.')
 
     @property
     def name(self):
@@ -451,6 +452,15 @@ class Error():
         def STD43(self, accession_number):
             return f"The 'Literature linked to the sequence/genome' for strain with Accession Number {accession_number} is incorrect."
 
+        def STD44(self, accession_number):
+            return f"The “Taxon Name” for strain with Accession Number {accession_number} is not according to specification."
+
+        def STD45(self, accession_number):
+            return f"The “Location” for strain with Accession Number {accession_number} is not in Geographic Origin sheet."
+
+        def STD46(self, accession_number):
+            return f"The 'Organism Type' is missing for strain with Accession Number {accession_number}."
+
         """
             Genomic Information Error Codes
         """
@@ -604,33 +614,33 @@ class ErrorLog():
                     row_cells[1].text = error.message
                     row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
                 
-        # if 'UCT' in self.errors:
-        #     self.document.add_page_break()
-        #     self.document.add_heading('Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
-        #     self.document.add_paragraph('The following errors were also identified while validating your data:')
+        if 'UCT' in self.errors:
+            self.document.add_page_break()
+            self.document.add_heading('Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
+            self.document.add_paragraph('The following errors were also identified while validating your data:')
             
-        #     entity = Entity('UCT')
+            entity = Entity('UCT')
 
-        #     table = self.document.add_table(rows=2, cols=2)
-        #     table.style = 'Table Grid'
-        #     hdr_cells = table.rows[0].cells
-        #     hdr_cells = hdr_cells[0].merge(hdr_cells[1])
-        #     hdr_cells.text = entity.name
-        #     hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
-        #     subhdr_cells = table.rows[1].cells
-        #     subhdr_cells[0].text = 'Error Code'
-        #     subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
-        #     subhdr_cells[0].width = Cm(4.0)
-        #     subhdr_cells[1].text = 'Error Message'
-        #     subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
+            table = self.document.add_table(rows=2, cols=2)
+            table.style = 'Table Grid'
+            hdr_cells = table.rows[0].cells
+            hdr_cells = hdr_cells[0].merge(hdr_cells[1])
+            hdr_cells.text = entity.name
+            hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
+            subhdr_cells = table.rows[1].cells
+            subhdr_cells[0].text = 'Error Code'
+            subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
+            subhdr_cells[0].width = Cm(4.0)
+            subhdr_cells[1].text = 'Error Message'
+            subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
             
-        #     for error in self.errors['UCT']:
-        #         row_cells = table.add_row().cells
-        #         row_cells[0].text = error.code
-        #         row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
-        #         row_cells[0].width = Cm(4.0)
-        #         row_cells[1].text = error.message
-        #         row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+            for error in self.errors['UCT']:
+                row_cells = table.add_row().cells
+                row_cells[0].text = error.code
+                row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
+                row_cells[0].width = Cm(4.0)
+                row_cells[1].text = error.message
+                row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
 
 
         try:
