@@ -1,4 +1,7 @@
 import pandas as pd
+import sys
+import os
+import mirri
 from openpyxl import load_workbook
 from mirri.io.writers.error import ErrorLog, Error
 from mirri.io.parsers.mirri_excel import _parse_mirri_v20200601
@@ -8,8 +11,8 @@ from mirri.settings import ( MARKERS, MIRRI_FIELDS, LOCATIONS, GROWTH_MEDIA,
                             PLOIDY_SHEET, ONTOBIOTOPE, MARKERS)
 
 TYPES_TRANSLATOR = {'object': str, 'datetime64[ns]': 'datetime', 'int64': int, 'float64': float, 'float32': float}
-#fhand = sys.argv[1]
-fhand = r"C:\Users\jbravo\Desktop\KPD_MIRRI-IS_dataset_v20201116_v1.2.xlsx"
+fhand = sys.argv[1]
+# fhand = r"C:\Users\jbravo\Desktop\KPD_MIRRI-IS_dataset_v20201116_v1.2.xlsx"
 excel = load_workbook(fhand)
 strain = pd.read_excel(fhand, 'Strains', index_col=None)
 excelDict = strain.to_dict()  
@@ -57,7 +60,7 @@ def validate_excel(excel, strain, excelDict):
         error_log.add_error(error)
 
     print('Writing to file...')
-    error_log.write(f'.\logs')
+    error_log.write(os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'logs')))
     return error_log
     
 
@@ -66,7 +69,7 @@ def validate_sheet(sheetEx, sheet):
     errors = []
     columns = next(sheetEx.iter_rows(min_row=1, max_row=1))
     headers = [c.value for c in columns]
-    print(headers)
+    # print(headers)
     for col in sheet['columns']:
         if col[0] not in headers and col[1]:
             errors.append(Error(f"The '{col[0]}' is a mandatory field. The column can not be empty.", col[0]))

@@ -12,7 +12,6 @@ from mirri.entities.strain import (
     Strain,
     StrainId,
 )
-from mirri.io.writers.error import Error
 from mirri.settings import (
     COMMERCIAL_USE_WITH_AGREEMENT,
     GENOMIC_INFO,
