@@ -1,18 +1,16 @@
 import docx
+import os
+import mirri
 from docx.enum.dml import MSO_THEME_COLOR_INDEX
-from docx.enum.section import WD_ORIENTATION
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
-from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
-from docx.shared import Cm, RGBColor
+from docx.shared import Cm
 from datetime import datetime
 from inspect import signature
 from difflib import SequenceMatcher
 from docx2pdf import convert
+from tempfile import NamedTemporaryFile
+from mirri.entities.strain import MirriValidationError
 
-ERROR_LOG_FOLDER = '.\\logs'
-DOCS_FOLDER = '..\\docs' # relative path originating from ERROR_LOG_FOLDER
-
-
+DOCS_FOLDER = os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'docs'))
 
 class Entity():
     """Entity information
@@ -27,7 +25,7 @@ class Entity():
         try:
             self.name = self.entity_names[self.acronym]()
         except KeyError:
-            raise ValueError(f'Unknown acronym {self.acronym}.')
+            raise MirriValidationError(f'Unknown acronym {self.acronym}.')
 
     @property
     def name(self):
@@ -325,8 +323,8 @@ class Error():
         def STD01(self):
             return "The 'Accession number' is a mandatory field. The column can not be empty."
 
-        def STD02(self):
-            return "The 'Accession number' is not according to the specification."
+        def STD02(self, accession_number):
+            return f"The 'Accession number' {accession_number} is not according to the specification."
 
         def STD03(self, accession_number):
             return f"The 'Other culture collection numbers' for strain with Accession Number {accession_number} is not according to the specification."
@@ -451,6 +449,18 @@ class Error():
         def STD43(self, accession_number):
             return f"The 'Literature linked to the sequence/genome' for strain with Accession Number {accession_number} is incorrect."
 
+        def STD44(self, accession_number):
+            return f"The “Taxon Name” for strain with Accession Number {accession_number} is not according to specification."
+
+        def STD45(self, accession_number):
+            return f"The “Location” for strain with Accession Number {accession_number} is not in Geographic Origin sheet."
+
+        def STD46(self, accession_number):
+            return f"The 'Organism Type' is missing for strain with Accession Number {accession_number}."
+        
+        def STD47(self, accession_number):
+            return f"The 'Nagoya protocol restrictions and compliance conditions' is missing for strain with Accession Number {accession_number}."
+
         """
             Genomic Information Error Codes
         """
@@ -476,13 +486,17 @@ class ErrorLog():
             cc [optional]: culture collection identifier
             date [optional]: date the inputed file was submited for validation (date of last modification)
     """
-    def __init__(self, input_filename: str, cc: str=None, date: str = None):
+    def __init__(self, input_filename: str, cc: str=None, date: str = None, limit: int = 100):
         self.input_filename = input_filename
         self.cc = cc
         self.date = datetime.strptime(date, '%d-%m-%Y').date() if date is not None else None
         self.id = 0
         self.errors = {}
-        self.document = docx.Document(f'.\\docs\\Error_Log_Style_Sheet.docx')
+        self.limit = limit
+        self.fpath_to_style_doc = os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'docs', 'Error_Log_Style_Sheet.docx'))
+        self.fpath_how_to_compile = os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'docs', 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf'))
+        self.fpath_recommendations = os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'docs', 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf'))
+        self.document = docx.Document(self.fpath_to_style_doc)
             
 
     def write(self, path: str):
@@ -525,6 +539,7 @@ class ErrorLog():
 
         heading = self.document.add_heading('Error Log', 0)
         heading.style = self.document.styles['Title']
+        counter = 0
 
         cc = f' of Culture Collection {self.cc}' if self.cc is not None else ''
         date = f'in {self.date} ' if self.date is not None else ''
@@ -536,57 +551,22 @@ class ErrorLog():
         paragraph.add_run('Please, see below the list of detected errors/missing data, for you to proceed with the appropriated correction/completion.')
 
         paragraph = self.document.add_paragraph('If you need help, please refer to the instructions contained in "')
-        hyperlink(paragraph, 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf', f'{DOCS_FOLDER}\\ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf')
+        hyperlink(paragraph, 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf', self.fpath_how_to_compile)
         paragraph.add_run('" and "')
-        hyperlink(paragraph, 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf', f'{DOCS_FOLDER}\\ICT-TaskForce_RecommendationsToCollections_v20200601.pdf')
+        hyperlink(paragraph, 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf', self.fpath_recommendations)
         paragraph.add_run('".\nYou can also contact the MIRRI ICT by email using ')
         hyperlink(paragraph, 'ICT Support', f'mailto:{mail_to}?Subject={subject}')
 
-        self.document.add_page_break()
-        
-        self.document.add_heading(f'Analysis of {Entity("EFS").name}', level=1).style = self.document.styles['Heading 1']
-        self.document.add_paragraph('The structure of your Excel File show the following changes, as compared to the original Template:')
-
-        table = self.document.add_table(rows=2, cols=2)
-        table.style = 'Table Grid'
-        hdr_cells = table.rows[0].cells
-        hdr_cells = hdr_cells[0].merge(hdr_cells[1])
-        hdr_cells.text = Entity('EFS').name
-        hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
-        subhdr_cells = table.rows[1].cells
-        subhdr_cells[0].text = 'Error Code'
-        subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
-        subhdr_cells[0].width = Cm(4.0)
-        subhdr_cells[1].text = 'Error Message'
-        subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
-
         if 'EFS' in self.errors:
-            for error in sorted(self.errors['EFS'], key=lambda e: e.code):
-                row_cells = table.add_row().cells
-                row_cells[0].text = error.code
-                row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
-                row_cells[0].width = Cm(4.0)
-                row_cells[1].text = error.message
-                row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
-
-        self.document.add_page_break()
-
-
-        self.document.add_heading('Analysis of Data Set', level=1).style = self.document.styles['Heading 1']
-        self.document.add_paragraph('Your Data shows the following errors or missing items:')
-
-        for entity_acronym in self.errors:
-            if entity_acronym in ['EFS', 'UCT']: continue
-            
-            entity = Entity(entity_acronym)
-            self.document.add_heading(entity.name, level=2).style = self.document.styles['Heading 2']
-            self.document.add_paragraph(f'The “{entity.name}” Sheet in your Excel File shows the following errors or missing items:')
+            self.document.add_page_break()
+            self.document.add_heading(f'Analysis of {Entity("EFS").name}', level=1).style = self.document.styles['Heading 1']
+            self.document.add_paragraph('The structure of your Excel File show the following changes, as compared to the original Template:')
 
             table = self.document.add_table(rows=2, cols=2)
             table.style = 'Table Grid'
             hdr_cells = table.rows[0].cells
             hdr_cells = hdr_cells[0].merge(hdr_cells[1])
-            hdr_cells.text = entity.name
+            hdr_cells.text = Entity('EFS').name
             hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
             subhdr_cells = table.rows[1].cells
             subhdr_cells[0].text = 'Error Code'
@@ -595,65 +575,121 @@ class ErrorLog():
             subhdr_cells[1].text = 'Error Message'
             subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
 
-            if entity.acronym in self.errors:
-                for error in sorted(self.errors[entity.acronym], key=lambda e: e.code):
+            for error in sorted(self.errors['EFS'], key=lambda e: e.code):
+                row_cells = table.add_row().cells
+                row_cells[0].text = error.code
+                row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
+                row_cells[0].width = Cm(4.0)
+                row_cells[1].text = error.message
+                row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+                counter += 1
+                if counter == self.limit: break
+
+        if counter < self.limit and len(self.errors.keys()) > 1:
+            self.document.add_page_break()
+
+            self.document.add_heading('Analysis of Data Set', level=1).style = self.document.styles['Heading 1']
+            self.document.add_paragraph('Your Data shows the following errors or missing items:')
+
+            for entity_acronym in self.errors:
+                if entity_acronym in ['EFS', 'UCT']: continue
+                
+                entity = Entity(entity_acronym)
+                self.document.add_heading(entity.name, level=2).style = self.document.styles['Heading 2']
+                self.document.add_paragraph(f'The “{entity.name}” Sheet in your Excel File shows the following errors or missing items:')
+
+                table = self.document.add_table(rows=2, cols=3)
+                table.style = 'Table Grid'
+                hdr_cells = table.rows[0].cells
+                hdr_cells = hdr_cells[0].merge(hdr_cells[1]).merge(hdr_cells[2])
+                hdr_cells.text = entity.name
+                hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
+                subhdr_cells = table.rows[1].cells
+                subhdr_cells[0].text = 'Error Code'
+                subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
+                subhdr_cells[0].width = Cm(4.0)
+                subhdr_cells[1].text = 'Identifier'
+                subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
+                subhdr_cells[1].width = Cm(4.0)
+                subhdr_cells[2].text = 'Error Message'
+                subhdr_cells[2].paragraphs[0].style = self.document.styles['Table Header']
+
+                for error in sorted(self.errors[entity.acronym], key=lambda e: e.data):
                     row_cells = table.add_row().cells
                     row_cells[0].text = error.code
                     row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
                     row_cells[0].width = Cm(4.0)
-                    row_cells[1].text = error.message
+                    row_cells[1].text = error.data
                     row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
-                
-        # if 'UCT' in self.errors:
-        #     self.document.add_page_break()
-        #     self.document.add_heading('Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
-        #     self.document.add_paragraph('The following errors were also identified while validating your data:')
-            
-        #     entity = Entity('UCT')
+                    row_cells[1].width = Cm(4.0)
+                    row_cells[2].text = error.message
+                    row_cells[2].paragraphs[0].style = self.document.styles['Table Cell']
+                    counter += 1
+                    if counter == self.limit: break
+                    
+                if counter == self.limit: break
+                    
+            if counter == self.limit:
+                self.document.add_page_break()
+                self.document.add_paragraph('Your file contains too many erros and therefore this document was truncated. Please resolve the aforementioned errors and resubmit the excel file.')
+            else:    
+                if 'UCT' in self.errors:
+                    self.document.add_page_break()
+                    self.document.add_heading('Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
+                    self.document.add_paragraph('The following errors were also identified while validating your data:')
+                    
+                    entity = Entity('UCT')
 
-        #     table = self.document.add_table(rows=2, cols=2)
-        #     table.style = 'Table Grid'
-        #     hdr_cells = table.rows[0].cells
-        #     hdr_cells = hdr_cells[0].merge(hdr_cells[1])
-        #     hdr_cells.text = entity.name
-        #     hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
-        #     subhdr_cells = table.rows[1].cells
-        #     subhdr_cells[0].text = 'Error Code'
-        #     subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
-        #     subhdr_cells[0].width = Cm(4.0)
-        #     subhdr_cells[1].text = 'Error Message'
-        #     subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
-            
-        #     for error in self.errors['UCT']:
-        #         row_cells = table.add_row().cells
-        #         row_cells[0].text = error.code
-        #         row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
-        #         row_cells[0].width = Cm(4.0)
-        #         row_cells[1].text = error.message
-        #         row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+                    table = self.document.add_table(rows=2, cols=2)
+                    table.style = 'Table Grid'
+                    hdr_cells = table.rows[0].cells
+                    hdr_cells = hdr_cells[0].merge(hdr_cells[1])
+                    hdr_cells.text = entity.name
+                    hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
+                    subhdr_cells = table.rows[1].cells
+                    subhdr_cells[0].text = 'Error Code'
+                    subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
+                    subhdr_cells[0].width = Cm(4.0)
+                    subhdr_cells[1].text = 'Error Message'
+                    subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
+                    
+                    for error in self.errors['UCT']:
+                        row_cells = table.add_row().cells
+                        row_cells[0].text = error.code
+                        row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
+                        row_cells[0].width = Cm(4.0)
+                        row_cells[1].text = error.message
+                        row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+                        if counter == self.limit: break
+                    
+                    if counter == self.limit:
+                        self.document.add_page_break()
+                        self.document.add_paragraph('Your file contains too many erros and therefore this document was truncated. Please resolve the aforementioned errors and resubmit the excel file.')
 
 
         try:
-            self.document.save(f'{path}\\{self.input_filename}_error_log.docx')
-            convert(f'{path}\\{self.input_filename}_error_log.docx')
+            output_file = NamedTemporaryFile(dir=path, suffix='_error_log.docx', delete=False)
+            self.document.save(output_file)
+            output_file.close()
+            convert(output_file.name, f'{path}\\{self.input_filename}_error_log.pdf')
+            os.unlink(output_file.name)
         except:
             raise
 
 
 
     def __str__(self):
-        limit = 200
         count = 0
         to_print = f'Error log for file <{self.input_filename}> sent by <{self.cc}> on <{self.date}>\n'
-        to_print += f'printing first {limit} errors\n\n'
+        to_print += f'printing first {self.limit} errors\n\n'
         to_print += '{:<5} | {:<10} | {:<10} | {:<250}\n'.format('#', 'ENTITY', 'CODE', 'MESSAGE')
         for _, errors in self.errors.items():
-            if count == limit:
+            if count == self.limit:
                     break
 
             for error in errors:
                 count += 1
-                if count == limit:
+                if count == self.limit:
                     break
                 to_print += f'{count:>05}'
                 to_print += f' | {error.entity.acronym:<10}'
@@ -776,5 +812,3 @@ if __name__ == '__main__':
         error_log.add_error(error)
 
     print(error_log)
-    # print(f'Writing to file \'{ERROR_LOG_FOLDER}\Error_Log_Example.docx\'')
-    # error_log.write(ERROR_LOG_FOLDER)

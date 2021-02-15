@@ -1,45 +1,19 @@
 import pandas as pd
-import json
-import math
 import sys
-import xlrd
+import os
+import mirri
+from openpyxl import load_workbook
 from mirri.io.writers.error import ErrorLog, Error
-from mirri.entities.strain import OrganismType, Taxonomy, _GeneralStep, Collect, Isolation, Deposit, StrainId, GenomicSequence, Genetics, Growth, Strain
 from mirri.io.parsers.mirri_excel import _parse_mirri_v20200601
-from mirri.settings import (ABS_RELATED_FILES, ACCESSION_NAME,
-                            ACCESSION_NUMBER, ALLOWED_FORMS_OF_SUPPLY,
-                            ALLOWED_MARKER_TYPES, ALLOWED_NAGOYA_OPTIONS,
-                            ALLOWED_PLOIDIES, ALLOWED_RESTRICTION_USE_OPTIONS,
-                            ALLOWED_SUBTAXA, ALLOWED_TAXONOMIC_RANKS,
-                            APPLICATIONS, COLLECT, COLLECTED_BY,
-                            COLLECTION_CODE, COMMENTS_ON_TAXONOMY,
-                            DATE_OF_COLLECTION, DATE_OF_INCLUSION,
-                            DATE_OF_ISOLATION, DEPOSIT, DEPOSITOR, DUAL_USE,
-                            ENZYME_PRODUCTION, FORM_OF_SUPPLY, GENETICS,
-                            GENOTYPE, GENUS, GMO, GMO_CONSTRUCTION_INFO,
-                            GROWTH, HISTORY_OF_DEPOSIT, INFRASUBSPECIFIC_NAME,
-                            INTERSPECIFIC_HYBRID, ISOLATED_BY, ISOLATION,
-                            ISOLATION_HABITAT, LOCATION, MARKER_INSDC,
-                            MARKER_SEQ, MARKER_TYPE, MARKERS, MTA_FILES,
-                            MUTANT_INFORMATION, NAGOYA_PROTOCOL,
-                            ONTOTYPE_ISOLATION_HABITAT, ORGANISM_TYPE,
-                            OTHER_CULTURE_NUMBERS, PATHOGENICITY, PLASMIDS,
-                            PLASMIDS_COLLECTION_FIELDS, PLOIDY,
-                            PRODUCTION_OF_METABOLITES, PUBLICATIONS,
-                            QUARANTINE, RECOMMENDED_GROWTH_MEDIUM,
-                            RECOMMENDED_GROWTH_TEMP, REMARKS,
-                            RESTRICTION_ON_USE, RISK_GROUP, SEXUAL_STATE,
-                            SPECIES, STATUS, STRAIN_FROM_REGISTERED_COLLECTION,
-                            STRAIN_ID, STRAIN_PUI, STRAIN_URL,
-                            SUBSTRATE_HOST_OF_ISOLATION, TAXONOMY,
-                            TESTED_TEMPERATURE_GROWTH_RANGE, MIRRI_FIELDS, LOCATIONS, GROWTH_MEDIA, 
+from mirri.settings import ( MARKERS, MIRRI_FIELDS, LOCATIONS, GROWTH_MEDIA, 
                             GENOMIC_INFO, STRAINS, LITERATURE_SHEET, SEXUAL_STATE_SHEET, 
                             RESOURCE_TYPES_VALUEs, FORM_OF_SUPPLY_SHEET,
                             PLOIDY_SHEET, ONTOBIOTOPE, MARKERS)
 
 TYPES_TRANSLATOR = {'object': str, 'datetime64[ns]': 'datetime', 'int64': int, 'float64': float, 'float32': float}
 fhand = sys.argv[1]
-excel = xlrd.open_workbook(fhand)
+# fhand = r"C:\Users\jbravo\Desktop\KPD_MIRRI-IS_dataset_v20201116_v1.2.xlsx"
+excel = load_workbook(fhand)
 strain = pd.read_excel(fhand, 'Strains', index_col=None)
 excelDict = strain.to_dict()  
 
@@ -62,7 +36,7 @@ SHEETS = [
 
 #validate excel structure
 def validate_excel(excel, strain, excelDict):
-    sheets = excel.sheet_names()
+    sheets = excel.sheetnames
     errors = []
     excel_name = fhand.split('\\')[-1].rstrip('.xlsx')
     error_log = ErrorLog(excel_name)
@@ -70,14 +44,12 @@ def validate_excel(excel, strain, excelDict):
     #see if all sheets are there
     for sheet in SHEETS:
         if (sheet['name'] in sheets):
-            # print('Valid ' + sheet['name']) 
-            sheetEx = excel.sheet_by_name(sheet['name'])
+            sheetEx = excel[sheet['name']]
             if len(sheet['columns']) > 0:
                 #validate columns of each sheet
                 errors.extend(validate_sheet(sheetEx, sheet))
         else:
             if (sheet['name'] not in ["Ploidy", "Forms of supply", "Resource types values"]):
-                # print(f'{sheet["name"]} is not present')
                 errors.append(Error(f"The '{sheet['name']}' sheet is missing. Please check the provided excel template", sheet['name']))
     # if len(errors) == 0:
     errors.extend(validation_data(strain, excelDict))
@@ -86,24 +58,20 @@ def validate_excel(excel, strain, excelDict):
         error_log.add_error(error)
 
     print('Writing to file...')
-    error_log.write(f'.\logs')
+    error_log.write(os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'logs')))
+    return error_log
     
 
 #validate columns
 def validate_sheet(sheetEx, sheet):
     errors = []
+    columns = next(sheetEx.iter_rows(min_row=1, max_row=1))
+    headers = [c.value for c in columns]
     for col in sheet['columns']:
-        columns = columnsGM(sheetEx)
-        if col[0] not in columns and col[1]:
+        if col[0] not in headers and col[1]:
             errors.append(Error(f"The '{col[0]}' is a mandatory field. The column can not be empty.", col[0]))
     return errors
     
-#get columns in sheet
-def columnsGM(sheet):
-    arr = []
-    for i in range(sheet.ncols):
-        arr.append(sheet.cell_value(0, i))
-    return arr
 
 def checkTypes(strain, MIRRI_FIELDS, excelDict):
     # Find the columns where each value is null
@@ -115,7 +83,6 @@ def checkTypes(strain, MIRRI_FIELDS, excelDict):
     try:
         stra["Recommended growth temperature"] = pd.to_numeric(stra["Recommended growth temperature"], errors='coerce')
     except ValueError:
-        # print("string cannot be float")
         error.append(Error("The 'Recommended growth temperature' column has an invalide data type."))
     
     for col, type1 in zip(types1.index, types1):
@@ -136,9 +103,9 @@ def validation_data(strain, excelDict):
         for col, value in row.items():
             #verify where the value is nan and required
             if str(value) == 'nan' and col in required:
-                errors.append(Error(f"The '{col}' is missing for strain with Accession Number {row['Accession number']}.", row['Accession number']))
+                errors.append(Error(f"The '{col}' is missing for strain with Accession Number {row['Accession number']}", row['Accession number']))
                    
-    # checkTypes(strain, MIRRI_FIELDS, excelDict)
+    checkTypes(strain, MIRRI_FIELDS, excelDict)
 
     parsed_excel = _parse_mirri_v20200601(fhand, False)
     for _strain, _errors in parsed_excel['errors'].items():
@@ -147,5 +114,4 @@ def validation_data(strain, excelDict):
     return errors
     
 
-#validation(strain, excelDict)
 validate_excel(excel, strain, excelDict)

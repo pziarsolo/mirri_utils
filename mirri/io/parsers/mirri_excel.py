@@ -12,7 +12,6 @@ from mirri.entities.strain import (
     Strain,
     StrainId,
 )
-from mirri.io.writers.error import Error
 from mirri.settings import (
     COMMERCIAL_USE_WITH_AGREEMENT,
     GENOMIC_INFO,
@@ -45,10 +44,9 @@ def excel_dict_reader(path, sheet_name, mandatory_column_name=None):
     try:
         sheet = wb[sheet_name]
     except KeyError as error:
-        raise ValueError(
+        raise MirriValidationError(
             f"The '{sheet_name}' sheet is missing. Please check the provided excel template."
         ) from error
-        # raise ValueError(f"{sheet_name} sheet not in excel file") from error
 
     first = True
     header = []
@@ -139,20 +137,17 @@ def _parse_strains(
                     orig_value = str(value)
                 except KeyError:
                     if field["mandatory"]:
-                        msg = f"The '{label}' is a mandatory field. The Column can not be empty."
-                        # msg = f"#{label}# column not in Strain sheet"
-                        raise KeyError(msg)
+                        msg = f"The '{label}' is missing for strain with Accession Number {strain_id}."
+                        raise MirriValidationError(msg)
                 if attribute == "id":
                     strain_id = value
 
-                # print(label, attribute, value)
                 if attribute == "id":
                     try:
                         collection, number = value.split(" ", 1)
-                    except AttributeError as err:
-                        # raise ValueError("malformed accession number") from err
-                        raise ValueError(
-                            f"The '{label}' is not according to the specification."
+                    except ValueError as err:
+                        raise MirriValidationError(
+                            f"The 'Accession number' {value} is not according to the specification."
                         ) from err
                     value = StrainId(collection=collection, number=number)
                     rsetattr(strain, attribute, value)
@@ -161,19 +156,15 @@ def _parse_strains(
                     try:
                         value = RESTRICTION_USE_TRANSLATOR[value]
                     except KeyError as err:
-                        # allowed = [str(i) for i in RESTRICTION_USE_TRANSLATOR.keys()]
-                        # msg = f"{value} not in the allowed restriction on "
-                        # msg += f'values: {", ".join(allowed)})'
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
-                        raise ValueError(msg) from err
+                        raise MirriValidationError(msg) from err
                     rsetattr(strain, attribute, value)
                 elif attribute == "nagoya_protocol":
                     try:
                         rsetattr(strain, attribute, NAGOYA_TRANSLATOR[value])
                     except KeyError as err:
-                        # msg = "Not allowed Nagoya field value"
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
-                        raise ValueError(msg) from err
+                        raise MirriValidationError(msg) from err
                 elif attribute == "other_numbers":
                     other_numbers = []
                     if value is not None:
@@ -192,7 +183,7 @@ def _parse_strains(
                         add_taxon_to_strain(strain, value)
                     except ValueError:
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
-                        raise ValueError(msg)
+                        raise MirriValidationError(msg)
                 elif attribute == "taxonomy.organism_type":
                     if value is not None:
                         value = [OrganismType(val) for val in str(value).split(";")]
@@ -209,7 +200,7 @@ def _parse_strains(
                         rsetattr(strain, attribute, value)
                     except ValueError:
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is incorrect."
-                        raise ValueError(msg)
+                        raise MirriValidationError(msg)
 
                 elif attribute == "growth.recommended_medium":
                     if value is not None:
@@ -221,10 +212,8 @@ def _parse_strains(
                         for growth_medium in growth_media:
                             growth_medium = growth_medium.strip()
                             if growth_medium not in indexed_growth_media:
-                                # msg = f"{growth_medium} Growth medium not in "
-                                # msg += "growth media sheet"
                                 msg = f"The Growth Medium {growth_medium} for strain with Accession Number {strain_id} is not in the Growth Media datasheet."
-                                raise ValueError(msg)
+                                raise MirriValidationError(msg)
                         rsetattr(strain, attribute, growth_media)
                 elif attribute == "form_of_supply":
                     value = value.split(";")
@@ -242,9 +231,8 @@ def _parse_strains(
                     try:
                         location = indexed_locations[value]
                     except KeyError:
-                        msg = f"The Location {value} for strain with Accession Number {strain_id} is not in the geographic origin datasheet."
-                        # msg = f"#{value}# not in geographic origin sheet"
-                        raise KeyError(msg)
+                        msg = f"The Location for strain with Accession Number {strain_id} is not in the Geographic Origin datasheet."
+                        raise MirriValidationError(msg)
                     strain.collect.location.country = location["Country"]
                     strain.collect.location.state = location["Region"]
                     strain.collect.location.municipality = location["City"]
@@ -266,19 +254,11 @@ def _parse_strains(
                         value = None
                     else:
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
-                        # msg = f"Only 1, 2 or empty are allowed: {value}"
                         raise MirriValidationError(msg)
                     rsetattr(strain, attribute, value)
                 else:
                     rsetattr(strain, attribute, value)
-            except (
-                MirriValidationError,
-                ValueError,
-                IndexError,
-                KeyError,
-                TypeError,
-                AttributeError,
-            ) as error:
+            except (MirriValidationError) as error:
                 if fail_if_error:
                     raise
                 if strain_id not in error_logs:
@@ -304,13 +284,19 @@ def _parse_strains(
                     strain.genetics.markers.append(_marker)
         except (ValueError, IndexError, KeyError, TypeError) as error:
             if fail_if_error:
-                raise
+                raise 
             if strain_id not in error_logs:
                 error_logs[strain_id] = []
-            error_logs[strain_id].append(f"Markers: {error}")
+            error_logs[strain_id].append(
+                {
+                    "excel_sheet": "Strain",
+                    "excel column": "Markers",
+                    "message": f'The "Markers" for strain with Accession Number {strain_id} is not according to specification',
+                    "value": _marker.marker_id,
+                }
+            )
 
         yield strain
-        # count += 1
 
 
 def add_taxon_to_strain(strain, value):
@@ -335,7 +321,7 @@ def add_taxon_to_strain(strain, value):
             for index in range(0, len(items[2:]), 2):
                 rank = SUBTAXAS.get(items[index + 2], None)
                 if rank is None:
-                    raise ValueError
+                    raise MirriValidationError(f'The "Taxon Name" for strain with accession number {strain.id.collection} {strain.id.number} is not according to specification.')
 
                 name = items[index + 3]
             strain.taxonomy.add_subtaxa(rank, name)
