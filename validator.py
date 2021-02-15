@@ -44,14 +44,12 @@ def validate_excel(excel, strain, excelDict):
     #see if all sheets are there
     for sheet in SHEETS:
         if (sheet['name'] in sheets):
-            # print('Valid ' + sheet['name']) 
             sheetEx = excel[sheet['name']]
             if len(sheet['columns']) > 0:
                 #validate columns of each sheet
                 errors.extend(validate_sheet(sheetEx, sheet))
         else:
             if (sheet['name'] not in ["Ploidy", "Forms of supply", "Resource types values"]):
-                # print(f'{sheet["name"]} is not present')
                 errors.append(Error(f"The '{sheet['name']}' sheet is missing. Please check the provided excel template", sheet['name']))
     # if len(errors) == 0:
     errors.extend(validation_data(strain, excelDict))
@@ -69,7 +67,6 @@ def validate_sheet(sheetEx, sheet):
     errors = []
     columns = next(sheetEx.iter_rows(min_row=1, max_row=1))
     headers = [c.value for c in columns]
-    # print(headers)
     for col in sheet['columns']:
         if col[0] not in headers and col[1]:
             errors.append(Error(f"The '{col[0]}' is a mandatory field. The column can not be empty.", col[0]))
@@ -86,7 +83,6 @@ def checkTypes(strain, MIRRI_FIELDS, excelDict):
     try:
         stra["Recommended growth temperature"] = pd.to_numeric(stra["Recommended growth temperature"], errors='coerce')
     except ValueError:
-        # print("string cannot be float")
         error.append(Error("The 'Recommended growth temperature' column has an invalide data type."))
     
     for col, type1 in zip(types1.index, types1):
@@ -118,5 +114,4 @@ def validation_data(strain, excelDict):
     return errors
     
 
-#validation(strain, excelDict)
 validate_excel(excel, strain, excelDict)

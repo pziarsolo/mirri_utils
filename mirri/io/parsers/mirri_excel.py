@@ -47,7 +47,6 @@ def excel_dict_reader(path, sheet_name, mandatory_column_name=None):
         raise MirriValidationError(
             f"The '{sheet_name}' sheet is missing. Please check the provided excel template."
         ) from error
-        # raise ValueError(f"{sheet_name} sheet not in excel file") from error
 
     first = True
     header = []
@@ -138,20 +137,17 @@ def _parse_strains(
                     orig_value = str(value)
                 except KeyError:
                     if field["mandatory"]:
-                        msg = f"The '{label}' is a mandatory field. The Column can not be empty."
-                        # msg = f"#{label}# column not in Strain sheet"
+                        msg = f"The '{label}' is missing for strain with Accession Number {strain_id}."
                         raise MirriValidationError(msg)
                 if attribute == "id":
                     strain_id = value
 
-                # print(label, attribute, value)
                 if attribute == "id":
                     try:
                         collection, number = value.split(" ", 1)
                     except ValueError as err:
-                        # raise ValueError("malformed accession number") from err
                         raise MirriValidationError(
-                            f"The '{label}' is not according to the specification."
+                            f"The 'Accession number' {value} is not according to the specification."
                         ) from err
                     value = StrainId(collection=collection, number=number)
                     rsetattr(strain, attribute, value)
@@ -160,9 +156,6 @@ def _parse_strains(
                     try:
                         value = RESTRICTION_USE_TRANSLATOR[value]
                     except KeyError as err:
-                        # allowed = [str(i) for i in RESTRICTION_USE_TRANSLATOR.keys()]
-                        # msg = f"{value} not in the allowed restriction on "
-                        # msg += f'values: {", ".join(allowed)})'
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
                         raise MirriValidationError(msg) from err
                     rsetattr(strain, attribute, value)
@@ -170,7 +163,6 @@ def _parse_strains(
                     try:
                         rsetattr(strain, attribute, NAGOYA_TRANSLATOR[value])
                     except KeyError as err:
-                        # msg = "Not allowed Nagoya field value"
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
                         raise MirriValidationError(msg) from err
                 elif attribute == "other_numbers":
@@ -220,8 +212,6 @@ def _parse_strains(
                         for growth_medium in growth_media:
                             growth_medium = growth_medium.strip()
                             if growth_medium not in indexed_growth_media:
-                                # msg = f"{growth_medium} Growth medium not in "
-                                # msg += "growth media sheet"
                                 msg = f"The Growth Medium {growth_medium} for strain with Accession Number {strain_id} is not in the Growth Media datasheet."
                                 raise MirriValidationError(msg)
                         rsetattr(strain, attribute, growth_media)
@@ -242,7 +232,6 @@ def _parse_strains(
                         location = indexed_locations[value]
                     except KeyError:
                         msg = f"The Location for strain with Accession Number {strain_id} is not in the Geographic Origin datasheet."
-                        # msg = f"#{value}# not in geographic origin sheet"
                         raise MirriValidationError(msg)
                     strain.collect.location.country = location["Country"]
                     strain.collect.location.state = location["Region"]
@@ -265,19 +254,11 @@ def _parse_strains(
                         value = None
                     else:
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
-                        # msg = f"Only 1, 2 or empty are allowed: {value}"
                         raise MirriValidationError(msg)
                     rsetattr(strain, attribute, value)
                 else:
                     rsetattr(strain, attribute, value)
-            except (
-                MirriValidationError,
-                #ValueError,
-                #IndexError,
-                #KeyError,
-                #TypeError,
-                #AttributeError,
-            ) as error:
+            except (MirriValidationError) as error:
                 if fail_if_error:
                     raise
                 if strain_id not in error_logs:
@@ -316,7 +297,6 @@ def _parse_strains(
             )
 
         yield strain
-        # count += 1
 
 
 def add_taxon_to_strain(strain, value):

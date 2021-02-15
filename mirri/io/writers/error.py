@@ -323,8 +323,8 @@ class Error():
         def STD01(self):
             return "The 'Accession number' is a mandatory field. The column can not be empty."
 
-        def STD02(self):
-            return "The 'Accession number' is not according to the specification."
+        def STD02(self, accession_number):
+            return f"The 'Accession number' {accession_number} is not according to the specification."
 
         def STD03(self, accession_number):
             return f"The 'Other culture collection numbers' for strain with Accession Number {accession_number} is not according to the specification."
@@ -457,6 +457,9 @@ class Error():
 
         def STD46(self, accession_number):
             return f"The 'Organism Type' is missing for strain with Accession Number {accession_number}."
+        
+        def STD47(self, accession_number):
+            return f"The 'Nagoya protocol restrictions and compliance conditions' is missing for strain with Accession Number {accession_number}."
 
         """
             Genomic Information Error Codes
@@ -595,26 +598,32 @@ class ErrorLog():
                 self.document.add_heading(entity.name, level=2).style = self.document.styles['Heading 2']
                 self.document.add_paragraph(f'The “{entity.name}” Sheet in your Excel File shows the following errors or missing items:')
 
-                table = self.document.add_table(rows=2, cols=2)
+                table = self.document.add_table(rows=2, cols=3)
                 table.style = 'Table Grid'
                 hdr_cells = table.rows[0].cells
-                hdr_cells = hdr_cells[0].merge(hdr_cells[1])
+                hdr_cells = hdr_cells[0].merge(hdr_cells[1]).merge(hdr_cells[2])
                 hdr_cells.text = entity.name
                 hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
                 subhdr_cells = table.rows[1].cells
                 subhdr_cells[0].text = 'Error Code'
                 subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
                 subhdr_cells[0].width = Cm(4.0)
-                subhdr_cells[1].text = 'Error Message'
+                subhdr_cells[1].text = 'Identifier'
                 subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
+                subhdr_cells[1].width = Cm(4.0)
+                subhdr_cells[2].text = 'Error Message'
+                subhdr_cells[2].paragraphs[0].style = self.document.styles['Table Header']
 
-                for error in sorted(self.errors[entity.acronym], key=lambda e: e.code):
+                for error in sorted(self.errors[entity.acronym], key=lambda e: e.data):
                     row_cells = table.add_row().cells
                     row_cells[0].text = error.code
                     row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
                     row_cells[0].width = Cm(4.0)
-                    row_cells[1].text = error.message
+                    row_cells[1].text = error.data
                     row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+                    row_cells[1].width = Cm(4.0)
+                    row_cells[2].text = error.message
+                    row_cells[2].paragraphs[0].style = self.document.styles['Table Cell']
                     counter += 1
                     if counter == self.limit: break
                     
