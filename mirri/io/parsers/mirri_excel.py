@@ -1,6 +1,6 @@
 import re
 from datetime import date
-
+from io import BytesIO
 from openpyxl import load_workbook
 
 from mirri import rsetattr
@@ -39,8 +39,9 @@ NAGOYA_TRANSLATOR = {
 }
 
 
-def excel_dict_reader(path, sheet_name, mandatory_column_name=None):
-    wb = load_workbook(filename=str(path), data_only=True)
+def excel_dict_reader(fhand, sheet_name, mandatory_column_name=None):
+    fhand.seek(0)
+    wb = load_workbook(filename=BytesIO(fhand.read()), data_only=True)
     try:
         sheet = wb[sheet_name]
     except KeyError as error:
@@ -67,16 +68,18 @@ def excel_dict_reader(path, sheet_name, mandatory_column_name=None):
         yield data
 
 
-def parse_mirri_excel(path, version, fail_if_error=True):
+def parse_mirri_excel(fhand, version, fail_if_error=True):
     if version == "20200601":
-        return _parse_mirri_v20200601(path, fail_if_error=fail_if_error)
+        return _parse_mirri_v20200601(fhand, fail_if_error=fail_if_error)
+    else:
+        raise NotImplementedError("Only version20200601 is implemented")
 
 
-def _parse_mirri_v20200601(path, fail_if_error):
-    locations = excel_dict_reader(path, LOCATIONS)
+def _parse_mirri_v20200601(fhand, fail_if_error):
+    locations = excel_dict_reader(fhand, LOCATIONS)
     indexed_locations = {loc["Locality"]: loc for loc in locations}
 
-    growth_media = list(excel_dict_reader(path, GROWTH_MEDIA))
+    growth_media = list(excel_dict_reader(fhand, GROWTH_MEDIA))
     growth_media = [
         {
             "Acronym": str(gm["Acronym"]),
@@ -87,7 +90,7 @@ def _parse_mirri_v20200601(path, fail_if_error):
     ]
     indexed_growth_media = {str(gm["Acronym"]): gm for gm in growth_media}
 
-    markers = excel_dict_reader(path, GENOMIC_INFO)
+    markers = excel_dict_reader(fhand, GENOMIC_INFO)
     indexed_markers = {}
 
     for marker in markers:
@@ -99,7 +102,7 @@ def _parse_mirri_v20200601(path, fail_if_error):
 
     strains = list(
         _parse_strains(
-            path,
+            fhand,
             indexed_locations,
             indexed_growth_media,
             indexed_markers,
@@ -116,7 +119,7 @@ def _parse_mirri_v20200601(path, fail_if_error):
 
 
 def _parse_strains(
-    path,
+    fhand,
     indexed_locations,
     indexed_growth_media,
     indexed_markers,
@@ -124,7 +127,7 @@ def _parse_strains(
     fail_if_error,
 ):
 
-    for strain_row in excel_dict_reader(path, STRAINS, "Accession number"):
+    for strain_row in excel_dict_reader(fhand, STRAINS, "Accession number"):
         strain = Strain()
         strain_id = None
         label = None
@@ -284,7 +287,7 @@ def _parse_strains(
                     strain.genetics.markers.append(_marker)
         except (ValueError, IndexError, KeyError, TypeError) as error:
             if fail_if_error:
-                raise 
+                raise
             if strain_id not in error_logs:
                 error_logs[strain_id] = []
             error_logs[strain_id].append(
@@ -321,7 +324,9 @@ def add_taxon_to_strain(strain, value):
             for index in range(0, len(items[2:]), 2):
                 rank = SUBTAXAS.get(items[index + 2], None)
                 if rank is None:
-                    raise MirriValidationError(f'The "Taxon Name" for strain with accession number {strain.id.collection} {strain.id.number} is not according to specification.')
+                    raise MirriValidationError(
+                        f'The "Taxon Name" for strain with accession number {strain.id.collection} {strain.id.number} is not according to specification.'
+                    )
 
                 name = items[index + 3]
             strain.taxonomy.add_subtaxa(rank, name)

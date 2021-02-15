@@ -1,8 +1,8 @@
-from mirri.entities.strain import MirriValidationError
 import unittest
 from pathlib import Path
 
 from mirri.io.parsers.mirri_excel import parse_mirri_excel
+from mirri.entities.strain import MirriValidationError
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
 
@@ -10,9 +10,11 @@ TEST_DATA_DIR = Path(__file__).parent / "data"
 class MirriExcelTests(unittest.TestCase):
     def test_mirri_excel_parser(self):
         in_path = TEST_DATA_DIR / "valid.mirri.xlsx"
-        parsed_data = parse_mirri_excel(
-            in_path, version="20200601", fail_if_error=False
-        )
+        with in_path.open("rb") as fhand:
+            parsed_data = parse_mirri_excel(
+                fhand, version="20200601", fail_if_error=False
+            )
+
         print(parsed_data["errors"])
 
         self.assertEqual(parsed_data["errors"], {})
@@ -27,17 +29,19 @@ class MirriExcelTests(unittest.TestCase):
 
     def test_mirri_excel_parser_invalid_fail(self):
         in_path = TEST_DATA_DIR / "invalid.mirri.xlsx"
-        try:
-            parse_mirri_excel(in_path, version="20200601", fail_if_error=True)
-            self.fail()
-        except MirriValidationError:
-            pass
+        with in_path.open("rb") as fhand:
+            try:
+                parse_mirri_excel(fhand, version="20200601", fail_if_error=True)
+                self.fail()
+            except MirriValidationError:
+                pass
 
     def test_mirri_excel_parser_invalid(self):
         in_path = TEST_DATA_DIR / "invalid.mirri.xlsx"
-        parsed_data = parse_mirri_excel(
-            in_path, version="20200601", fail_if_error=False
-        )
+        with in_path.open("rb") as fhand:
+            parsed_data = parse_mirri_excel(
+                fhand, version="20200601", fail_if_error=False
+            )
 
         errors = parsed_data["errors"]
         for _id, _errors in errors.items():
