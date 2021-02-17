@@ -1,3 +1,4 @@
+from mirri.entities.publication import Publication
 import re
 from datetime import date
 from io import BytesIO
@@ -16,6 +17,7 @@ from mirri.settings import (
     COMMERCIAL_USE_WITH_AGREEMENT,
     GENOMIC_INFO,
     GROWTH_MEDIA,
+    LITERATURE_SHEET,
     LOCATIONS,
     MIRRI_FIELDS,
     NAGOYA_APPLIES,
@@ -76,7 +78,9 @@ def parse_mirri_excel(fhand, version, fail_if_error=True):
 
 
 def _parse_mirri_v20200601(fhand, fail_if_error):
-    locations = excel_dict_reader(fhand, LOCATIONS)
+    indexed_errors = {}
+
+    locations = _parse_locations(fhand, indexed_errors, fail_if_error)
     indexed_locations = {loc["Locality"]: loc for loc in locations}
 
     growth_media = list(excel_dict_reader(fhand, GROWTH_MEDIA))
@@ -98,7 +102,12 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
         if strain_id not in indexed_markers:
             indexed_markers[strain_id] = []
         indexed_markers[strain_id].append(marker)
-    indexed_errors = {}
+
+    publications = list(
+        _parse_publications(fhand, indexed_errors, fail_if_error=fail_if_error)
+    )
+
+    indexed_publications = {str(pub.id): pub for pub in publications}
 
     strains = list(
         _parse_strains(
@@ -106,6 +115,7 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
             indexed_locations,
             indexed_growth_media,
             indexed_markers,
+            indexed_publications,
             indexed_errors,
             fail_if_error,
         )
@@ -118,11 +128,55 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
     }
 
 
+def _parse_locations(fhand, indexed_errors, fail_if_error):
+    try:
+        locations = excel_dict_reader(fhand, LOCATIONS)
+    except MirriValidationError as error:
+        if fail_if_error:
+            raise
+        print("asda")
+        locations = {}
+        indexed_errors["Location"] = [
+            {
+                "excel_sheet": LOCATIONS,
+                "excel column": "all",
+                "message": str(error),
+                "value": None,
+            }
+        ]
+    return locations
+
+
+def _parse_publications(fhand, indexed_errors, fail_if_error):
+    ids = []
+    for row in excel_dict_reader(fhand, LITERATURE_SHEET):
+        pub = Publication()
+        _id = row.get("ID", None)
+        if _id is not None:
+            if _id in ids:
+                msg = f"Id in publication repeated. Must be unique: {_id}"
+                if fail_if_error:
+                    raise MirriValidationError(msg)
+                indexed_errors["publications"] = [
+                    {
+                        "excel_sheet": "Literature",
+                        "excel column": "ID",
+                        "message": msg,
+                        "value": _id,
+                    }
+                ]
+            ids.append(_id)
+            pub.id = _id
+
+        yield pub
+
+
 def _parse_strains(
     fhand,
     indexed_locations,
     indexed_growth_media,
     indexed_markers,
+    indexed_publications,
     error_logs,
     fail_if_error,
 ):
@@ -224,6 +278,11 @@ def _parse_strains(
                 elif attribute == "collect.location.coords":
                     if value:
                         items = value.split(";")
+                        if len(items) != 2:
+                            msg = (
+                                "Coordinates must be two values separated by semicolom"
+                            )
+                            raise MirriValidationError(msg)
                         strain.collect.location.latitude = items[0]
                         strain.collect.location.longitude = items[1]
                         if len(items) > 2:
@@ -259,6 +318,19 @@ def _parse_strains(
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is not according to the specification."
                         raise MirriValidationError(msg)
                     rsetattr(strain, attribute, value)
+                elif attribute == "publications":
+                    if value is not None:
+                        value = str(value)
+                        publications = []
+                        pub_ids = [v.strip() for v in value.split(";")]
+                        for pub_id in pub_ids:
+                            pub = indexed_publications.get(pub_id, None)
+                            if pub is None:
+                                pub = Publication()
+                                pub.id = pub_id
+                            publications.append(pub)
+                        rsetattr(strain, attribute, publications)
+
                 else:
                     rsetattr(strain, attribute, value)
             except (MirriValidationError) as error:

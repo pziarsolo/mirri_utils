@@ -475,7 +475,7 @@ class Collect(_GeneralStep):
     @habitat_ontotype.setter
     def habitat_ontotype(self, habitat: str):
         if habitat is not None:
-            if not re.match("OBS:[0-9]{6}", "OBT:[0-9]{6}"):
+            if not re.match("OB[ST]:[0-9]{6}", habitat):
                 raise ValueError(f"Bad ontotype format, {habitat}")
             self._data[ONTOTYPE_ISOLATION_HABITAT] = habitat
 
@@ -1078,15 +1078,17 @@ class Strain:
 
     @property
     def publications(self) -> Union[List[Publication], None]:
-        self._data.get(PUBLICATIONS, None)
+        return self._data.get(PUBLICATIONS, None)
 
     @publications.setter
     def publications(self, value: List[Publication]):
         if value is not None:
+            error_msg = "Publications must be Publication instaces"
+            if not isinstance(value, list):
+                raise ValueError(error_msg)
             for pub in value:
                 if not isinstance(pub, Publication):
-                    msg = "Publications must be Publication instaces"
-                    raise MirriValidationError(msg)
+                    raise MirriValidationError(error_msg)
             self._data[PUBLICATIONS] = value
 
     # mierder
