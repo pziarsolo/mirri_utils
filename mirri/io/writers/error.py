@@ -664,18 +664,27 @@ class ErrorLog():
                     
                     if counter == self.limit:
                         self.document.add_page_break()
-                        self.document.add_paragraph('Your file contains too many erros and therefore this document was truncated. Please resolve the aforementioned errors and resubmit the excel file.')
+
+                        self.document.add_paragraph(
+                            'Your file contains too many erros and therefore this document was truncated. Please resolve the aforementioned errors and resubmit the excel file.'
+                        )
 
 
         try:
-            output_file = NamedTemporaryFile(dir=path, suffix='_error_log.docx', delete=False)
-            self.document.save(output_file)
-            output_file.close()
-            convert(output_file.name, f'{path}\\{self.input_filename}_error_log.pdf')
-            os.unlink(output_file.name)
-        except:
-            raise
+            docx_fhand = NamedTemporaryFile(dir=path, suffix='_error_log.docx', delete=False)
+            self.document.save(docx_fhand)
+            docx_fhand.close()
+            pdf_fhand = os.path.join(path, f'{self.input_filename}_error_log.pdf')
+            convert(docx_fhand.name, pdf_fhand)
+        finally:
+            if not docx_fhand.closed:
+                docx_fhand.close()
+            os.unlink(docx_fhand.name)
 
+        if os.path.exists(pdf_fhand):
+            return pdf_fhand
+        else:
+            return None
 
 
     def __str__(self):
