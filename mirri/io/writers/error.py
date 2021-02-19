@@ -668,13 +668,14 @@ class ErrorLog():
 
 
         try:
-            output_file = NamedTemporaryFile(dir=path, suffix='_error_log.docx', delete=False)
-            self.document.save(output_file)
-            output_file.close()
-            convert(output_file.name, f'{path}\\{self.input_filename}_error_log.pdf')
-            os.unlink(output_file.name)
-        except:
-            raise
+            docx_file = NamedTemporaryFile(dir=path, suffix='_error_log.docx', delete=False)
+            self.document.save(docx_file)
+            docx_file.close()
+            convert(docx_file.name, f'{path}\\{self.input_filename}_error_log.pdf')
+        finally:
+            if not docx_file.closed:
+                docx_file.close()
+            os.unlink(docx_file.name)
 
 
 
