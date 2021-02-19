@@ -796,7 +796,7 @@ class ErrorLog:
                 docx_fhand.close()
             os.unlink(docx_fhand.name)
 
-        if pdf_fhand:
+        if os.path.exists(pdf_fhand):
             return pdf_fhand
         else:
             return None
