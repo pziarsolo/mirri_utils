@@ -10,22 +10,32 @@ from docx2pdf import convert
 from tempfile import NamedTemporaryFile
 from mirri.entities.strain import MirriValidationError
 
-DOCS_FOLDER = os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'docs'))
+DOCS_FOLDER = os.path.abspath(
+    os.path.join(os.path.dirname(mirri.__file__), "..", "docs")
+)
 
-class Entity():
+
+class Entity:
     """Entity information
 
     Args:
         acronym: acronym of the entity. Must be a 3-characters captalized string
     """
+
     def __init__(self, acronym):
-        self.entity_acronyms = [func for func in dir(self) if func.isupper() and callable(getattr(self, func)) and not func.startswith("__")]
+        self.entity_acronyms = [
+            func
+            for func in dir(self)
+            if func.isupper()
+            and callable(getattr(self, func))
+            and not func.startswith("__")
+        ]
         self.entity_names = {acr: getattr(self, acr) for acr in self.entity_acronyms}
         self.acronym = acronym
         try:
             self.name = self.entity_names[self.acronym]()
         except KeyError:
-            raise MirriValidationError(f'Unknown acronym {self.acronym}.')
+            raise MirriValidationError(f"Unknown acronym {self.acronym}.")
 
     @property
     def name(self):
@@ -38,34 +48,34 @@ class Entity():
     @property
     def acronym(self):
         return self._acronym
-    
+
     @acronym.setter
     def acronym(self, acronym):
         self._acronym = acronym
 
     def EFS(self):
-        return 'Excel File Structure'
+        return "Excel File Structure"
 
     def GMD(self):
-        return 'Growth Media'
+        return "Growth Media"
 
     def GOD(self):
-        return 'Geographic Origin'
+        return "Geographic Origin"
 
     def LID(self):
-        return 'Literature'
+        return "Literature"
 
     def STD(self):
-        return 'Strains'
+        return "Strains"
 
     def GID(self):
-        return 'Genomic Information'
+        return "Genomic Information"
 
     def UCT(self):
-        return 'Uncategorized'
+        return "Uncategorized"
 
 
-class Error():
+class Error:
     """Error information
 
     Args
@@ -79,6 +89,7 @@ class Error():
         threshold: minimum value of similarity between the specified message and the default messages. Should be a value between 0.0 and 1.0. This param \
             is ignoref if a code is specified in code_or_message param.
     """
+
     def __init__(self, code_or_message, data=None, threshold=0.9):
         self.encoder = self.ErrorMessage()
         self.data = data
@@ -90,10 +101,9 @@ class Error():
         else:
             self.message = code_or_message
             code = self.find_error_code_v2()
-            self.code = code if code != '' else 'UCT'
+            self.code = code if code != "" else "UCT"
 
         self.entity = Entity(self.code[:3])
-
 
     def find_error_code_v2(self):
         """Find error code based on the similarity between the default error message and the specified error message
@@ -101,110 +111,121 @@ class Error():
         Returns:
             code (str): error code if any was found or empty string otherwise.
         """
-        error = {'code': '', 'ratio': 0.0}
-        messages = {code: self.encoder.message(code, self.data) for code in self.encoder.error_codes}
-        
+        error = {"code": "", "ratio": 0.0}
+        messages = {
+            code: self.encoder.message(code, self.data)
+            for code in self.encoder.error_codes
+        }
+
         for code, message in messages.items():
             ratio = SequenceMatcher(None, self.message, message).ratio()
-            if ratio >= self.threshold and ratio > error['ratio']:
-                error['code'] = code
-                error['ratio'] = ratio
+            if ratio >= self.threshold and ratio > error["ratio"]:
+                error["code"] = code
+                error["ratio"] = ratio
 
-        return error['code']
+        return error["code"]
 
     @property
     def entity(self):
         """
-            Getter for attribute entity
+        Getter for attribute entity
 
-            return
-                entity: entity related to the error (ESF, GMD, GOD, LID, STD, or GID)
+        return
+            entity: entity related to the error (ESF, GMD, GOD, LID, STD, or GID)
         """
         return self._entity
 
     @entity.setter
     def entity(self, entity):
         """
-            Setter for attribute entity
+        Setter for attribute entity
 
-            Args:
-                entity: entity related to the error (ESF, GMD, GOD, LID, STD, or GID)
+        Args:
+            entity: entity related to the error (ESF, GMD, GOD, LID, STD, or GID)
         """
         self._entity = entity
 
     @property
     def code(self):
         """
-            Getter for attribute code
+        Getter for attribute code
 
-            return
-                code: code of the error
+        return
+            code: code of the error
         """
         return self._code
 
     @code.setter
     def code(self, code):
         """
-            Setter for attribute code
+        Setter for attribute code
 
-            Args:
-                code: code of the error
+        Args:
+            code: code of the error
         """
         self._code = code
 
     @property
     def message(self):
         """
-            Getter for attribute message
+        Getter for attribute message
 
-            return
-                message: message associated with the error
+        return
+            message: message associated with the error
         """
         return self._message
 
     @message.setter
     def message(self, message):
         """
-            Setter for attribute message
+        Setter for attribute message
 
-            Args:
-                message: message associated with the error
+        Args:
+            message: message associated with the error
         """
         self._message = message
 
     @property
     def data(self):
         """
-            Getter for attribute data
+        Getter for attribute data
 
-            return
-                data: data used by some error messages. Usually is the primary key of the entry related to the error.
+        return
+            data: data used by some error messages. Usually is the primary key of the entry related to the error.
         """
         return self._data
 
     @data.setter
     def data(self, data):
         """
-            Setter for attribute data
+        Setter for attribute data
 
-            Args:
-                data: data used by some error messages. Usually is the primary key of the entry related to the error.
+        Args:
+            data: data used by some error messages. Usually is the primary key of the entry related to the error.
         """
         self._data = data
 
     # Inner Error Message
-    class ErrorMessage():
+    class ErrorMessage:
         """Error messages for each error code"""
+
         def __init__(self):
-            self.error_codes = [func for func in dir(self) if callable(getattr(self, func)) and not func.startswith("__")]
-            self.error_messages = {code: getattr(self, code) for code in self.error_codes}
+            self.error_codes = [
+                func
+                for func in dir(self)
+                if callable(getattr(self, func)) and not func.startswith("__")
+            ]
+            self.error_messages = {
+                code: getattr(self, code) for code in self.error_codes
+            }
 
         """
             Get the message associated with the specified error code
         """
-        def message(self, code, data=''):
+
+        def message(self, code, data=""):
             """get the error message associated with the specified error code
-            
+
             Args:
                 code: error code
                 data [optional]: a value to be passed to some messages that require some data, for instance, and ID
@@ -216,12 +237,12 @@ class Error():
                 else:
                     return self.error_messages[code]()
             else:
-                return ''
-
+                return ""
 
         """
             Excel File Structure Error Codes
         """
+
         def EFS01(self):
             return "The 'Growth media' sheet is missing. Please check the provided excel template."
 
@@ -246,20 +267,22 @@ class Error():
         def EFS08(self):
             return "The 'Genomic information' sheet is missing. Please check the provided excel template."
 
-
         """
             Growth Media Error Codes
         """
+
         def GMD01(self):
             return "The 'Acronym' is a mandatory field. The column can not be empty."
 
         def GMD02(self):
-            return "The 'Description' is a mandatory field. The column can not be empty."
-
+            return (
+                "The 'Description' is a mandatory field. The column can not be empty."
+            )
 
         """
             Geographic Origin Error Codes
         """
+
         def GOD01(self):
             return "The 'ID' is a mandatory field. The column can not be empty."
 
@@ -275,6 +298,7 @@ class Error():
         """
             Literature Error Codes
         """
+
         def LID01(self):
             return "The 'ID' is a mandatory field. The column can not be empty."
 
@@ -320,6 +344,7 @@ class Error():
         """
             Strains Error Codes
         """
+
         def STD01(self):
             return "The 'Accession number' is a mandatory field. The column can not be empty."
 
@@ -363,7 +388,9 @@ class Error():
             return f"The “Quarantine in europe” for strain with Accession Number {accession_number} is not according to specification."
 
         def STD15(self):
-            return "The 'Organism type' is a mandatory field. The column can not be empty."
+            return (
+                "The 'Organism type' is a mandatory field. The column can not be empty."
+            )
 
         def STD16(self, accession_number):
             return f"The 'Organism type' for strain with Accession Number {accession_number} is incorrect."
@@ -457,13 +484,14 @@ class Error():
 
         def STD46(self, accession_number):
             return f"The 'Organism Type' is missing for strain with Accession Number {accession_number}."
-        
+
         def STD47(self, accession_number):
             return f"The 'Nagoya protocol restrictions and compliance conditions' is missing for strain with Accession Number {accession_number}."
 
         """
             Genomic Information Error Codes
         """
+
         def GID01(self, accession_number):
             return f"The 'Strain Acession Number' (Strain AN) with ID {accession_number} is incorrect."
 
@@ -477,27 +505,52 @@ class Error():
             return f"The 'Sequence' for Strain with ID {accession_number} is incorrect."
 
 
-class ErrorLog():
+class ErrorLog:
     """
-        Error Logging
+    Error Logging
 
-        Args:
-            input_filename: name of the file which the error log is derived from
-            cc [optional]: culture collection identifier
-            date [optional]: date the inputed file was submited for validation (date of last modification)
+    Args:
+        input_filename: name of the file which the error log is derived from
+        cc [optional]: culture collection identifier
+        date [optional]: date the inputed file was submited for validation (date of last modification)
     """
-    def __init__(self, input_filename: str, cc: str=None, date: str = None, limit: int = 100):
+
+    def __init__(
+        self, input_filename: str, cc: str = None, date: str = None, limit: int = 100
+    ):
         self.input_filename = input_filename
         self.cc = cc
-        self.date = datetime.strptime(date, '%d-%m-%Y').date() if date is not None else None
+        self.date = (
+            datetime.strptime(date, "%d-%m-%Y").date() if date is not None else None
+        )
         self.id = 0
         self.errors = {}
         self.limit = limit
-        self.fpath_to_style_doc = os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'docs', 'Error_Log_Style_Sheet.docx'))
-        self.fpath_how_to_compile = os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'docs', 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf'))
-        self.fpath_recommendations = os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'docs', 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf'))
+        self.fpath_to_style_doc = os.path.abspath(
+            os.path.join(
+                os.path.dirname(mirri.__file__),
+                "..",
+                "docs",
+                "Error_Log_Style_Sheet.docx",
+            )
+        )
+        self.fpath_how_to_compile = os.path.abspath(
+            os.path.join(
+                os.path.dirname(mirri.__file__),
+                "..",
+                "docs",
+                "ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf",
+            )
+        )
+        self.fpath_recommendations = os.path.abspath(
+            os.path.join(
+                os.path.dirname(mirri.__file__),
+                "..",
+                "docs",
+                "ICT-TaskForce_RecommendationsToCollections_v20200601.pdf",
+            )
+        )
         self.document = docx.Document(self.fpath_to_style_doc)
-            
 
     def write(self, path: str):
         """Write erros to log file
@@ -505,6 +558,7 @@ class ErrorLog():
         Args:
             path (str): path of the file to write the errors log
         """
+
         def hyperlink(paragraph, text, url):
             """Generate a hyperlink text
 
@@ -517,13 +571,18 @@ class ErrorLog():
                 hyperlink: hyperlink object
             """
             part = paragraph.part
-            r_id = part.relate_to(url, docx.opc.constants.RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
+            r_id = part.relate_to(
+                url, docx.opc.constants.RELATIONSHIP_TYPE.HYPERLINK, is_external=True
+            )
 
-            hyperlink = docx.oxml.shared.OxmlElement('w:hyperlink')
-            hyperlink.set(docx.oxml.shared.qn('r:id'), r_id, )
+            hyperlink = docx.oxml.shared.OxmlElement("w:hyperlink")
+            hyperlink.set(
+                docx.oxml.shared.qn("r:id"),
+                r_id,
+            )
 
-            new_run = docx.oxml.shared.OxmlElement('w:r')
-            rPr = docx.oxml.shared.OxmlElement('w:rPr')
+            new_run = docx.oxml.shared.OxmlElement("w:r")
+            rPr = docx.oxml.shared.OxmlElement("w:rPr")
 
             new_run.append(rPr)
             new_run.text = text
@@ -537,252 +596,313 @@ class ErrorLog():
 
             return hyperlink
 
-        heading = self.document.add_heading('Error Log', 0)
-        heading.style = self.document.styles['Title']
+        heading = self.document.add_heading("Error Log", 0)
+        heading.style = self.document.styles["Title"]
         counter = 0
 
-        cc = f' of Culture Collection {self.cc}' if self.cc is not None else ''
-        date = f'in {self.date} ' if self.date is not None else ''
-        mail_to = 'ict-support@mirri.org'
-        subject = 'Validator Error Log'
+        cc = f" of Culture Collection {self.cc}" if self.cc is not None else ""
+        date = f"in {self.date} " if self.date is not None else ""
+        mail_to = "ict-support@mirri.org"
+        subject = "Validator Error Log"
 
-        self.document.add_paragraph(f'Dear Curator{cc},')
-        paragraph = self.document.add_paragraph(f'the Excel File {self.input_filename} you\'ve provided {date}with your collection Strains Data contains errors/missing data. ')
-        paragraph.add_run('Please, see below the list of detected errors/missing data, for you to proceed with the appropriated correction/completion.')
+        self.document.add_paragraph(f"Dear Curator{cc},")
+        paragraph = self.document.add_paragraph(
+            f"the Excel File {self.input_filename} you've provided {date}with your collection Strains Data contains errors/missing data. "
+        )
+        paragraph.add_run(
+            "Please, see below the list of detected errors/missing data, for you to proceed with the appropriated correction/completion."
+        )
 
-        paragraph = self.document.add_paragraph('If you need help, please refer to the instructions contained in "')
-        hyperlink(paragraph, 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf', self.fpath_how_to_compile)
+        paragraph = self.document.add_paragraph(
+            'If you need help, please refer to the instructions contained in "'
+        )
+        hyperlink(
+            paragraph,
+            "ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf",
+            self.fpath_how_to_compile,
+        )
         paragraph.add_run('" and "')
-        hyperlink(paragraph, 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf', self.fpath_recommendations)
+        hyperlink(
+            paragraph,
+            "ICT-TaskForce_RecommendationsToCollections_v20200601.pdf",
+            self.fpath_recommendations,
+        )
         paragraph.add_run('".\nYou can also contact the MIRRI ICT by email using ')
-        hyperlink(paragraph, 'ICT Support', f'mailto:{mail_to}?Subject={subject}')
+        hyperlink(paragraph, "ICT Support", f"mailto:{mail_to}?Subject={subject}")
 
-        if 'EFS' in self.errors:
+        if "EFS" in self.errors:
             self.document.add_page_break()
-            self.document.add_heading(f'Analysis of {Entity("EFS").name}', level=1).style = self.document.styles['Heading 1']
-            self.document.add_paragraph('The structure of your Excel File show the following changes, as compared to the original Template:')
+            self.document.add_heading(
+                f'Analysis of {Entity("EFS").name}', level=1
+            ).style = self.document.styles["Heading 1"]
+            self.document.add_paragraph(
+                "The structure of your Excel File show the following changes, as compared to the original Template:"
+            )
 
             table = self.document.add_table(rows=2, cols=2)
-            table.style = 'Table Grid'
+            table.style = "Table Grid"
             hdr_cells = table.rows[0].cells
             hdr_cells = hdr_cells[0].merge(hdr_cells[1])
-            hdr_cells.text = Entity('EFS').name
-            hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
+            hdr_cells.text = Entity("EFS").name
+            hdr_cells.paragraphs[0].style = self.document.styles["Table Header"]
             subhdr_cells = table.rows[1].cells
-            subhdr_cells[0].text = 'Error Code'
-            subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
+            subhdr_cells[0].text = "Error Code"
+            subhdr_cells[0].paragraphs[0].style = self.document.styles["Table Header"]
             subhdr_cells[0].width = Cm(4.0)
-            subhdr_cells[1].text = 'Error Message'
-            subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
+            subhdr_cells[1].text = "Error Message"
+            subhdr_cells[1].paragraphs[0].style = self.document.styles["Table Header"]
 
-            for error in sorted(self.errors['EFS'], key=lambda e: e.code):
+            for error in sorted(self.errors["EFS"], key=lambda e: e.code):
                 row_cells = table.add_row().cells
                 row_cells[0].text = error.code
-                row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
+                row_cells[0].paragraphs[0].style = self.document.styles["Table Cell"]
                 row_cells[0].width = Cm(4.0)
                 row_cells[1].text = error.message
-                row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+                row_cells[1].paragraphs[0].style = self.document.styles["Table Cell"]
                 counter += 1
-                if counter == self.limit: break
+                if counter == self.limit:
+                    break
 
         if counter < self.limit and len(self.errors.keys()) > 1:
             self.document.add_page_break()
 
-            self.document.add_heading('Analysis of Data Set', level=1).style = self.document.styles['Heading 1']
-            self.document.add_paragraph('Your Data shows the following errors or missing items:')
+            self.document.add_heading(
+                "Analysis of Data Set", level=1
+            ).style = self.document.styles["Heading 1"]
+            self.document.add_paragraph(
+                "Your Data shows the following errors or missing items:"
+            )
 
             for entity_acronym in self.errors:
-                if entity_acronym in ['EFS', 'UCT']: continue
-                
+                if entity_acronym in ["EFS", "UCT"]:
+                    continue
+
                 entity = Entity(entity_acronym)
-                self.document.add_heading(entity.name, level=2).style = self.document.styles['Heading 2']
-                self.document.add_paragraph(f'The “{entity.name}” Sheet in your Excel File shows the following errors or missing items:')
+                self.document.add_heading(
+                    entity.name, level=2
+                ).style = self.document.styles["Heading 2"]
+                self.document.add_paragraph(
+                    f"The “{entity.name}” Sheet in your Excel File shows the following errors or missing items:"
+                )
 
                 table = self.document.add_table(rows=2, cols=3)
-                table.style = 'Table Grid'
+                table.style = "Table Grid"
                 hdr_cells = table.rows[0].cells
                 hdr_cells = hdr_cells[0].merge(hdr_cells[1]).merge(hdr_cells[2])
                 hdr_cells.text = entity.name
-                hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
+                hdr_cells.paragraphs[0].style = self.document.styles["Table Header"]
                 subhdr_cells = table.rows[1].cells
-                subhdr_cells[0].text = 'Error Code'
-                subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
+                subhdr_cells[0].text = "Error Code"
+                subhdr_cells[0].paragraphs[0].style = self.document.styles[
+                    "Table Header"
+                ]
                 subhdr_cells[0].width = Cm(4.0)
-                subhdr_cells[1].text = 'Identifier'
-                subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
+                subhdr_cells[1].text = "Identifier"
+                subhdr_cells[1].paragraphs[0].style = self.document.styles[
+                    "Table Header"
+                ]
                 subhdr_cells[1].width = Cm(4.0)
-                subhdr_cells[2].text = 'Error Message'
-                subhdr_cells[2].paragraphs[0].style = self.document.styles['Table Header']
+                subhdr_cells[2].text = "Error Message"
+                subhdr_cells[2].paragraphs[0].style = self.document.styles[
+                    "Table Header"
+                ]
 
                 for error in sorted(self.errors[entity.acronym], key=lambda e: e.data):
                     row_cells = table.add_row().cells
                     row_cells[0].text = error.code
-                    row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
+                    row_cells[0].paragraphs[0].style = self.document.styles[
+                        "Table Cell"
+                    ]
                     row_cells[0].width = Cm(4.0)
                     row_cells[1].text = error.data
-                    row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
+                    row_cells[1].paragraphs[0].style = self.document.styles[
+                        "Table Cell"
+                    ]
                     row_cells[1].width = Cm(4.0)
                     row_cells[2].text = error.message
-                    row_cells[2].paragraphs[0].style = self.document.styles['Table Cell']
+                    row_cells[2].paragraphs[0].style = self.document.styles[
+                        "Table Cell"
+                    ]
                     counter += 1
-                    if counter == self.limit: break
-                    
-                if counter == self.limit: break
-                    
+                    if counter == self.limit:
+                        break
+
+                if counter == self.limit:
+                    break
+
             if counter == self.limit:
                 self.document.add_page_break()
-                self.document.add_paragraph('Your file contains too many erros and therefore this document was truncated. Please resolve the aforementioned errors and resubmit the excel file.')
-            else:    
-                if 'UCT' in self.errors:
+                self.document.add_paragraph(
+                    "Your file contains too many erros and therefore this document was truncated. Please resolve the aforementioned errors and resubmit the excel file."
+                )
+            else:
+                if "UCT" in self.errors:
                     self.document.add_page_break()
-                    self.document.add_heading('Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
-                    self.document.add_paragraph('The following errors were also identified while validating your data:')
-                    
-                    entity = Entity('UCT')
+                    self.document.add_heading(
+                        "Uncategorized Errors", level=1
+                    ).style = self.document.styles["Heading 1"]
+                    self.document.add_paragraph(
+                        "The following errors were also identified while validating your data:"
+                    )
+
+                    entity = Entity("UCT")
 
                     table = self.document.add_table(rows=2, cols=2)
-                    table.style = 'Table Grid'
+                    table.style = "Table Grid"
                     hdr_cells = table.rows[0].cells
                     hdr_cells = hdr_cells[0].merge(hdr_cells[1])
                     hdr_cells.text = entity.name
-                    hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
+                    hdr_cells.paragraphs[0].style = self.document.styles["Table Header"]
                     subhdr_cells = table.rows[1].cells
-                    subhdr_cells[0].text = 'Error Code'
-                    subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
+                    subhdr_cells[0].text = "Error Code"
+                    subhdr_cells[0].paragraphs[0].style = self.document.styles[
+                        "Table Header"
+                    ]
                     subhdr_cells[0].width = Cm(4.0)
-                    subhdr_cells[1].text = 'Error Message'
-                    subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
-                    
-                    for error in self.errors['UCT']:
+                    subhdr_cells[1].text = "Error Message"
+                    subhdr_cells[1].paragraphs[0].style = self.document.styles[
+                        "Table Header"
+                    ]
+
+                    for error in self.errors["UCT"]:
                         row_cells = table.add_row().cells
                         row_cells[0].text = error.code
-                        row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
+                        row_cells[0].paragraphs[0].style = self.document.styles[
+                            "Table Cell"
+                        ]
                         row_cells[0].width = Cm(4.0)
                         row_cells[1].text = error.message
-                        row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
-                        if counter == self.limit: break
-                    
+                        row_cells[1].paragraphs[0].style = self.document.styles[
+                            "Table Cell"
+                        ]
+                        if counter == self.limit:
+                            break
+
                     if counter == self.limit:
                         self.document.add_page_break()
-                        self.document.add_paragraph('Your file contains too many erros and therefore this document was truncated. Please resolve the aforementioned errors and resubmit the excel file.')
+                        self.document.add_paragraph(
+                            'Your file contains too many erros and therefore this document was truncated. Please resolve the aforementioned errors and resubmit the excel file.'
+                        )
 
 
         try:
-            docx_file = NamedTemporaryFile(dir=path, suffix='_error_log.docx', delete=False)
-            self.document.save(docx_file)
-            docx_file.close()
-            convert(docx_file.name, f'{path}\\{self.input_filename}_error_log.pdf')
+            docx_fhand = NamedTemporaryFile(dir=path, suffix='_error_log.docx', delete=False)
+            self.document.save(docx_fhand)
+            docx_fhand.close()
+            pdf_fhand = os.path.join(path, f'{self.input_filename}_error_log.pdf')
+            convert(docx_fhand.name, pdf_fhand)
         finally:
-            if not docx_file.closed:
-                docx_file.close()
-            os.unlink(docx_file.name)
+            if not docx_fhand.closed:
+                docx_fhand.close()
+            os.unlink(docx_fhand.name)
 
-
+        if pdf_fhand:
+            return pdf_fhand
+        else:
+            return None
 
     def __str__(self):
         count = 0
-        to_print = f'Error log for file <{self.input_filename}> sent by <{self.cc}> on <{self.date}>\n'
-        to_print += f'printing first {self.limit} errors\n\n'
-        to_print += '{:<5} | {:<10} | {:<10} | {:<250}\n'.format('#', 'ENTITY', 'CODE', 'MESSAGE')
+        to_print = f"Error log for file <{self.input_filename}> sent by <{self.cc}> on <{self.date}>\n"
+        to_print += f"printing first {self.limit} errors\n\n"
+        to_print += "{:<5} | {:<10} | {:<10} | {:<250}\n".format(
+            "#", "ENTITY", "CODE", "MESSAGE"
+        )
         for _, errors in self.errors.items():
             if count == self.limit:
-                    break
+                break
 
             for error in errors:
                 count += 1
                 if count == self.limit:
                     break
-                to_print += f'{count:>05}'
-                to_print += f' | {error.entity.acronym:<10}'
-                to_print += f' | {error.code:<10}'
-                to_print += f' | {error.message[:248]:<250}...' if len(error.message) > 250 else f' | {error.message:<250}'
-                to_print += '\n'
+                to_print += f"{count:>05}"
+                to_print += f" | {error.entity.acronym:<10}"
+                to_print += f" | {error.code:<10}"
+                to_print += (
+                    f" | {error.message[:248]:<250}..."
+                    if len(error.message) > 250
+                    else f" | {error.message:<250}"
+                )
+                to_print += "\n"
 
         return to_print
-
 
     @property
     def input_filename(self):
         """
-            Getter for input filename
+        Getter for input filename
 
-            return
-                input filename [str]: name of the file which the error log is derived from
+        return
+            input filename [str]: name of the file which the error log is derived from
         """
         return self._input_filename
-
 
     @input_filename.setter
     def input_filename(self, input_filename: str):
         """
-            Setter for input filename
+        Setter for input filename
 
-            Args:
-                input filename (str): name of the file which the error log is derived from
+        Args:
+            input filename (str): name of the file which the error log is derived from
         """
         self._input_filename = input_filename
-
 
     @property
     def cc(self):
         """
-            Getter for culture collection identifier
+        Getter for culture collection identifier
 
-            return
-                cc [str]: culture collection identifier
+        return
+            cc [str]: culture collection identifier
         """
         return self._cc
-
 
     @cc.setter
     def cc(self, cc: str):
         """
-            Setter for culture collection identifier
+        Setter for culture collection identifier
 
-            Args:
-                cc (str): culture collection identifier
+        Args:
+            cc (str): culture collection identifier
         """
         self._cc = cc
-
 
     @property
     def date(self):
         """
-            Getter for date the inputed file was submited for validation
+        Getter for date the inputed file was submited for validation
 
-            return
-                date [str]: date the inputed file was submited for validation
+        return
+            date [str]: date the inputed file was submited for validation
         """
         return self._date
-
 
     @date.setter
     def date(self, date):
         """
-            Setter for date the inputed file was submited for validation
+        Setter for date the inputed file was submited for validation
 
-            Args:
-                date (str): date the inputed file was submited for validation
+        Args:
+            date (str): date the inputed file was submited for validation
         """
         self._date = date
 
-
     def get_errors(self):
         """
-            Getter for errors identified
+        Getter for errors identified
 
-            return
-                errors [dict]: errors identified
+        return
+            errors [dict]: errors identified
         """
         return self.errors
 
-
     def add_error(self, error: Error):
         """
-            Add an error
+        Add an error
 
-            Args:
-                error (Error): error to be added
+        Args:
+            error (Error): error to be added
         """
         if error.entity.acronym not in self.errors:
             self.errors[error.entity.acronym] = [error]
@@ -790,25 +910,25 @@ class ErrorLog():
             self.errors[error.entity.acronym].append(error)
 
 
-if __name__ == '__main__':
-    error_log = ErrorLog('MIRRI-IS_dataset_BEA_template_30092020', 'BEA', '30-09-2020')
+if __name__ == "__main__":
+    error_log = ErrorLog("MIRRI-IS_dataset_BEA_template_30092020", "BEA", "30-09-2020")
     errors = [
-        Error('EFS01'),
-        Error('EFS02'),
-        Error('GOD01'),
-        Error('GOD04', 'Brazil'),
-        Error('LID01'),
-        Error('STD02'),
-        Error('STD07', 'AN 123'),
-        Error('STD16'),
-        Error('STD23', 'AN 123'),
-        Error('GID01', 'AN 456'),
-        Error('GID03', 'AN 456'),
-        Error('The “Acronym” is a mandatory field. The Column can not be empty.'),
-        Error('The “Country” named as Spain is incorrect', 'Spain'),
-        Error('The Growth Medium ABC 123 is not in the Growth Media datasheet.')
+        Error("EFS01"),
+        Error("EFS02"),
+        Error("GOD01"),
+        Error("GOD04", "Brazil"),
+        Error("LID01"),
+        Error("STD02"),
+        Error("STD07", "AN 123"),
+        Error("STD16"),
+        Error("STD23", "AN 123"),
+        Error("GID01", "AN 456"),
+        Error("GID03", "AN 456"),
+        Error("The “Acronym” is a mandatory field. The Column can not be empty."),
+        Error("The “Country” named as Spain is incorrect", "Spain"),
+        Error("The Growth Medium ABC 123 is not in the Growth Media datasheet."),
     ]
-    
+
     for error in errors:
         error_log.add_error(error)
 

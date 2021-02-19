@@ -3,6 +3,7 @@ Created on 2020(e)ko abe. 2(a)
 
 @author: peio
 """
+from mirri.entities.publication import Publication
 import unittest
 
 from mirri.entities.date_range import DateRange
@@ -208,6 +209,32 @@ class TestStrain(unittest.TestCase):
             strain.dict()[GENETICS][MARKERS],
             [{"marker_type": "16S rRNA", "INSDC": "pepe"}],
         )
+
+        strain.collect.habitat_ontotype = "OBT:111111"
+        self.assertEqual(strain.collect.habitat_ontotype, "OBT:111111")
+
+        try:
+            strain.collect.habitat_ontotype = "OBT:11111"
+            self.fail()
+        except ValueError:
+            pass
+
+        # publications
+        try:
+            strain.publications = 1
+            self.fail()
+        except ValueError:
+            pass
+        pub = Publication()
+        pub.id = "1"
+        try:
+            strain.publications = pub
+            self.fail()
+        except ValueError:
+            pass
+
+        strain.publications = [pub]
+        self.assertEqual(strain.publications[0].id, "1")
         import pprint
 
         # pprint.pprint(strain.dict())
