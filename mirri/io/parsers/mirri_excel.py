@@ -1,3 +1,4 @@
+from mirri.validation.mirri_excel_structure import validate_excel_structure
 from mirri.entities.publication import Publication
 import re
 from datetime import date
@@ -44,8 +45,12 @@ NAGOYA_TRANSLATOR = {
 def excel_dict_reader(fhand, sheet_name, mandatory_column_name=None):
     fhand.seek(0)
     wb = load_workbook(filename=BytesIO(fhand.read()), data_only=True)
+    return workbook_sheet_reader(wb, sheet_name, mandatory_column_name=None)
+
+
+def workbook_sheet_reader(workbook, sheet_name, mandatory_column_name=None):
     try:
-        sheet = wb[sheet_name]
+        sheet = workbook[sheet_name]
     except KeyError as error:
         raise MirriValidationError(
             f"The '{sheet_name}' sheet is missing. Please check the provided excel template."
@@ -80,10 +85,20 @@ def parse_mirri_excel(fhand, version, fail_if_error=True):
 def _parse_mirri_v20200601(fhand, fail_if_error):
     indexed_errors = {}
 
-    locations = _parse_locations(fhand, indexed_errors, fail_if_error)
+    fhand.seek(0)
+    wb = load_workbook(filename=BytesIO(fhand.read()), read_only=True, data_only=True)
+    # structure_errors = list(validate_excel_structure(wb))
+    # if structure_errors:
+    #     for error in structure_errors:
+    #         print(error.message)
+    #     raise ValueError(
+    #         "The excel file structure does not match with the specification"
+    #     )
+
+    locations = _parse_locations(wb, indexed_errors, fail_if_error)
     indexed_locations = {loc["Locality"]: loc for loc in locations}
 
-    growth_media = list(excel_dict_reader(fhand, GROWTH_MEDIA))
+    growth_media = list(workbook_sheet_reader(wb, GROWTH_MEDIA))
     growth_media = [
         {
             "Acronym": str(gm["Acronym"]),
@@ -94,7 +109,7 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
     ]
     indexed_growth_media = {str(gm["Acronym"]): gm for gm in growth_media}
 
-    markers = excel_dict_reader(fhand, GENOMIC_INFO)
+    markers = workbook_sheet_reader(wb, GENOMIC_INFO)
     indexed_markers = {}
 
     for marker in markers:
@@ -104,14 +119,14 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
         indexed_markers[strain_id].append(marker)
 
     publications = list(
-        _parse_publications(fhand, indexed_errors, fail_if_error=fail_if_error)
+        _parse_publications(wb, indexed_errors, fail_if_error=fail_if_error)
     )
 
     indexed_publications = {str(pub.id): pub for pub in publications}
 
     strains = list(
         _parse_strains(
-            fhand,
+            wb,
             indexed_locations,
             indexed_growth_media,
             indexed_markers,
@@ -128,9 +143,9 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
     }
 
 
-def _parse_locations(fhand, indexed_errors, fail_if_error):
+def _parse_locations(wb, indexed_errors, fail_if_error):
     try:
-        locations = excel_dict_reader(fhand, LOCATIONS)
+        locations = workbook_sheet_reader(wb, LOCATIONS)
     except MirriValidationError as error:
         if fail_if_error:
             raise
@@ -147,9 +162,9 @@ def _parse_locations(fhand, indexed_errors, fail_if_error):
     return locations
 
 
-def _parse_publications(fhand, indexed_errors, fail_if_error):
+def _parse_publications(wb, indexed_errors, fail_if_error):
     ids = []
-    for row in excel_dict_reader(fhand, LITERATURE_SHEET):
+    for row in workbook_sheet_reader(wb, LITERATURE_SHEET):
         pub = Publication()
         _id = row.get("ID", None)
         if _id is not None:
@@ -172,7 +187,7 @@ def _parse_publications(fhand, indexed_errors, fail_if_error):
 
 
 def _parse_strains(
-    fhand,
+    wb,
     indexed_locations,
     indexed_growth_media,
     indexed_markers,
@@ -181,7 +196,7 @@ def _parse_strains(
     fail_if_error,
 ):
 
-    for strain_row in excel_dict_reader(fhand, STRAINS, "Accession number"):
+    for strain_row in workbook_sheet_reader(wb, STRAINS, "Accession number"):
         strain = Strain()
         strain_id = None
         label = None
