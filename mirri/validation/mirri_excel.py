@@ -6,7 +6,7 @@ from itertools import chain
 from openpyxl import load_workbook
 import pandas as pd
 
-from mirri.io.writers.error import ErrorLog, Error
+from mirri.io.writers.error_logging import ErrorLog, Error
 from mirri.io.parsers.mirri_excel import parse_mirri_excel
 from mirri.settings import MIRRI_FIELDS
 

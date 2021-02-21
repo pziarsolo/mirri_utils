@@ -1,4 +1,4 @@
-from mirri.io.writers.error import ErrorLog, Error
+from mirri.io.writers.error_logging import Error
 from mirri.settings import (
     MARKERS,
     MIRRI_FIELDS,

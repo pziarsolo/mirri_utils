@@ -3,7 +3,7 @@ import sys
 import os
 import mirri
 from openpyxl import load_workbook
-from mirri.io.writers.error import ErrorLog, Error
+from mirri.io.writers.error_logging import ErrorLog, Error
 from mirri.io.parsers.mirri_excel import _parse_mirri_v20200601
 from mirri.settings import (
     MARKERS,
