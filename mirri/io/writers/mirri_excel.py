@@ -5,7 +5,7 @@ from openpyxl.workbook.workbook import Workbook
 
 
 from mirri import rgetattr
-from mirri.settings import GROWTH_MEDIA, MIRRI_FIELDS, DATA_DIR
+from mirri.settings import GROWTH_MEDIA, MIRRI_FIELDS, DATA_DIR, PUBLICATION_FIELDS
 from mirri.io.parsers.mirri_excel import NAGOYA_TRANSLATOR, RESTRICTION_USE_TRANSLATOR
 
 INITIAL_SEXUAL_STATES = [
@@ -47,21 +47,7 @@ MARKER_DATA = [
 
 REV_RESTRICTION_USE_TRANSLATOR = {v: k for k, v in RESTRICTION_USE_TRANSLATOR.items()}
 REV_NAGOYA_TRANSLATOR = {v: k for k, v in NAGOYA_TRANSLATOR.items()}
-PUB_HEADERS = [
-    "ID",
-    "Full reference",
-    "Authors",
-    "Title",
-    "Journal",
-    "Year",
-    "Volume",
-    "Issue",
-    "First page",
-    "Last page",
-    "Book title",
-    "Editors",
-    "Publisher",
-]
+PUB_HEADERS = [pb["label"] for pb in PUBLICATION_FIELDS]
 
 
 def write_mirri_excel(path, strains, growth_media, version):
@@ -86,8 +72,8 @@ def _write_mirri_excel_20200601(path, strains, growth_media):
     unknown_location.state = "Unknown"
     unknown_location.municipality = "Unknown"
     unknown_location.site = "Unknown"
-    locations = [unknown_location]
-    publications = []
+    locations = {"Unknown": unknown_location}
+    publications = {}
     sexual_states = set(deepcopy(INITIAL_SEXUAL_STATES))
     strains_data = _deserialize_strains(
         strains,
@@ -108,7 +94,7 @@ def _write_mirri_excel_20200601(path, strains, growth_media):
     # write locations
     loc_sheet = wb.create_sheet("Geographic origin")
     loc_sheet.append(["ID", "Country", "Region", "City", "Locality"])
-    for index, location in enumerate(locations):
+    for index, location in enumerate(locations.values()):
         row = [
             index,
             location.country,
@@ -204,7 +190,7 @@ def _deserialize_strains(
                 else:
                     if location not in locations:
                         locations.append(location)
-                    value = locations.index(location)
+                    value = location.site
             elif attribute in ("abs_related_files", "mta_files"):
                 value = rgetattr(strain, attribute)
                 value = ";".join(value) if value else None

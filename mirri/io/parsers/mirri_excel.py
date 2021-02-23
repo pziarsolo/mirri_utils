@@ -26,6 +26,7 @@ from mirri.settings import (
     NAGOYA_NO_CLEAR_APPLIES,
     NO_RESTRICTION,
     ONLY_RESEARCH,
+    PUBLICATION_FIELDS,
     STRAINS,
     SUBTAXAS,
 )
@@ -86,7 +87,8 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
     indexed_errors = {}
 
     fhand.seek(0)
-    wb = load_workbook(filename=BytesIO(fhand.read()), read_only=True, data_only=True)
+    wb = load_workbook(filename=BytesIO(fhand.read()),
+                       read_only=True, data_only=True)
     # structure_errors = list(validate_excel_structure(wb))
     # if structure_errors:
     #     for error in structure_errors:
@@ -96,7 +98,7 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
     #     )
 
     locations = _parse_locations(wb, indexed_errors, fail_if_error)
-    indexed_locations = {loc["Locality"]: loc for loc in locations}
+    indexed_locations = {str(loc["Locality"]): loc for loc in locations}
 
     growth_media = list(workbook_sheet_reader(wb, GROWTH_MEDIA))
     growth_media = [
@@ -135,7 +137,6 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
             fail_if_error,
         )
     )
-
     return {
         "strains": strains,
         "growth_media": growth_media,
@@ -149,7 +150,6 @@ def _parse_locations(wb, indexed_errors, fail_if_error):
     except MirriValidationError as error:
         if fail_if_error:
             raise
-        print("asda")
         locations = {}
         indexed_errors["Location"] = [
             {
@@ -182,6 +182,14 @@ def _parse_publications(wb, indexed_errors, fail_if_error):
                 ]
             ids.append(_id)
             pub.id = _id
+            for pub_field in PUBLICATION_FIELDS:
+                label = pub_field["label"]
+                attribute = pub_field["attribute"]
+                if label == "ID":
+                    continue
+                col_val = row.get(label, None)
+                if col_val:
+                    setattr(pub, attribute, col_val)
 
         yield pub
 
@@ -247,7 +255,8 @@ def _parse_strains(
                             except ValueError:
                                 collection = None
                                 number = on
-                            _id = StrainId(collection=collection, number=number)
+                            _id = StrainId(
+                                collection=collection, number=number)
                             other_numbers.append(_id)
                         rsetattr(strain, attribute, other_numbers)
                 elif attribute == "taxonomy.taxon_name":
@@ -258,7 +267,8 @@ def _parse_strains(
                         raise MirriValidationError(msg)
                 elif attribute == "taxonomy.organism_type":
                     if value is not None:
-                        value = [OrganismType(val) for val in str(value).split(";")]
+                        value = [OrganismType(val)
+                                 for val in str(value).split(";")]
                         rsetattr(strain, attribute, value)
                 elif attribute in ("deposit.date", "collect.date", "isolation.date"):
                     try:
@@ -308,6 +318,7 @@ def _parse_strains(
                     try:
                         location = indexed_locations[value]
                     except KeyError:
+                        print(value)
                         msg = f"The Location for strain with Accession Number {strain_id} is not in the Geographic Origin datasheet."
                         raise MirriValidationError(msg)
                     strain.collect.location.country = location["Country"]
@@ -385,7 +396,6 @@ def _parse_strains(
                     "value": _marker.marker_id,
                 }
             )
-
         yield strain
 
 

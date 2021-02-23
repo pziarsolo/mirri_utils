@@ -51,7 +51,7 @@ PLASMIDS = "plasmids"
 PLASMIDS_COLLECTION_FIELDS = "plasmids_collections_fields"
 SUBSTRATE_HOST_OF_ISOLATION = "substrate_host_of_isolation"
 ISOLATION_HABITAT = "isolation_habitat"
-ONTOTYPE_ISOLATION_HABITAT = "ontobiotope_term_for_the_isolation_habitat"
+ONTOBIOTOPE_ISOLATION_HABITAT = "ontobiotope_term_for_the_isolation_habitat"
 LITERATURE_LINKED_TO_SEQ_GENOME = "literature_linked_to_the_sequence_genome"
 
 # StrainId
@@ -314,7 +314,7 @@ MIRRI_FIELDS = [
         "type": str,
     },
     {
-        "attribute": "collect.habitat_ontotype",
+        "attribute": "collect.habitat_ontobiotope",
         "label": "Ontobiotope term for the isolation habitat",
         "mandatory": False,
         "type": str,
@@ -465,6 +465,7 @@ ALLOWED_MARKER_TYPES = [
 PUBLICATIONS = "publications"
 PUB_ID = "pub_id"
 PUB_DOI = "pub_doi"
+PUB_FULL_REFERENCE = "full_reference"
 PUB_TITLE = "title"
 PUB_AUTHORS = "authors"
 PUB_JOURNAL = "journal"
@@ -476,6 +477,24 @@ PUB_LAST_PAGE = "last_page"
 BOOK_TITLE = "book_title"
 BOOK_EDITOR = "editor"
 BOOK_PUBLISHER = "publisher"
+
+
+PUBLICATION_FIELDS = [
+    {"label": "ID", "attribute": PUB_ID},
+    {"label": "Full reference", "attribute": PUB_FULL_REFERENCE},
+    {"label": "Authors", "attribute": PUB_AUTHORS},
+    {"label": "Title", "attribute": PUB_TITLE},
+    {"label": "Journal", "attribute": PUB_JOURNAL},
+    {"label": "Year", "attribute": PUB_YEAR},
+    {"label": "Volume", "attribute": PUB_VOLUMEN},
+    {"label": "Issue", "attribute": PUB_ISSUE},
+    {"label": "First page", "attribute": PUB_FIRST_PAGE},
+    {"label": "Last page", "attribute": PUB_FIRST_PAGE},
+    {"label": "Book title", "attribute": BOOK_TITLE},
+    {"label": "Editors", "attribute": BOOK_EDITOR},
+    {"label": "Publisher", "attribute": BOOK_PUBLISHER},
+]
+
 
 # ploidy
 ANEUPLOID = 0

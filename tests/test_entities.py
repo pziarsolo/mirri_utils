@@ -210,11 +210,11 @@ class TestStrain(unittest.TestCase):
             [{"marker_type": "16S rRNA", "INSDC": "pepe"}],
         )
 
-        strain.collect.habitat_ontotype = "OBT:111111"
-        self.assertEqual(strain.collect.habitat_ontotype, "OBT:111111")
+        strain.collect.habitat_ontobiotope = "OBT:111111"
+        self.assertEqual(strain.collect.habitat_ontobiotope, "OBT:111111")
 
         try:
-            strain.collect.habitat_ontotype = "OBT:11111"
+            strain.collect.habitat_ontobiotope = "OBT:11111"
             self.fail()
         except ValueError:
             pass

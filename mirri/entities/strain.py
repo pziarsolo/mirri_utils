@@ -60,7 +60,7 @@ from mirri.settings import (
     MTA_FILES,
     MUTANT_INFORMATION,
     NAGOYA_PROTOCOL,
-    ONTOTYPE_ISOLATION_HABITAT,
+    ONTOBIOTOPE_ISOLATION_HABITAT,
     ORGANISM_TYPE,
     OTHER_CULTURE_NUMBERS,
     PATHOGENICITY,
@@ -435,7 +435,7 @@ class Collect(_GeneralStep):
             data = {}
 
         self.habitat = data.get(ISOLATION_HABITAT, None)
-        self.habitat_ontobiotype = data.get(ONTOTYPE_ISOLATION_HABITAT, None)
+        self.habitat_ontobiotype = data.get(ONTOBIOTOPE_ISOLATION_HABITAT, None)
 
     def __str__(self):
         info = ""
@@ -453,9 +453,9 @@ class Collect(_GeneralStep):
         _data = super().dict()
         if ISOLATION_HABITAT in self._data:
             _data[ISOLATION_HABITAT] = self._data[ISOLATION_HABITAT]
-        if ONTOTYPE_ISOLATION_HABITAT in self._data:
-            ontotype = self._data[ONTOTYPE_ISOLATION_HABITAT]
-            _data[ONTOTYPE_ISOLATION_HABITAT] = ontotype
+        if ONTOBIOTOPE_ISOLATION_HABITAT in self._data:
+            ontotype = self._data[ONTOBIOTOPE_ISOLATION_HABITAT]
+            _data[ONTOBIOTOPE_ISOLATION_HABITAT] = ontotype
 
         return _data
 
@@ -469,15 +469,15 @@ class Collect(_GeneralStep):
             self._data[ISOLATION_HABITAT] = habitat
 
     @property
-    def habitat_ontotype(self):
-        return self._data.get(ONTOTYPE_ISOLATION_HABITAT, None)
+    def habitat_ontobiotope(self):
+        return self._data.get(ONTOBIOTOPE_ISOLATION_HABITAT, None)
 
-    @habitat_ontotype.setter
-    def habitat_ontotype(self, habitat: str):
+    @habitat_ontobiotope.setter
+    def habitat_ontobiotope(self, habitat: str):
         if habitat is not None:
             if not re.match("OB[ST]:[0-9]{6}", habitat):
-                raise ValueError(f"Bad ontotype format, {habitat}")
-            self._data[ONTOTYPE_ISOLATION_HABITAT] = habitat
+                raise ValueError(f"Bad ontobiotope format, {habitat}")
+            self._data[ONTOBIOTOPE_ISOLATION_HABITAT] = habitat
 
 
 class Isolation(_GeneralStep):
