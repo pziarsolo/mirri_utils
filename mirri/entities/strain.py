@@ -145,7 +145,8 @@ class OrganismType:
             raise MirriValidationError(msg) from error
 
         if code not in ORG_TYPES.values():
-            raise MirriValidationError(f"code {code} not accepted for organism type")
+            msg = f"code {code} not accepted for organism type"
+            raise MirriValidationError(msg)
         self._data["code"] = code
         name = None
         for _name, _code in ORG_TYPES.items():
@@ -186,7 +187,8 @@ class Taxonomy(object):
         self._data = {}
         if data is not None:
             if ORGANISM_TYPE in data:
-                self.organism_type = [OrganismType(ot) for ot in data[ORGANISM_TYPE]]
+                self.organism_type = [OrganismType(ot)
+                                      for ot in data[ORGANISM_TYPE]]
             if GENUS in data:
                 self.genus = data[GENUS]
             if SPECIES in data:
@@ -435,7 +437,8 @@ class Collect(_GeneralStep):
             data = {}
 
         self.habitat = data.get(ISOLATION_HABITAT, None)
-        self.habitat_ontobiotype = data.get(ONTOBIOTOPE_ISOLATION_HABITAT, None)
+        self.habitat_ontobiotype = data.get(ONTOBIOTOPE_ISOLATION_HABITAT,
+                                            None)
 
     def __str__(self):
         info = ""
@@ -490,7 +493,8 @@ class Isolation(_GeneralStep):
         super().__init__(data=data)
         _date = DateRange()
 
-        self.substrate_host_of_isolation = data.get(SUBSTRATE_HOST_OF_ISOLATION, None)
+        self.substrate_host_of_isolation = data.get(SUBSTRATE_HOST_OF_ISOLATION,
+                                                    None)
 
     def dict(self):
         _data = super().dict()
@@ -744,7 +748,7 @@ class Genetics:
 class Growth(_FieldBasedClass):
     _fields = [
         {"attribute": "tested_temp_range", "label": TESTED_TEMPERATURE_GROWTH_RANGE},
-        {"attribute": "recommended_medium", "label": RECOMMENDED_GROWTH_MEDIUM},
+        {"attribute": "recommended_media", "label": RECOMMENDED_GROWTH_MEDIUM},
         {"attribute": "recommended_temp", "label": RECOMMENDED_GROWTH_TEMP},
     ]
 
@@ -773,17 +777,18 @@ class Growth(_FieldBasedClass):
             if "min" in val and "max" in val:
                 self._data[TESTED_TEMPERATURE_GROWTH_RANGE] = val
             else:
-                raise MirriValidationError("A dict with min and max is required")
+                msg = "A dict with min and max is required"
+                raise MirriValidationError(msg)
 
     @property
-    def recommended_medium(self) -> List[str]:
+    def recommended_media(self) -> List[str]:
         return self._data.get(RECOMMENDED_GROWTH_MEDIUM, None)
 
-    @recommended_medium.setter
-    def recommended_medium(self, value):
+    @recommended_media.setter
+    def recommended_media(self, value):
         if value is not None:
             if not isinstance(value, (list, set)):
-                msg = "Recommendedn medium must be a list"
+                msg = "Recommendedn media must be a list"
                 raise MirriValidationError(msg)
             self._data[RECOMMENDED_GROWTH_MEDIUM] = value
 
@@ -812,6 +817,11 @@ class Strain:
             STRAIN_FROM_REGISTERED_COLLECTION, None
         )
         self.is_subject_to_quarantine = data.get(QUARANTINE, None)
+        inclusion_date = data.get(DATE_OF_INCLUSION, None)
+        if inclusion_date:
+            _date = DateRange()
+            inclusion_date = _date.strpdate(inclusion_date)
+        self.catalog_inclusion_date = inclusion_date
 
         self.id = StrainId(data.get(STRAIN_ID, None))
 
@@ -843,15 +853,8 @@ class Strain:
     def dict(self):
         data = {}
         for field, value in self._data.items():
-            if field in [
-                STRAIN_ID,
-                COLLECT,
-                DEPOSIT,
-                ISOLATION,
-                GROWTH,
-                GENETICS,
-                TAXONOMY,
-            ]:
+            if field in [STRAIN_ID, COLLECT, DEPOSIT, ISOLATION, GROWTH,
+                         GENETICS, TAXONOMY]:
                 value = value.dict()
                 if value == {}:
                     value = None
@@ -959,8 +962,21 @@ class Strain:
     def is_from_registered_collection(self, value: bool):
         if value is not None:
             if not isinstance(value, bool):
-                raise MirriValidationError("is from reg_collection must be boolean")
+                msg = "is from reg_collection must be boolean"
+                raise MirriValidationError(msg)
+
             self._data[STRAIN_FROM_REGISTERED_COLLECTION] = value
+
+    @property
+    def catalog_inclusion_date(self) -> DateRange:
+        return self._data.get(DATE_OF_INCLUSION, None)
+
+    @catalog_inclusion_date.setter
+    def catalog_inclusion_date(self, _date: Union[None, DateRange]):
+        if _date is not None:
+            if not isinstance(_date, DateRange):
+                raise ValueError("Date must be a DateRange instance")
+            self._data[DATE_OF_INCLUSION] = _date
 
     @property
     def abs_related_files(self) -> List[str]:

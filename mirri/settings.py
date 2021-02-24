@@ -27,7 +27,7 @@ DATE_OF_ISOLATION = "date_of_isolation"
 DATE_OF_INCLUSION = "date_of_inclusion_on_catalog"
 TESTED_TEMPERATURE_GROWTH_RANGE = "tested_temperature_growth_range"
 RECOMMENDED_GROWTH_TEMP = "recommended_growth_temperature"
-RECOMMENDED_GROWTH_MEDIUM = "recommended_medium_for_growth"
+RECOMMENDED_GROWTH_MEDIUM = "recommended_media_for_growth"
 FORM_OF_SUPPLY = "form_of_supply"
 GEO_COORDS = "coordinates_of_geographic_origin"
 ACCESSION_NAME = "other_denomination"
@@ -109,14 +109,14 @@ MIRRI_FIELDS = [
         "label": "Restrictions on use",
         "mandatory": True,
         "type": int,
-        "biolomics": {"field": "Restrictions on user", "type": "T"},
+        "biolomics": {"field": "Restrictions on use", "type": "T"},
     },
     {
         "attribute": "nagoya_protocol",
         "label": "Nagoya protocol restrictions and compliance conditions",
         "mandatory": True,
         "type": int,
-        "biolomics": {"field": "Restrictions on user", "type": "T"},
+        "biolomics": {"field": "Nagoya protocol restrictions and compliance conditions", "type": "T"},
     },
     {
         "attribute": ABS_RELATED_FILES,
@@ -218,10 +218,11 @@ MIRRI_FIELDS = [
         "type": "datetime",
     },
     {
-        "attribute": "deposit.date",
+        "attribute": "catalog_inclusion_date",
         "label": "Date of inclusion in the catalogue",
         "mandatory": False,
         "type": "datetime",
+        "biolomics": {"field": "Date of inclusion in the catalogue", "type": "H"},
     },
     {
         "attribute": "collect.who",
@@ -275,6 +276,7 @@ MIRRI_FIELDS = [
         "label": "Recommended medium for growth",
         "mandatory": True,
         "type": str,
+        "biolomics": {"field": "Recommended growth medium", "type": "Rlink"},
     },
     {
         "attribute": "form_of_supply",
@@ -300,6 +302,7 @@ MIRRI_FIELDS = [
         "label": "Altitude of geographic origin",
         "mandatory": False,
         "type": float,
+        "biolomics": {"field": "Altitude of geographic origin", "type": "D"},
     },
     {
         "attribute": "collect.location",
@@ -397,6 +400,7 @@ MIRRI_FIELDS = [
         "label": "Applications",
         "mandatory": False,
         "type": str,
+        "biolomics": {"field": "Applications", "type": "E"},
     },
     {"attribute": "remarks", "label": "Remarks", "mandatory": False, "type": str},
     {
@@ -415,7 +419,8 @@ NAGOYA_NO_APPLIES = "nagoya_does_not_apply"
 NAGOYA_APPLIES = "nagoya_does_apply"
 NAGOYA_NO_CLEAR_APPLIES = "nagoya_no_clear"
 
-ALLOWED_NAGOYA_OPTIONS = [NAGOYA_NO_APPLIES, NAGOYA_APPLIES, NAGOYA_NO_CLEAR_APPLIES]
+ALLOWED_NAGOYA_OPTIONS = [NAGOYA_NO_APPLIES,
+                          NAGOYA_APPLIES, NAGOYA_NO_CLEAR_APPLIES]
 
 # Use restriction
 NO_RESTRICTION = "no_restriction"
@@ -437,7 +442,8 @@ LIQUID_CULTURE_MEDIUM = "Liquid Culture Medium"
 LYO = "Lyo"
 OIL = "Oil"
 WATER = "Water"
-ALLOWED_FORMS_OF_SUPPLY = [AGAR, CRYO, DRY_ICE, LIQUID_CULTURE_MEDIUM, LYO, OIL, WATER]
+ALLOWED_FORMS_OF_SUPPLY = [AGAR, CRYO, DRY_ICE,
+                           LIQUID_CULTURE_MEDIUM, LYO, OIL, WATER]
 
 DEPOSIT = "deposit"
 ISOLATION = "isolation"
@@ -455,7 +461,8 @@ ALLOWED_MARKER_TYPES = [
     {"acronym": "ACT", "marker": "Actin"},
     {"acronym": "CaM", "marker": "Calmodulin"},
     {"acronym": "EF-1α", "marker": "elongation factor 1-alpha (EF-1α)"},
-    {"acronym": "ITS", "marker": "nuclear ribosomal Internal Transcribed Spacer (ITS)"},
+    {"acronym": "ITS",
+        "marker": "nuclear ribosomal Internal Transcribed Spacer (ITS)"},
     {"acronym": "LSU", "marker": "nuclear ribosomal Large SubUnit (LSU)"},
     {"acronym": "RPB1", "marker": "Ribosomal RNA-coding genes RPB1"},
     {"acronym": "RPB2", "marker": "Ribosomal RNA-coding genes RPB2"},
@@ -504,7 +511,8 @@ TRIPLOID = 3
 TETRAPLOID = 4
 POLYPLOID = 9
 
-ALLOWED_PLOIDIES = [ANEUPLOID, HAPLOID, DIPLOID, TRIPLOID, TETRAPLOID, POLYPLOID]
+ALLOWED_PLOIDIES = [ANEUPLOID, HAPLOID,
+                    DIPLOID, TRIPLOID, TETRAPLOID, POLYPLOID]
 
 SUBTAXAS = {
     "subsp.": "subspecies",
