@@ -1,4 +1,17 @@
-class _FieldBasedClass:
+class FrozenClass(object):
+    __isfrozen = False
+
+    def __setattr__(self, key, value):
+        if self.__isfrozen and not hasattr(self, key):
+            msg = f"Can not add {key} to {self.__class__.__name__}. It is not one of its attributes"
+            raise TypeError(msg)
+        object.__setattr__(self, key, value)
+
+    def _freeze(self):
+        self.__isfrozen = True
+
+
+class _FieldBasedClass(FrozenClass):
     _fields = []
 
     def __init__(self, data=None):
@@ -8,6 +21,7 @@ class _FieldBasedClass:
         for field in self._fields:
             value = data.get(field["label"], None)
             setattr(self, field["attribute"], value)
+        self._freeze()
 
     def __eq__(self, o: object) -> bool:
         for field in self._fields:

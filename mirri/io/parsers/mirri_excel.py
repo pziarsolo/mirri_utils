@@ -284,7 +284,7 @@ def _parse_strains(
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is incorrect."
                         raise MirriValidationError(msg)
 
-                elif attribute == "growth.recommended_medium":
+                elif attribute == "growth.recommended_media":
                     if value is not None:
                         sep = "/"
                         if ";" in value:
