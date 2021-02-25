@@ -126,7 +126,7 @@ MIRRI_FIELDS = [
         "biolomics": {"field": "ABS files URL", "type": "U"},
     },
     {
-        "attribute": MTA_FILES,
+        "attribute": "mta_files",
         "label": "MTA file",
         "mandatory": False,
         "type": str,
@@ -153,7 +153,7 @@ MIRRI_FIELDS = [
         "biolomics": {"field": "Risk group", "type": "T"},
     },
     {
-        "attribute": "dual_use",
+        "attribute": "is_potentially_harmful",
         "label": "Dual use",
         "mandatory": False,
         "type": int,
@@ -272,7 +272,7 @@ MIRRI_FIELDS = [
         "biolomics": {"field": "Recommended growth temperature", "type": "S"},
     },
     {
-        "attribute": "growth.recommended_medium",
+        "attribute": "growth.recommended_media",
         "label": "Recommended medium for growth",
         "mandatory": True,
         "type": str,
@@ -298,7 +298,7 @@ MIRRI_FIELDS = [
         "type": float,
     },
     {
-        "attribute": "collect.location.altidude",
+        "attribute": "collect.location.altitude",
         "label": "Altitude of geographic origin",
         "mandatory": False,
         "type": float,
@@ -360,7 +360,7 @@ MIRRI_FIELDS = [
         "type": str,
     },
     {
-        "attribute": "genetics.plasmid_collections_fields",
+        "attribute": "genetics.plasmids_in_collections",
         "label": "Plasmids collections fields",
         "mandatory": False,
         "type": str,
@@ -402,7 +402,8 @@ MIRRI_FIELDS = [
         "type": str,
         "biolomics": {"field": "Applications", "type": "E"},
     },
-    {"attribute": "remarks", "label": "Remarks", "mandatory": False, "type": str},
+    {
+        "attribute": "remarks", "label": "Remarks", "mandatory": False, "type": str},
     {
         "attribute": LITERATURE_LINKED_TO_SEQ_GENOME,
         "label": "Literature linked to the sequence/genome",
