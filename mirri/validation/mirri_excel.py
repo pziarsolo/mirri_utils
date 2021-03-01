@@ -7,7 +7,7 @@ from itertools import chain
 from openpyxl import load_workbook
 import pandas as pd
 
-from mirri.io.writers.error_logging import ErrorLog, Error
+from mirri.io.writers.error_logging import ErrorLog, Error, Entity
 from mirri.io.parsers.mirri_excel import parse_mirri_excel
 from mirri.settings import MIRRI_FIELDS
 
@@ -55,18 +55,20 @@ def validate_mirri_excel(fhand, version="20200601", debug=False):
 
 
 def _validate_entity_data_errors(fhand, version):
-    parsed_excel = parse_mirri_excel(fhand, version=version, fail_if_error=False)
+    parsed_excel = parse_mirri_excel(
+        fhand, version=version, fail_if_error=False)
     print("ok")
     cont = 0
     for strain_id, _errors in parsed_excel["errors"].items():
         for error in _errors:
             cont += 1
             print(error["message"], strain_id)
-            yield Error(error["message"], strain_id)
+            yield Error(error["message"], Entity("STD"), strain_id)
 
 
 def _validate_content(workbook):
-    strain_df = pd.read_excel(workbook, "Strains", index_col=None, engine="openpyxl")
+    strain_df = pd.read_excel(
+        workbook, "Strains", index_col=None, engine="openpyxl")
     required = [field["label"] for field in MIRRI_FIELDS if field["mandatory"]]
 
     for _, row in strain_df.iterrows():
@@ -74,7 +76,8 @@ def _validate_content(workbook):
             # verify where the value is nan and required
             if str(value) == "nan" and col in required:
                 yield Error(
-                    f"The '{col}' is missing for strain with Accession Number {row['Accession number']}",
+                    f"The '{col}' on the 'Strain' Sheet with Accession Number {row['Accession number']} is a mandatory field and can not be empty.",
+                    Entity("STD"),
                     row["Accession number"],
                 )
 
@@ -94,15 +97,16 @@ def checkTypes(strain_df, MIRRI_FIELDS):
         )
     except ValueError:
         yield Error(
-            "The 'Recommended growth temperature' column has an invalide data type."
+            "The 'Recommended growth temperature' column has an invalide data type.",
+            Entity("STD")
         )
 
     for col, type1 in zip(types1.index, types1):
         if type1.name not in list(TYPES_TRANSLATOR.keys()):
-            yield Error(f'The "{col}" column has an invalide data type.')
+            yield Error(f'The "{col}" column has an invalide data type.', Entity("STD"))
         types2[col] = TYPES_TRANSLATOR[type1.name]
 
     for field in MIRRI_FIELDS:
         if field["label"] in types2:
             if types2[field["label"]] != field["type"]:
-                yield Error(f'The "{field["label"]}" column has an invalide data type.')
+                yield Error(f'The "{field["label"]}" column has an invalide data type.', Entity("STD"))

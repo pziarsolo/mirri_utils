@@ -1,15 +1,19 @@
 from difflib import SequenceMatcher
 from .error_message import ErrorMessage
 
+
 class Entity():
     """Entity information
 
     Args:
         acronym: acronym of the entity. Must be a 3-characters captalized string
     """
+
     def __init__(self, acronym):
-        self.entity_acronyms = [func for func in dir(self) if func.isupper() and callable(getattr(self, func)) and not func.startswith("__")]
-        self.entity_names = {acr: getattr(self, acr) for acr in self.entity_acronyms}
+        self.entity_acronyms = [func for func in dir(self) if func.isupper(
+        ) and callable(getattr(self, func)) and not func.startswith("__")]
+        self.entity_names = {acr: getattr(self, acr)
+                             for acr in self.entity_acronyms}
         self.acronym = acronym
         try:
             self.name = self.entity_names[self.acronym]()
@@ -27,7 +31,7 @@ class Entity():
     @property
     def acronym(self):
         return self._acronym
-    
+
     @acronym.setter
     def acronym(self, acronym):
         self._acronym = acronym
@@ -68,41 +72,14 @@ class Error():
         threshold: minimum value of similarity between the specified message and the default messages. Should be a value between 0.0 and 1.0. This param \
             is ignoref if a code is specified in code_or_message param.
     """
-    def __init__(self, code_or_message, data=None, threshold=0.9):
-        self.encoder = ErrorMessage()
+
+    def __init__(self, message: str, entity: Entity = None, data: str = None):
+        self.message = message
+        self.entity = entity if entity is not None else Entity("UCT")
         self.data = data
-        self.threshold = threshold
-
-        if code_or_message in self.encoder.error_codes:
-            self.code = code_or_message
-            self.message = self.encoder.message(self.code, self.data)
-        else:
-            self.message = code_or_message
-            code = self.find_error_code_v2()
-            self.code = code if code != '' else 'UCT'
-
-        self.entity = Entity(self.code[:3])
-
-
-    def find_error_code_v2(self):
-        """Find error code based on the similarity between the default error message and the specified error message
-
-        Returns:
-            code (str): error code if any was found or empty string otherwise.
-        """
-        error = {'code': '', 'ratio': 0.0}
-        messages = {code: self.encoder.message(code, self.data) for code in self.encoder.error_codes}
-        
-        for code, message in messages.items():
-            ratio = SequenceMatcher(None, self.message, message).ratio()
-            if ratio >= self.threshold and ratio > error['ratio']:
-                error['code'] = code
-                error['ratio'] = ratio
-
-        return error['code']
 
     @property
-    def entity(self):
+    def entity(self) -> Entity:
         """
             Getter for attribute entity
 
@@ -112,7 +89,7 @@ class Error():
         return self._entity
 
     @entity.setter
-    def entity(self, entity):
+    def entity(self, entity: Entity):
         """
             Setter for attribute entity
 
@@ -122,27 +99,7 @@ class Error():
         self._entity = entity
 
     @property
-    def code(self):
-        """
-            Getter for attribute code
-
-            return
-                code: code of the error
-        """
-        return self._code
-
-    @code.setter
-    def code(self, code):
-        """
-            Setter for attribute code
-
-            Args:
-                code: code of the error
-        """
-        self._code = code
-
-    @property
-    def message(self):
+    def message(self) -> str:
         """
             Getter for attribute message
 
@@ -152,7 +109,7 @@ class Error():
         return self._message
 
     @message.setter
-    def message(self, message):
+    def message(self, message: str):
         """
             Setter for attribute message
 
@@ -162,7 +119,7 @@ class Error():
         self._message = message
 
     @property
-    def data(self):
+    def data(self) -> str:
         """
             Getter for attribute data
 
@@ -172,7 +129,7 @@ class Error():
         return self._data
 
     @data.setter
-    def data(self, data):
+    def data(self, data: str):
         """
             Setter for attribute data
 

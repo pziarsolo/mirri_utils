@@ -8,7 +8,9 @@ from docx2pdf import convert
 from tempfile import NamedTemporaryFile
 from .error import Error, Entity
 
-DOCS_FOLDER = os.path.abspath(os.path.join(os.path.dirname(mirri.__file__),'..', 'docs'))
+DOCS_FOLDER = os.path.abspath(os.path.join(
+    os.path.dirname(mirri.__file__), '..', 'docs'))
+
 
 class ErrorLog():
     """
@@ -20,27 +22,31 @@ class ErrorLog():
             date [optional]: date the inputed file was submited for validation (date of last modification)
             limit [int]: maximum number fo errors to be writen on the output file
     """
-    def __init__(self, input_filename: str, cc: str=None, date: str = None, limit: int = 100):
+
+    def __init__(self, input_filename: str, cc: str = None, date: str = None, limit: int = 100):
         self.input_filename = input_filename
         self.cc = cc
-        self.date = datetime.strptime(date, '%d-%m-%Y').date() if date is not None else None
-        
+        self.date = datetime.strptime(
+            date, '%d-%m-%Y').date() if date is not None else None
+
         self.errors = {}
         self.limit = limit
         self._counter = 0
-        
-        self.fpath_to_style_doc = os.path.join(DOCS_FOLDER, 'Error_Log_Style_Sheet.docx')
-        self.fpath_how_to_compile = os.path.join(DOCS_FOLDER, 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf')
-        self.fpath_recommendations = os.path.join(DOCS_FOLDER, 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf')
+
+        self.fpath_to_style_doc = os.path.join(
+            DOCS_FOLDER, 'Error_Log_Style_Sheet.docx')
+        self.fpath_how_to_compile = os.path.join(
+            DOCS_FOLDER, 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf')
+        self.fpath_recommendations = os.path.join(
+            DOCS_FOLDER, 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf')
         self.document = docx.Document(self.fpath_to_style_doc)
-            
 
     def write(self, path: str):
         """Write erros to log file
 
         Args:
             path (str): path of the file to write the errors log
-        
+
         Return:
             (str) path to the PDF file
         """
@@ -53,50 +59,74 @@ class ErrorLog():
         subject = 'Validator Error Log'
 
         self.document.add_paragraph(f'Dear Curator{cc},')
-        paragraph = self.document.add_paragraph(f'the Excel File {self.input_filename} you\'ve provided {date}with your collection Strains Data contains errors/missing data. ')
-        paragraph.add_run('Please, see below the list of detected errors/missing data, for you to proceed with the appropriated correction/completion.')
+        paragraph = self.document.add_paragraph(
+            f'the Excel File {self.input_filename} you\'ve provided {date}with your collection Strains Data contains errors/missing data. ')
+        paragraph.add_run(
+            'Please, see below the list of detected errors/missing data, for you to proceed with the appropriated correction/completion.')
 
-        paragraph = self.document.add_paragraph('If you need help, please refer to the instructions contained in "')
-        self._hyperlink(paragraph, 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf', self.fpath_how_to_compile)
+        paragraph = self.document.add_paragraph(
+            'If you need help, please refer to the instructions contained in "')
+        self._hyperlink(
+            paragraph, 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf', self.fpath_how_to_compile)
         paragraph.add_run('" and "')
-        self._hyperlink(paragraph, 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf', self.fpath_recommendations)
-        paragraph.add_run('".\nYou can also contact the MIRRI ICT by email using ')
-        self._hyperlink(paragraph, 'ICT Support', f'mailto:{mail_to}?Subject={subject}')
+        self._hyperlink(
+            paragraph, 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf', self.fpath_recommendations)
+        paragraph.add_run(
+            '".\nYou can also contact the MIRRI ICT by email using ')
+        self._hyperlink(paragraph, 'ICT Support',
+                        f'mailto:{mail_to}?Subject={subject}')
 
         if 'EFS' in self.errors:
             entity = Entity("EFS")
             self.document.add_page_break()
-            self.document.add_heading(f'Analysis of {entity.name}', level=1).style = self.document.styles['Heading 1']
-            self.document.add_paragraph('The structure of your Excel File show the following changes, as compared to the original Template:')
-            self._error_table(entity, lambda e: e.code)
-        
-        if self._counter == self.limit: self._limit_message()
+            self.document.add_heading(
+                f'Analysis of {entity.name}', level=1).style = self.document.styles['Heading 1']
+            self.document.add_paragraph(
+                'The structure of your Excel File show the following changes, as compared to the original Template:')
+            self._error_table(entity)
+
+        if self._counter == self.limit:
+            self._limit_message()
         elif len(self.errors.keys()) > 1:
             self.document.add_page_break()
-            self.document.add_heading('Analysis of Data Set', level=1).style = self.document.styles['Heading 1']
-            self.document.add_paragraph('Your Data shows the following errors or missing items:')
+            self.document.add_heading(
+                'Analysis of Data Set', level=1).style = self.document.styles['Heading 1']
+            self.document.add_paragraph(
+                'Your Data shows the following errors or missing items:')
 
             for entity_acronym in self.errors:
-                if entity_acronym in ['EFS', 'UCT']: continue
+                if entity_acronym in ['EFS', 'UCT']:
+                    continue
                 entity = Entity(entity_acronym)
-                self.document.add_heading(entity.name, level=2).style = self.document.styles['Heading 2']
-                self.document.add_paragraph(f'The “{entity.name}” Sheet in your Excel File shows the following errors or missing items:')
-                self._error_table(entity, lambda e: (e.data is not None, e.data))
-                if self._counter == self.limit: break
-                    
-            if self._counter == self.limit: self._limit_message()
+                self.document.add_heading(
+                    entity.name, level=2).style = self.document.styles['Heading 2']
+                self.document.add_paragraph(
+                    f'The “{entity.name}” Sheet in your Excel File shows the following errors or missing items:')
+                self._error_table(entity, lambda e: (
+                    e.data is not None, e.data))
+                if self._counter == self.limit:
+                    break
+
+            if self._counter == self.limit:
+                self._limit_message()
             elif 'UCT' in self.errors:
                 self.document.add_page_break()
-                self.document.add_heading('Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
-                self.document.add_paragraph('The following errors were also identified while validating your data:')
-                self._error_table(Entity('UCT'), lambda e: (e.data is not None, e.data))
-                if self._counter == self.limit: self._limit_message()
+                self.document.add_heading(
+                    'Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
+                self.document.add_paragraph(
+                    'The following errors were also identified while validating your data:')
+                self._error_table(Entity('UCT'), lambda e: (
+                    e.data is not None, e.data))
+                if self._counter == self.limit:
+                    self._limit_message()
 
         try:
-            docx_fhand = NamedTemporaryFile(dir=path, suffix='_error_log.docx', delete=False)
+            docx_fhand = NamedTemporaryFile(
+                dir=path, suffix='_error_log.docx', delete=False)
             self.document.save(docx_fhand)
             docx_fhand.close()
-            pdf_fhand = os.path.join(path, f'{self.input_filename}_error_log.pdf')
+            pdf_fhand = os.path.join(
+                path, f'{self.input_filename}_error_log.pdf')
             convert(docx_fhand.name, pdf_fhand)
         finally:
             if not docx_fhand.closed:
@@ -108,56 +138,52 @@ class ErrorLog():
         else:
             return None
 
-
     def _hyperlink(self, paragraph, text, url):
-            """Generate a hyperlink text
+        """Generate a hyperlink text
 
-            Args:
-                paragraph (Paragraph): Paragraph object to append the hyperlink
-                text (str): text of the hyperlink
-                url (str): the url to which the hyperlink points to
+        Args:
+            paragraph (Paragraph): Paragraph object to append the hyperlink
+            text (str): text of the hyperlink
+            url (str): the url to which the hyperlink points to
 
-            Returns:
-                hyperlink: hyperlink object
-            """
-            part = paragraph.part
-            r_id = part.relate_to(url, docx.opc.constants.RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
+        Returns:
+            hyperlink: hyperlink object
+        """
+        part = paragraph.part
+        r_id = part.relate_to(
+            url, docx.opc.constants.RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
 
-            hyperlink = docx.oxml.shared.OxmlElement('w:hyperlink')
-            hyperlink.set(docx.oxml.shared.qn('r:id'), r_id, )
+        hyperlink = docx.oxml.shared.OxmlElement('w:hyperlink')
+        hyperlink.set(docx.oxml.shared.qn('r:id'), r_id, )
 
-            new_run = docx.oxml.shared.OxmlElement('w:r')
-            rPr = docx.oxml.shared.OxmlElement('w:rPr')
+        new_run = docx.oxml.shared.OxmlElement('w:r')
+        rPr = docx.oxml.shared.OxmlElement('w:rPr')
 
-            new_run.append(rPr)
-            new_run.text = text
-            hyperlink.append(new_run)
+        new_run.append(rPr)
+        new_run.text = text
+        hyperlink.append(new_run)
 
-            r = paragraph.add_run()
-            r._r.append(hyperlink)
+        r = paragraph.add_run()
+        r._r.append(hyperlink)
 
-            r.font.color.theme_color = MSO_THEME_COLOR_INDEX.HYPERLINK
-            r.font.underline = True
+        r.font.color.theme_color = MSO_THEME_COLOR_INDEX.HYPERLINK
+        r.font.underline = True
 
-            return hyperlink
+        return hyperlink
 
-
-    def _error_table(self, entity, sort_func):
-        table = self.document.add_table(rows=2, cols=3)
+    def _error_table(self, entity, sort_func=None):
+        table = self.document.add_table(rows=2, cols=2)
         table.style = 'Table Grid'
         hdr_cells = table.rows[0].cells
-        hdr_cells = hdr_cells[0].merge(hdr_cells[1]).merge(hdr_cells[2])
+        hdr_cells = hdr_cells[0].merge(hdr_cells[1])
         hdr_cells.text = entity.name
         hdr_cells.paragraphs[0].style = self.document.styles['Table Header']
         subhdr_cells = table.rows[1].cells
-        subhdr_cells[0].text = 'Error Code'
+        subhdr_cells[0].text = 'Identifier'
         subhdr_cells[0].paragraphs[0].style = self.document.styles['Table Header']
         subhdr_cells[0].width = Cm(4.0)
-        subhdr_cells[1].text = 'Identifier'
+        subhdr_cells[1].text = 'Error Message'
         subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
-        subhdr_cells[1].width = Cm(4.0)
-        subhdr_cells[2].text = 'Error Message'
-        subhdr_cells[2].paragraphs[0].style = self.document.styles['Table Header']
 
         if sort_func is not None:
             errors = sorted(self.errors[entity.acronym], key=sort_func)
@@ -166,26 +192,22 @@ class ErrorLog():
 
         for error in errors:
             row_cells = table.add_row().cells
-            row_cells[0].text = error.code
+            row_cells[0].text = error.data
             row_cells[0].paragraphs[0].style = self.document.styles['Table Cell']
             row_cells[0].width = Cm(4.0)
-            row_cells[1].text = error.data
+            row_cells[1].text = error.message
             row_cells[1].paragraphs[0].style = self.document.styles['Table Cell']
-            row_cells[1].width = Cm(4.0)
-            row_cells[2].text = error.message
-            row_cells[2].paragraphs[0].style = self.document.styles['Table Cell']
             self._counter += 1
-            if self._counter == self.limit: break
+            if self._counter == self.limit:
+                break
 
         return table
-
 
     def _limit_message(self):
         self.document.add_page_break()
         self.document.add_paragraph(
             'Your file contains too many erros and therefore this document was truncated. Please resolve the aforementioned errors and resubmit the excel file.'
         )
-
 
     @property
     def input_filename(self):
@@ -197,7 +219,6 @@ class ErrorLog():
         """
         return self._input_filename
 
-
     @input_filename.setter
     def input_filename(self, input_filename: str):
         """
@@ -207,7 +228,6 @@ class ErrorLog():
                 input filename (str): name of the file which the error log is derived from
         """
         self._input_filename = input_filename
-
 
     @property
     def cc(self):
@@ -219,7 +239,6 @@ class ErrorLog():
         """
         return self._cc
 
-
     @cc.setter
     def cc(self, cc: str):
         """
@@ -229,7 +248,6 @@ class ErrorLog():
                 cc (str): culture collection identifier
         """
         self._cc = cc
-
 
     @property
     def date(self):
@@ -241,7 +259,6 @@ class ErrorLog():
         """
         return self._date
 
-
     @date.setter
     def date(self, date):
         """
@@ -252,7 +269,6 @@ class ErrorLog():
         """
         self._date = date
 
-
     def get_errors(self):
         """
             Getter for errors identified
@@ -261,7 +277,6 @@ class ErrorLog():
                 errors [dict]: errors identified
         """
         return self.errors
-
 
     def add_error(self, error: Error):
         """

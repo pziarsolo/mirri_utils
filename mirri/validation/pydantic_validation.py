@@ -98,19 +98,23 @@ class StrainValidation(BaseModel):
         except TypeError:
             raise
         if len(items) not in (2, 3):
-            raise ValueError("Lat long need al least 2 values: Lat and long")
+            raise ValueError(
+                f"The Coordinates of Geographic Origin column on Strain Sheet with Accession number {accession_number} need at least 2 values: Latitude and longitude separated by ';'.")
         try:
             latitude = float(items[0])
             longitude = float(items[1])
             precision = float(items[2]) if len(items) == 3 else None
 
         except ValueError:
-            raise ValueError("Latitude and longitude decimal separator must be . not ,")
+            raise ValueError(
+                f"Coordinates of Geographic Origin on Strain Sheet with Accession Number {accession_number} must use '.' as decimal separator.")
 
         if latitude > 90 or latitude < -90:
-            raise ValueError("Latitude values must be between 90 and -90")
+            raise ValueError(
+                f"The Latitude value on Coordinates of Geographic Origin column on Strain Sheet with Accession Number {accession_number} must be between 90 and -90")
         if longitude > 180 or longitude < -180:
-            raise ValueError("Longitude values must be between 180 and -180")
+            raise ValueError(
+                f"The Longitude value on Coordinates of Geographic Origin column on Strain Sheet with Accession Number {accession_number} must be between 180 and -180")
 
         return {"latitude": latitude, "longitude": longitude, "precision": precision}
 

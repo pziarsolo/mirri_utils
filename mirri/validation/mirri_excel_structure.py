@@ -1,4 +1,4 @@
-from mirri.io.writers.error_logging import Error
+from mirri.io.writers.error_logging import Error, Entity
 from mirri.settings import (
     MARKERS,
     MIRRI_FIELDS,
@@ -90,8 +90,8 @@ def validate_excel_structure(workbook):
             "Resource types values",
         ):
             yield Error(
-                f"The '{missing_sheet_name}' sheet is missing. Please check the provided excel template",
-                missing_sheet_name,
+                f"The '{missing_sheet_name}' sheet is missing or incorrectly named. Please check the structure of the excel template",
+                Entity("EFS")
             )
 
     present_sheet_names = mandatory_sheets.intersection(workbook.sheetnames)
@@ -103,8 +103,8 @@ def validate_excel_structure(workbook):
         missing_columns = set(allowed_columns).difference(sheet_headers)
         for missing_column in missing_columns:
             yield Error(
-                f"The '{missing_column}' is a mandatory field. The column can not be empty.",
-                missing_column,
+                f"The '{missing_column}' is missing or incorrectly named on the {present_sheet_name}. Please check the structure on the excel template.",
+                Entity("EFS")
             )
 
 
