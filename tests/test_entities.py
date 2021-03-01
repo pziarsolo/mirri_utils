@@ -102,7 +102,8 @@ class TestCollect(unittest.TestCase):
                 "date_of_collection": "2012----",
             },
         )
-        self.assertEqual(collect.__str__(), "Collected: spain in 2012---- by pepito")
+        self.assertEqual(collect.__str__(),
+                         "Collected: spain in 2012---- by pepito")
 
 
 class TestOrganismType(unittest.TestCase):
@@ -110,6 +111,11 @@ class TestOrganismType(unittest.TestCase):
         org_type = OrganismType(2)
         self.assertEqual(org_type.name, "Archaea")
         self.assertEqual(org_type.code, 2)
+        try:
+            org_type.ko = 'a'
+            self.fail()
+        except TypeError:
+            pass
 
 
 class TestTaxonomy(unittest.TestCase):
@@ -170,24 +176,28 @@ class TestStrain(unittest.TestCase):
         strain.genetics.ploidy = 9
         self.assertEqual(strain.dict()[GENETICS][PLOIDY], 9)
 
-        strain.growth.recommended_medium = ["asd"]
+        strain.growth.recommended_media = ["asd"]
         strain.isolation.date = DateRange(year=1900)
-        self.assertEqual(strain.dict()[ISOLATION][DATE_OF_ISOLATION], "1900----")
+        self.assertEqual(strain.dict()[ISOLATION]
+                         [DATE_OF_ISOLATION], "1900----")
 
         strain.deposit.who = "pepe"
         self.assertEqual(strain.dict()[DEPOSIT][DEPOSITOR], "pepe")
 
-        strain.growth.recommended_medium = ["11"]
-        self.assertEqual(strain.dict()[GROWTH][RECOMMENDED_GROWTH_MEDIUM], ["11"])
+        strain.growth.recommended_media = ["11"]
+        self.assertEqual(strain.dict()[GROWTH]
+                         [RECOMMENDED_GROWTH_MEDIUM], ["11"])
 
         strain.taxonomy.organism_type = [OrganismType(2)]
         self.assertEqual(
-            strain.dict()[TAXONOMY][ORGANISM_TYPE], [{"code": 2, "name": "Archaea"}]
+            strain.dict()[TAXONOMY][ORGANISM_TYPE], [
+                {"code": 2, "name": "Archaea"}]
         )
 
         strain.taxonomy.organism_type = [OrganismType("Algae")]
         self.assertEqual(
-            strain.dict()[TAXONOMY][ORGANISM_TYPE], [{"code": 1, "name": "Algae"}]
+            strain.dict()[TAXONOMY][ORGANISM_TYPE], [
+                {"code": 1, "name": "Algae"}]
         )
 
         strain.other_numbers.append(StrainId(collection="aaa", number="a"))
@@ -210,11 +220,11 @@ class TestStrain(unittest.TestCase):
             [{"marker_type": "16S rRNA", "INSDC": "pepe"}],
         )
 
-        strain.collect.habitat_ontotype = "OBT:111111"
-        self.assertEqual(strain.collect.habitat_ontotype, "OBT:111111")
+        strain.collect.habitat_ontobiotope = "OBT:111111"
+        self.assertEqual(strain.collect.habitat_ontobiotope, "OBT:111111")
 
         try:
-            strain.collect.habitat_ontotype = "OBT:11111"
+            strain.collect.habitat_ontobiotope = "OBT:11111"
             self.fail()
         except ValueError:
             pass
@@ -262,7 +272,8 @@ class TestGenomicSequence(unittest.TestCase):
         self.assertEqual(gen_seq.dict(), {})
         gen_seq.marker_id = "pepe"
         gen_seq.marker_type = "16S rRNA"
-        self.assertEqual(gen_seq.dict(), {"marker_type": "16S rRNA", "INSDC": "pepe"})
+        self.assertEqual(gen_seq.dict(), {
+                         "marker_type": "16S rRNA", "INSDC": "pepe"})
 
 
 if __name__ == "__main__":

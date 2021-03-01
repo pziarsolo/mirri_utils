@@ -24,8 +24,10 @@ class MirriExcelTests(unittest.TestCase):
         self.assertEqual(medium["Description"], "NUTRIENT BROTH/AGAR I")
 
         strains = parsed_data["strains"]
-        print(strains[0].dict())
-        self.assertEqual(strains[0].id.number, "1")
+        strain = strains[0]
+        self.assertEqual(strain.publications[0].id, 1)
+        self.assertEqual(strain.publications[0].title, "Cosa")
+        self.assertEqual(strain.id.number, "1")
 
     def test_mirri_excel_parser_invalid_fail(self):
         in_path = TEST_DATA_DIR / "invalid.mirri.xlsx"

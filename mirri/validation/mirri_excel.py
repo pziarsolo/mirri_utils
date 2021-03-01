@@ -1,3 +1,4 @@
+import sys
 from io import BytesIO
 from mirri.validation.mirri_excel_structure import validate_excel_structure
 from pathlib import Path
@@ -20,7 +21,7 @@ TYPES_TRANSLATOR = {
 }
 
 
-def validate_mirri_excel(fhand, version="20200601"):
+def validate_mirri_excel(fhand, version="20200601", debug=False):
     # fhand = r"C:\Users\jbravo\Desktop\KPD_MIRRI-IS_dataset_v20201116_v1.2.xlsx"
     workbook = load_workbook(filename=BytesIO(fhand.read()))
 
@@ -33,13 +34,20 @@ def validate_mirri_excel(fhand, version="20200601"):
         for error in structure_errors:
             error_log.add_error(error)
         return error_log
-
+    if debug:
+        sys.stderr.write("validating content\n")
     # excel content errors
-    content_errors = _validate_content(workbook)
+    content_errors = list(_validate_content(workbook))
 
+    if debug:
+        sys.stderr.write("validating entities\n")
     # strain entity error
-    entity_errors = _validate_entity_data_errors(fhand, version)
+    entity_errors = list(_validate_entity_data_errors(fhand, version))
 
+    if debug:
+        sys.stderr.write("adding errors\n")
+
+    # adding error
     for error in chain(content_errors, entity_errors):
         error_log.add_error(error)
 
@@ -48,10 +56,13 @@ def validate_mirri_excel(fhand, version="20200601"):
 
 def _validate_entity_data_errors(fhand, version):
     parsed_excel = parse_mirri_excel(fhand, version=version, fail_if_error=False)
-
+    print("ok")
+    cont = 0
     for strain_id, _errors in parsed_excel["errors"].items():
         for error in _errors:
-            yield Error(error["message"].strip("\"'"), strain_id)
+            cont += 1
+            print(error["message"], strain_id)
+            yield Error(error["message"], strain_id)
 
 
 def _validate_content(workbook):

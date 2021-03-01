@@ -27,7 +27,7 @@ DATE_OF_ISOLATION = "date_of_isolation"
 DATE_OF_INCLUSION = "date_of_inclusion_on_catalog"
 TESTED_TEMPERATURE_GROWTH_RANGE = "tested_temperature_growth_range"
 RECOMMENDED_GROWTH_TEMP = "recommended_growth_temperature"
-RECOMMENDED_GROWTH_MEDIUM = "recommended_medium_for_growth"
+RECOMMENDED_GROWTH_MEDIUM = "recommended_media_for_growth"
 FORM_OF_SUPPLY = "form_of_supply"
 GEO_COORDS = "coordinates_of_geographic_origin"
 ACCESSION_NAME = "other_denomination"
@@ -51,7 +51,7 @@ PLASMIDS = "plasmids"
 PLASMIDS_COLLECTION_FIELDS = "plasmids_collections_fields"
 SUBSTRATE_HOST_OF_ISOLATION = "substrate_host_of_isolation"
 ISOLATION_HABITAT = "isolation_habitat"
-ONTOTYPE_ISOLATION_HABITAT = "ontobiotope_term_for_the_isolation_habitat"
+ONTOBIOTOPE_ISOLATION_HABITAT = "ontobiotope_term_for_the_isolation_habitat"
 LITERATURE_LINKED_TO_SEQ_GENOME = "literature_linked_to_the_sequence_genome"
 
 # StrainId
@@ -109,14 +109,14 @@ MIRRI_FIELDS = [
         "label": "Restrictions on use",
         "mandatory": True,
         "type": int,
-        "biolomics": {"field": "Restrictions on user", "type": "T"},
+        "biolomics": {"field": "Restrictions on use", "type": "T"},
     },
     {
         "attribute": "nagoya_protocol",
         "label": "Nagoya protocol restrictions and compliance conditions",
         "mandatory": True,
         "type": int,
-        "biolomics": {"field": "Restrictions on user", "type": "T"},
+        "biolomics": {"field": "Nagoya protocol restrictions and compliance conditions", "type": "T"},
     },
     {
         "attribute": ABS_RELATED_FILES,
@@ -126,7 +126,7 @@ MIRRI_FIELDS = [
         "biolomics": {"field": "ABS files URL", "type": "U"},
     },
     {
-        "attribute": MTA_FILES,
+        "attribute": "mta_files",
         "label": "MTA file",
         "mandatory": False,
         "type": str,
@@ -153,7 +153,7 @@ MIRRI_FIELDS = [
         "biolomics": {"field": "Risk group", "type": "T"},
     },
     {
-        "attribute": "dual_use",
+        "attribute": "is_potentially_harmful",
         "label": "Dual use",
         "mandatory": False,
         "type": int,
@@ -218,10 +218,11 @@ MIRRI_FIELDS = [
         "type": "datetime",
     },
     {
-        "attribute": "deposit.date",
+        "attribute": "catalog_inclusion_date",
         "label": "Date of inclusion in the catalogue",
         "mandatory": False,
         "type": "datetime",
+        "biolomics": {"field": "Date of inclusion in the catalogue", "type": "H"},
     },
     {
         "attribute": "collect.who",
@@ -271,10 +272,11 @@ MIRRI_FIELDS = [
         "biolomics": {"field": "Recommended growth temperature", "type": "S"},
     },
     {
-        "attribute": "growth.recommended_medium",
+        "attribute": "growth.recommended_media",
         "label": "Recommended medium for growth",
         "mandatory": True,
         "type": str,
+        "biolomics": {"field": "Recommended growth medium", "type": "Rlink"},
     },
     {
         "attribute": "form_of_supply",
@@ -296,10 +298,11 @@ MIRRI_FIELDS = [
         "type": float,
     },
     {
-        "attribute": "collect.location.altidude",
+        "attribute": "collect.location.altitude",
         "label": "Altitude of geographic origin",
         "mandatory": False,
         "type": float,
+        "biolomics": {"field": "Altitude of geographic origin", "type": "D"},
     },
     {
         "attribute": "collect.location",
@@ -314,7 +317,7 @@ MIRRI_FIELDS = [
         "type": str,
     },
     {
-        "attribute": "collect.habitat_ontotype",
+        "attribute": "collect.habitat_ontobiotope",
         "label": "Ontobiotope term for the isolation habitat",
         "mandatory": False,
         "type": str,
@@ -357,7 +360,7 @@ MIRRI_FIELDS = [
         "type": str,
     },
     {
-        "attribute": "genetics.plasmid_collections_fields",
+        "attribute": "genetics.plasmids_in_collections",
         "label": "Plasmids collections fields",
         "mandatory": False,
         "type": str,
@@ -397,8 +400,10 @@ MIRRI_FIELDS = [
         "label": "Applications",
         "mandatory": False,
         "type": str,
+        "biolomics": {"field": "Applications", "type": "E"},
     },
-    {"attribute": "remarks", "label": "Remarks", "mandatory": False, "type": str},
+    {
+        "attribute": "remarks", "label": "Remarks", "mandatory": False, "type": str},
     {
         "attribute": LITERATURE_LINKED_TO_SEQ_GENOME,
         "label": "Literature linked to the sequence/genome",
@@ -415,7 +420,8 @@ NAGOYA_NO_APPLIES = "nagoya_does_not_apply"
 NAGOYA_APPLIES = "nagoya_does_apply"
 NAGOYA_NO_CLEAR_APPLIES = "nagoya_no_clear"
 
-ALLOWED_NAGOYA_OPTIONS = [NAGOYA_NO_APPLIES, NAGOYA_APPLIES, NAGOYA_NO_CLEAR_APPLIES]
+ALLOWED_NAGOYA_OPTIONS = [NAGOYA_NO_APPLIES,
+                          NAGOYA_APPLIES, NAGOYA_NO_CLEAR_APPLIES]
 
 # Use restriction
 NO_RESTRICTION = "no_restriction"
@@ -437,7 +443,8 @@ LIQUID_CULTURE_MEDIUM = "Liquid Culture Medium"
 LYO = "Lyo"
 OIL = "Oil"
 WATER = "Water"
-ALLOWED_FORMS_OF_SUPPLY = [AGAR, CRYO, DRY_ICE, LIQUID_CULTURE_MEDIUM, LYO, OIL, WATER]
+ALLOWED_FORMS_OF_SUPPLY = [AGAR, CRYO, DRY_ICE,
+                           LIQUID_CULTURE_MEDIUM, LYO, OIL, WATER]
 
 DEPOSIT = "deposit"
 ISOLATION = "isolation"
@@ -455,7 +462,8 @@ ALLOWED_MARKER_TYPES = [
     {"acronym": "ACT", "marker": "Actin"},
     {"acronym": "CaM", "marker": "Calmodulin"},
     {"acronym": "EF-1α", "marker": "elongation factor 1-alpha (EF-1α)"},
-    {"acronym": "ITS", "marker": "nuclear ribosomal Internal Transcribed Spacer (ITS)"},
+    {"acronym": "ITS",
+        "marker": "nuclear ribosomal Internal Transcribed Spacer (ITS)"},
     {"acronym": "LSU", "marker": "nuclear ribosomal Large SubUnit (LSU)"},
     {"acronym": "RPB1", "marker": "Ribosomal RNA-coding genes RPB1"},
     {"acronym": "RPB2", "marker": "Ribosomal RNA-coding genes RPB2"},
@@ -465,6 +473,7 @@ ALLOWED_MARKER_TYPES = [
 PUBLICATIONS = "publications"
 PUB_ID = "pub_id"
 PUB_DOI = "pub_doi"
+PUB_FULL_REFERENCE = "full_reference"
 PUB_TITLE = "title"
 PUB_AUTHORS = "authors"
 PUB_JOURNAL = "journal"
@@ -477,6 +486,24 @@ BOOK_TITLE = "book_title"
 BOOK_EDITOR = "editor"
 BOOK_PUBLISHER = "publisher"
 
+
+PUBLICATION_FIELDS = [
+    {"label": "ID", "attribute": PUB_ID},
+    {"label": "Full reference", "attribute": PUB_FULL_REFERENCE},
+    {"label": "Authors", "attribute": PUB_AUTHORS},
+    {"label": "Title", "attribute": PUB_TITLE},
+    {"label": "Journal", "attribute": PUB_JOURNAL},
+    {"label": "Year", "attribute": PUB_YEAR},
+    {"label": "Volume", "attribute": PUB_VOLUMEN},
+    {"label": "Issue", "attribute": PUB_ISSUE},
+    {"label": "First page", "attribute": PUB_FIRST_PAGE},
+    {"label": "Last page", "attribute": PUB_FIRST_PAGE},
+    {"label": "Book title", "attribute": BOOK_TITLE},
+    {"label": "Editors", "attribute": BOOK_EDITOR},
+    {"label": "Publisher", "attribute": BOOK_PUBLISHER},
+]
+
+
 # ploidy
 ANEUPLOID = 0
 HAPLOID = 1
@@ -485,7 +512,8 @@ TRIPLOID = 3
 TETRAPLOID = 4
 POLYPLOID = 9
 
-ALLOWED_PLOIDIES = [ANEUPLOID, HAPLOID, DIPLOID, TRIPLOID, TETRAPLOID, POLYPLOID]
+ALLOWED_PLOIDIES = [ANEUPLOID, HAPLOID,
+                    DIPLOID, TRIPLOID, TETRAPLOID, POLYPLOID]
 
 SUBTAXAS = {
     "subsp.": "subspecies",

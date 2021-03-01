@@ -11,7 +11,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from typing import List, Union
 
-from mirri.entities._private_classes import _FieldBasedClass
+from mirri.entities._private_classes import _FieldBasedClass, FrozenClass
 from mirri.entities.date_range import DateRange
 from mirri.entities.location import Location
 from mirri.entities.publication import Publication
@@ -51,7 +51,7 @@ from mirri.settings import (
     INTERSPECIFIC_HYBRID,
     ISOLATED_BY,
     ISOLATION,
-    ISOLATION_HABITAT,
+    ISOLATION_HABITAT, LITERATURE_LINKED_TO_SEQ_GENOME,
     LOCATION,
     MARKER_INSDC,
     MARKER_SEQ,
@@ -60,10 +60,10 @@ from mirri.settings import (
     MTA_FILES,
     MUTANT_INFORMATION,
     NAGOYA_PROTOCOL,
-    ONTOTYPE_ISOLATION_HABITAT,
+    ONTOBIOTOPE_ISOLATION_HABITAT,
     ORGANISM_TYPE,
     OTHER_CULTURE_NUMBERS,
-    PATHOGENICITY,
+    PATHOGENICITY, PLANT_PATHOGENICITY_CODE,
     PLASMIDS,
     PLASMIDS_COLLECTION_FIELDS,
     PLOIDY,
@@ -121,10 +121,12 @@ class MirriValidationError(Exception):
     pass
 
 
-class OrganismType:
+class OrganismType(FrozenClass):
+
     def __init__(self, value=None):
         self._data = {}
         self.guess_type(value)
+        self._freeze()
 
     def dict(self):
         return self._data
@@ -145,7 +147,8 @@ class OrganismType:
             raise MirriValidationError(msg) from error
 
         if code not in ORG_TYPES.values():
-            raise MirriValidationError(f"code {code} not accepted for organism type")
+            msg = f"code {code} not accepted for organism type"
+            raise MirriValidationError(msg)
         self._data["code"] = code
         name = None
         for _name, _code in ORG_TYPES.items():
@@ -181,12 +184,13 @@ class OrganismType:
             self.name = value
 
 
-class Taxonomy(object):
+class Taxonomy(FrozenClass):
     def __init__(self, data=None):
         self._data = {}
         if data is not None:
             if ORGANISM_TYPE in data:
-                self.organism_type = [OrganismType(ot) for ot in data[ORGANISM_TYPE]]
+                self.organism_type = [OrganismType(ot)
+                                      for ot in data[ORGANISM_TYPE]]
             if GENUS in data:
                 self.genus = data[GENUS]
             if SPECIES in data:
@@ -197,6 +201,7 @@ class Taxonomy(object):
                 self.comments = data[COMMENTS_ON_TAXONOMY]
             if INTERSPECIFIC_HYBRID in data:
                 self.interspecific_hybrid = data[INTERSPECIFIC_HYBRID]
+        self._freeze()
 
     def __bool__(self):
         return bool(self._data)
@@ -356,7 +361,7 @@ class Taxonomy(object):
                     taxas = []
 
 
-class _GeneralStep:
+class _GeneralStep(FrozenClass):
     _date_tag = None
     _who_tag = None
     _location_tag = None
@@ -435,7 +440,9 @@ class Collect(_GeneralStep):
             data = {}
 
         self.habitat = data.get(ISOLATION_HABITAT, None)
-        self.habitat_ontobiotype = data.get(ONTOTYPE_ISOLATION_HABITAT, None)
+        self.habitat_ontobiotype = data.get(ONTOBIOTOPE_ISOLATION_HABITAT,
+                                            None)
+        self._freeze()
 
     def __str__(self):
         info = ""
@@ -453,9 +460,9 @@ class Collect(_GeneralStep):
         _data = super().dict()
         if ISOLATION_HABITAT in self._data:
             _data[ISOLATION_HABITAT] = self._data[ISOLATION_HABITAT]
-        if ONTOTYPE_ISOLATION_HABITAT in self._data:
-            ontotype = self._data[ONTOTYPE_ISOLATION_HABITAT]
-            _data[ONTOTYPE_ISOLATION_HABITAT] = ontotype
+        if ONTOBIOTOPE_ISOLATION_HABITAT in self._data:
+            ontotype = self._data[ONTOBIOTOPE_ISOLATION_HABITAT]
+            _data[ONTOBIOTOPE_ISOLATION_HABITAT] = ontotype
 
         return _data
 
@@ -469,15 +476,15 @@ class Collect(_GeneralStep):
             self._data[ISOLATION_HABITAT] = habitat
 
     @property
-    def habitat_ontotype(self):
-        return self._data.get(ONTOTYPE_ISOLATION_HABITAT, None)
+    def habitat_ontobiotope(self):
+        return self._data.get(ONTOBIOTOPE_ISOLATION_HABITAT, None)
 
-    @habitat_ontotype.setter
-    def habitat_ontotype(self, habitat: str):
+    @habitat_ontobiotope.setter
+    def habitat_ontobiotope(self, habitat: str):
         if habitat is not None:
             if not re.match("OB[ST]:[0-9]{6}", habitat):
-                raise ValueError(f"Bad ontotype format, {habitat}")
-            self._data[ONTOTYPE_ISOLATION_HABITAT] = habitat
+                raise ValueError(f"Bad ontobiotope format, {habitat}")
+            self._data[ONTOBIOTOPE_ISOLATION_HABITAT] = habitat
 
 
 class Isolation(_GeneralStep):
@@ -490,7 +497,9 @@ class Isolation(_GeneralStep):
         super().__init__(data=data)
         _date = DateRange()
 
-        self.substrate_host_of_isolation = data.get(SUBSTRATE_HOST_OF_ISOLATION, None)
+        self.substrate_host_of_isolation = data.get(SUBSTRATE_HOST_OF_ISOLATION,
+                                                    None)
+        self._freeze()
 
     def dict(self):
         _data = super().dict()
@@ -510,8 +519,14 @@ class Deposit(_GeneralStep):
     _who_tag = DEPOSITOR
     _date_tag = DATE_OF_INCLUSION
 
+    def __init__(self, data=None):
+        if data is None:
+            data = {}
+        super().__init__(data=data)
+        self._freeze()
 
-class StrainId(object):
+
+class StrainId(FrozenClass):
     def __init__(self, id_dict=None, collection=None, number=None):
         if id_dict and (collection or number):
             msg = "Can not initialize with dict and number or collection"
@@ -523,6 +538,7 @@ class StrainId(object):
             self.collection = collection
         if number:
             self.number = number
+        self._freeze()
 
     def __bool__(self):
         return bool(self._id_dict)
@@ -616,7 +632,7 @@ class GenomicSequence(_FieldBasedClass):
         self._data[MARKER_SEQ] = value
 
 
-class Genetics:
+class Genetics(FrozenClass):
     def __init__(self, data=None):
         self._data = {}
         if data and SEXUAL_STATE in data:
@@ -638,6 +654,7 @@ class Genetics:
             ]
         else:
             self.markers = []
+        self._freeze()
 
     def __bool__(self):
         data = deepcopy(self._data)
@@ -722,7 +739,7 @@ class Genetics:
 
     @property
     def plasmids_in_collections(self):
-        return self._data[PLASMIDS_COLLECTION_FIELDS]
+        return self._data.get(PLASMIDS_COLLECTION_FIELDS, None)
 
     @plasmids_in_collections.setter
     def plasmids_in_collections(self, value: List[str]):
@@ -744,24 +761,9 @@ class Genetics:
 class Growth(_FieldBasedClass):
     _fields = [
         {"attribute": "tested_temp_range", "label": TESTED_TEMPERATURE_GROWTH_RANGE},
-        {"attribute": "recommended_medium", "label": RECOMMENDED_GROWTH_MEDIUM},
+        {"attribute": "recommended_media", "label": RECOMMENDED_GROWTH_MEDIUM},
         {"attribute": "recommended_temp", "label": RECOMMENDED_GROWTH_TEMP},
     ]
-
-    #     def __init__(self, data=None):
-    #         self._data = {}
-    #         if data and TESTED_TEMPERATURE_GROWTH_RANGE in data:
-    #             self.tested_temp_range = data[TESTED_TEMPERATURE_GROWTH_RANGE]
-    #         if data and RECOMMENDED_GROWTH_MEDIUM in data:
-    #             self.recommended_medium = data[RECOMMENDED_GROWTH_MEDIUM]
-    #         if data and RECOMMENDED_GROWTH_TEMP in data:
-    #             self.recommended_temp = data[RECOMMENDED_GROWTH_TEMP]
-    #
-    #     def __bool__(self):
-    #         return bool(self._data)
-    #
-    #     def dict(self):
-    #         return self._data
 
     @property
     def tested_temp_range(self) -> dict:
@@ -773,17 +775,18 @@ class Growth(_FieldBasedClass):
             if "min" in val and "max" in val:
                 self._data[TESTED_TEMPERATURE_GROWTH_RANGE] = val
             else:
-                raise MirriValidationError("A dict with min and max is required")
+                msg = "A dict with min and max is required"
+                raise MirriValidationError(msg)
 
     @property
-    def recommended_medium(self) -> List[str]:
+    def recommended_media(self) -> List[str]:
         return self._data.get(RECOMMENDED_GROWTH_MEDIUM, None)
 
-    @recommended_medium.setter
-    def recommended_medium(self, value):
+    @recommended_media.setter
+    def recommended_media(self, value):
         if value is not None:
             if not isinstance(value, (list, set)):
-                msg = "Recommendedn medium must be a list"
+                msg = "Recommendedn media must be a list"
                 raise MirriValidationError(msg)
             self._data[RECOMMENDED_GROWTH_MEDIUM] = value
 
@@ -796,7 +799,7 @@ class Growth(_FieldBasedClass):
         self._data[RECOMMENDED_GROWTH_TEMP] = value
 
 
-class Strain:
+class Strain(FrozenClass):
     def __init__(self, data=None):
         self._data = {}
         if data is None:
@@ -812,6 +815,11 @@ class Strain:
             STRAIN_FROM_REGISTERED_COLLECTION, None
         )
         self.is_subject_to_quarantine = data.get(QUARANTINE, None)
+        inclusion_date = data.get(DATE_OF_INCLUSION, None)
+        if inclusion_date:
+            _date = DateRange()
+            inclusion_date = _date.strpdate(inclusion_date)
+        self.catalog_inclusion_date = inclusion_date
 
         self.id = StrainId(data.get(STRAIN_ID, None))
 
@@ -836,6 +844,7 @@ class Strain:
         if data and PUBLICATIONS in data:
             for pub in data[PUBLICATIONS]:
                 self.publications.append(Publication(pub))
+        self._freeze()
 
     def __str__(self):
         return f"Strain {self.id.collection} {self.id.number}"
@@ -843,15 +852,8 @@ class Strain:
     def dict(self):
         data = {}
         for field, value in self._data.items():
-            if field in [
-                STRAIN_ID,
-                COLLECT,
-                DEPOSIT,
-                ISOLATION,
-                GROWTH,
-                GENETICS,
-                TAXONOMY,
-            ]:
+            if field in [STRAIN_ID, COLLECT, DEPOSIT, ISOLATION, GROWTH,
+                         GENETICS, TAXONOMY]:
                 value = value.dict()
                 if value == {}:
                     value = None
@@ -959,8 +961,21 @@ class Strain:
     def is_from_registered_collection(self, value: bool):
         if value is not None:
             if not isinstance(value, bool):
-                raise MirriValidationError("is from reg_collection must be boolean")
+                msg = "is from reg_collection must be boolean"
+                raise MirriValidationError(msg)
+
             self._data[STRAIN_FROM_REGISTERED_COLLECTION] = value
+
+    @property
+    def catalog_inclusion_date(self) -> DateRange:
+        return self._data.get(DATE_OF_INCLUSION, None)
+
+    @catalog_inclusion_date.setter
+    def catalog_inclusion_date(self, _date: Union[None, DateRange]):
+        if _date is not None:
+            if not isinstance(_date, DateRange):
+                raise ValueError("Date must be a DateRange instance")
+            self._data[DATE_OF_INCLUSION] = _date
 
     @property
     def abs_related_files(self) -> List[str]:
@@ -1139,3 +1154,19 @@ class Strain:
     @status.setter
     def status(self, value: str):
         self._data[STATUS] = value
+
+    @property
+    def plant_pathogenicity_code(self) -> str:
+        return self._data.get(PLANT_PATHOGENICITY_CODE, None)
+
+    @plant_pathogenicity_code.setter
+    def plant_pathogenicity_code(self, value: str):
+        self._data[PLANT_PATHOGENICITY_CODE] = value
+
+    @property
+    def literature_linked_to_the_sequence_genome(self) -> str:
+        return self._data.get(LITERATURE_LINKED_TO_SEQ_GENOME, None)
+
+    @literature_linked_to_the_sequence_genome.setter
+    def literature_linked_to_the_sequence_genome(self, value: str):
+        self._data[LITERATURE_LINKED_TO_SEQ_GENOME] = value
