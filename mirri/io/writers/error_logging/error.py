@@ -61,16 +61,10 @@ class Entity():
 class Error():
     """Error information
 
-    Args
-        code_or_message: code or message related to the error. If an error code is specified, param threshold is ignored and the error message is derived \
-            from error code. If an error message is specified, an attempt to deduct the error code from the similarity between the specified message and the \
-            default messages is performed; If no code is found, a general error code UCT is used instead.
-
-        data: data to be passed to the default messages that require some value. If an error message is specified in code_or_message parameter, this data \
-            will be used to help identify the error code.
-
-        threshold: minimum value of similarity between the specified message and the default messages. Should be a value between 0.0 and 1.0. This param \
-            is ignoref if a code is specified in code_or_message param.
+        Args:
+            message (str): Error message
+            entity (Entity, optional): Entity related to the error. If None will default to Uncategorized. Defaults to None.
+            data (str, optional): Data used for sorting the messages. Defaults to None.
     """
 
     def __init__(self, message: str, entity: Entity = None, data: str = None):
