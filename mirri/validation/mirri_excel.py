@@ -81,6 +81,13 @@ def _validate_content(workbook):
                     row["Accession number"],
                 )
 
+    for error in validateGM(workbook):
+        yield error
+    for error in validateGO(workbook):
+        yield error
+    for error in validateL(workbook):
+        yield error
+
     # for error in checkTypes(strain_df, MIRRI_FIELDS):
     #     yield error
 
@@ -110,3 +117,73 @@ def checkTypes(strain_df, MIRRI_FIELDS):
         if field["label"] in types2:
             if types2[field["label"]] != field["type"]:
                 yield Error(f'The "{field["label"]}" column has an invalide data type.', Entity("STD"))
+
+
+def validateGM(workbook):
+    growthmedia_df = pd.read_excel(
+        workbook, sheet_name="Growth media", index_col=None, engine="openpyxl")
+    entity_gm = Entity("GMD")
+    acronym_gm = growthmedia_df['Acronym']
+    description_gm = growthmedia_df['Description']
+    for acro_gm in acronym_gm:
+        if acro_gm == "NaN":
+            yield Error(f'The Column Acronym on Growth media sheet is a mandatory field and can not be empty.', entity_gm)
+    for des_gm in description_gm:
+        if des_gm == "NaN":
+            yield Error(f'The Column "Description" on Growth media sheet is a mandatory field and can not be empty.', entity_gm)
+
+
+def validateGO(workbook):
+    geographicorigin_df = pd.read_excel(
+        workbook, sheet_name="Geographic origin", index_col=None, engine="openpyxl")
+    entity_go = Entity("GOD")
+    id_go = geographicorigin_df['ID']
+    country_go = geographicorigin_df['Country']
+    locality_go = geographicorigin_df['Locality']
+    for id_gos in id_go:
+        if id_gos == "NaN":
+            yield Error(f'The Column ID on Geographic origin sheet is a mandatory field and can not be empty.', entity_go)
+    for count_go in country_go:
+        if count_go == "NaN":
+            yield Error(f'The Column "Country" on Geographic origin sheet is a mandatory field and can not be empty.', entity_go)
+    for local_go in locality_go:
+        if local_go == "NaN":
+            yield Error(f'The Column "Locality" on Geographic origin sheet is a mandatory field and can not be empty.', entity_go)
+
+
+def validateL(workbook):
+    literature_df = pd.read_excel(
+        workbook, sheet_name="Literature", index_col=None, engine="openpyxl")
+    entity_l = Entity("LID")
+    id_l = literature_df['ID']
+    full_reference_l = literature_df['Full reference']
+    authors_l = literature_df['Authors']
+    title_l = literature_df['Title']
+    journal_l = literature_df['Journal']
+    year_l = literature_df['Year']
+    volume_l = literature_df['Volume']
+    first_page_l = literature_df['First page']
+    for id_ls in id_l:
+        if id_ls == "NaN":
+            yield Error(f'The Column ID on Literature sheet is a mandatory field and can not be empty.', entity_l)
+    for full_l in full_reference_l:
+        if full_l == "NaN":
+            yield Error(f'The Column "Full reference" on Literature sheet is a mandatory field and can not be empty.', entity_l)
+    for aut_l in authors_l:
+        if aut_l == "NaN":
+            yield Error(f'The Column "Authors" on Literature sheet is a mandatory field and can not be empty.', entity_l)
+    for tit_l in title_l:
+        if tit_l == "NaN":
+            yield Error(f'The Column "Title" on Literature sheet is a mandatory field and can not be empty.', entity_l)
+    for jour_l in journal_l:
+        if jour_l == "NaN":
+            yield Error(f'The Column "Journal" on Literature sheet is a mandatory field and can not be empty.', entity_l)
+    for y_l in year_l:
+        if y_l == "NaN":
+            yield Error(f'The Column "Year" on Literature sheet is a mandatory field and can not be empty.', entity_l)
+    for vol_l in volume_l:
+        if vol_l == "NaN":
+            yield Error(f'The Column "Volume" on Literature with sheet is a mandatory field and can not be empty.', entity_l)
+    for first_l in first_page_l:
+        if first_l == "NaN":
+            yield Error(f'The Column "First page" on Literature sheet is a mandatory field and can not be empty.', entity_l)
