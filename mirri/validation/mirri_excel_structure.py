@@ -91,7 +91,7 @@ def validate_excel_structure(workbook):
         ):
             yield Error(
                 f"The '{missing_sheet_name}' sheet is missing. Please check the provided excel template",
-                missing_sheet_name,
+                'Missing sheet',
             )
 
     present_sheet_names = mandatory_sheets.intersection(workbook.sheetnames)
@@ -103,8 +103,8 @@ def validate_excel_structure(workbook):
         missing_columns = set(allowed_columns).difference(sheet_headers)
         for missing_column in missing_columns:
             yield Error(
-                f"The '{missing_column}' is a mandatory field. The column can not be empty.",
-                missing_column,
+                f"The '{missing_column}' is a mandatory field/header in the {present_sheet_name} sheet.",
+                'Missing header in sheet',
             )
 
 
