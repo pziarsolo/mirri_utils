@@ -390,9 +390,9 @@ class _GeneralStep(FrozenClass):
     @location.setter
     def location(self, location: Location):
         if self._location_tag is None:
-            return ValueError("Can't set location on this class")
+            return MirriValidationError("Can't set location on this class")
         if not isinstance(location, Location):
-            raise ValueError("Location must be a Location instance")
+            raise MirriValidationError("Location must be a Location instance")
         self._data[self._location_tag] = location
 
     @property
@@ -402,7 +402,7 @@ class _GeneralStep(FrozenClass):
     @who.setter
     def who(self, by_who: str):
         if self._who_tag is None:
-            return ValueError("Can set who on this class")
+            return MirriValidationError("Can set who on this class")
         self._data[self._who_tag] = by_who
 
     @property
@@ -412,10 +412,10 @@ class _GeneralStep(FrozenClass):
     @date.setter
     def date(self, _date: DateRange):
         if self._date_tag is None:
-            return ValueError("Can set date on this class")
+            return MirriValidationError("Can set date on this class")
         if _date is not None:
             if not isinstance(_date, DateRange):
-                raise ValueError("Date must be a DateRange instance")
+                raise MirriValidationError("Date must be a DateRange instance")
             self._data[self._date_tag] = _date
 
     def dict(self):
@@ -483,7 +483,8 @@ class Collect(_GeneralStep):
     def habitat_ontobiotope(self, habitat: str):
         if habitat is not None:
             if not re.match("OB[ST]:[0-9]{6}", habitat):
-                raise ValueError(f"Bad ontobiotope format, {habitat}")
+                raise MirriValidationError(
+                    f"Bad ontobiotope format, {habitat}")
             self._data[ONTOBIOTOPE_ISOLATION_HABITAT] = habitat
 
 
@@ -553,6 +554,10 @@ class StrainId(FrozenClass):
         return self._id_dict
 
     @property
+    def strain_id(self):
+        return self.__str__()
+
+    @property
     def collection(self):
         return self._id_dict.get(COLLECTION_CODE, None)
 
@@ -612,7 +617,7 @@ class GenomicSequence(_FieldBasedClass):
             types = " ".join([m["acronym"] for m in ALLOWED_MARKER_TYPES])
             if value not in types:
                 msg = f"{value} not in allowed marker types: {types}"
-                raise ValueError(msg)
+                raise MirriValidationError(msg)
             self._data[MARKER_TYPE] = value
 
     @property
@@ -692,7 +697,7 @@ class Genetics(FrozenClass):
             if value not in ALLOWED_PLOIDIES:
                 msg = f"{value} not in allowed ploidies: "
                 msg += f'{", ".join(str(p) for p in ALLOWED_PLOIDIES)}'
-                raise ValueError(msg)
+                raise MirriValidationError(msg)
             self._data[PLOIDY] = value
 
     @property
@@ -702,7 +707,7 @@ class Genetics(FrozenClass):
     @gmo.setter
     def gmo(self, value: bool):
         if value is not None and not isinstance(value, bool):
-            raise ValueError("Gmos value must be boolean")
+            raise MirriValidationError("Gmos value must be boolean")
         self._data[GMO] = value
 
     @property
@@ -754,7 +759,7 @@ class Genetics(FrozenClass):
         for marker in value:
             if not isinstance(marker, GenomicSequence):
                 msg = "Markers needs to be a GenomicSecuence instances list"
-                raise ValueError(msg)
+                raise MirriValidationError(msg)
         self._data[MARKERS] = value
 
 
@@ -974,7 +979,7 @@ class Strain(FrozenClass):
     def catalog_inclusion_date(self, _date: Union[None, DateRange]):
         if _date is not None:
             if not isinstance(_date, DateRange):
-                raise ValueError("Date must be a DateRange instance")
+                raise MirriValidationError("Date must be a DateRange instance")
             self._data[DATE_OF_INCLUSION] = _date
 
     @property
@@ -1100,7 +1105,7 @@ class Strain(FrozenClass):
         if value is not None:
             error_msg = "Publications must be Publication instaces"
             if not isinstance(value, list):
-                raise ValueError(error_msg)
+                raise MirriValidationError(error_msg)
             for pub in value:
                 if not isinstance(pub, Publication):
                     raise MirriValidationError(error_msg)
