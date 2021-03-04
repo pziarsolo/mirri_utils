@@ -105,7 +105,6 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
     indexed_locations = {str(loc["Locality"]): loc for loc in locations}
 
     ontobiotopes = list(workbook_sheet_reader(wb, ONTOBIOTOPE))
-    indexed_ontobiotopes = {str(loc["ID"]): loc for loc in ontobiotopes}
 
     growth_media = list(workbook_sheet_reader(wb, GROWTH_MEDIA))
     growth_media = [
@@ -138,7 +137,7 @@ def _parse_mirri_v20200601(fhand, fail_if_error):
                              indexed_markers=indexed_markers,
                              indexed_publications=indexed_publications,
                              error_logs=indexed_errors,
-                             indexed_ontobiotopes=indexed_ontobiotopes,
+                             ontobiotopes=ontobiotopes,
                              fail_if_error=fail_if_error)
     return {
         "strains": list(strains),
@@ -198,8 +197,10 @@ def _parse_publications(wb, indexed_errors, fail_if_error):
 
 
 def _parse_strains(wb, indexed_locations, indexed_growth_media, indexed_markers,
-                   indexed_publications, error_logs, indexed_ontobiotopes,
-                   fail_if_error):
+                   indexed_publications, error_logs, ontobiotopes, fail_if_error):
+
+    ontobiotopes_by_id = {str(ont["ID"]): ont['Name'] for ont in ontobiotopes}
+    ontobiotopes_by_name = {v: k for k, v in ontobiotopes_by_id.items()}
 
     for strain_row in workbook_sheet_reader(wb, STRAINS, "Accession number"):
         strain = Strain()
@@ -221,6 +222,9 @@ def _parse_strains(wb, indexed_locations, indexed_growth_media, indexed_markers,
 
                 if attribute == "id":
                     strain_id = value
+
+                if value is None:
+                    continue
 
                 if attribute == "id":
                     try:
@@ -279,7 +283,8 @@ def _parse_strains(wb, indexed_locations, indexed_growth_media, indexed_markers,
                             )
                         elif isinstance(value, str):
                             value = DateRange().strpdate(value)
-
+                        else:
+                            raise ValueError()
                         rsetattr(strain, attribute, value)
                     except ValueError:
                         msg = f"The '{label}' for strain with Accession Number {strain_id} is incorrect."
@@ -357,7 +362,19 @@ def _parse_strains(wb, indexed_locations, indexed_growth_media, indexed_markers,
                                 pub.id = pub_id
                             publications.append(pub)
                         rsetattr(strain, attribute, publications)
-                # elif attribute == 'ontobiotope':
+                elif attribute == 'ontobiotope':
+                    if value is not None:
+                        values = []
+                        for val in value.split(';'):
+                            if val not in ontobiotopes_by_id:
+                                if val in ontobiotopes_by_name:
+                                    val = ontobiotopes_by_name[val]
+                                else:
+                                    msg = f'{val} not a valid ontobiotype id or name'
+                                    raise MirriValidationError(msg)
+
+                            values.append(val)
+                        rsetattr(strain, attribute, value)
 
                 else:
                     rsetattr(strain, attribute, value)
