@@ -1,0 +1,16 @@
+MANDATORY = "mandatory"
+REGEXP = "regexp"
+CHOICES = "choices"
+CROSSREF = 'crossref'
+CROSSREF_NAME = 'crossref_name'
+MISSING = "missing"
+VALIDATION = 'validation'
+ERROR_CODE = 'error_code'
+FIELD = 'field'
+MULTIPLE = 'multiple'
+TYPE = 'type'
+COLUMNS = 'columns'
+SOURCE = "sources"
+SEPARATOR = "separator"
+MATCH = 'match'
+VALUES = 'values'
