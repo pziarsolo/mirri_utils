@@ -1,6 +1,6 @@
 from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
-                                   MISSING, MULTIPLE, NUMBER, REGEXP, SEPARATOR, TAXON, TYPE,
+                                   MISSING, MULTIPLE, NUMBER, REGEXP, SEPARATOR, TAXON, TYPE, UNIQUE,
                                    VALIDATION, VALUES)
 from mirri.settings import (ONTOBIOTOPE, LOCATIONS, GROWTH_MEDIA, GENOMIC_INFO,
                             STRAINS, LITERATURE_SHEET)
@@ -16,6 +16,7 @@ STRAIN_FIELDS = [
         FIELD: "Accession number",
         VALIDATION: [
             {TYPE: MANDATORY, ERROR_CODE: 'STR001'},
+            {TYPE: UNIQUE, ERROR_CODE: 'XXX'},
             {TYPE: MISSING, ERROR_CODE: "STR00X"},
             {TYPE: REGEXP, MATCH: "[^ ]* [^ ]*", ERROR_CODE: "STR002"}
         ]

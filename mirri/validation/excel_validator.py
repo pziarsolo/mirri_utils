@@ -13,7 +13,7 @@ from mirri.validation.error import ErrorLog, Error
 from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
                                    MISSING, MULTIPLE, NUMBER, REGEXP, SEPARATOR, TAXON,
-                                   TYPE, VALIDATION, VALUES)
+                                   TYPE, UNIQUE, VALIDATION, VALUES)
 
 from mirri.validation.validation_conf_20200601 import MIRRI_20200601_VALLIDATION_CONF
 
@@ -117,6 +117,7 @@ def validate_content(workbook, validation_conf, cross_ref_conf):
     for sheet_name in validation_conf.keys():
         sheet_conf = validation_conf[sheet_name]
         sheet_id_column = sheet_conf['id_field']
+        shown_values = {}
         for row in workbook_sheet_reader(workbook, sheet_name):
             id_ = row.get(sheet_id_column, None)
             if id_ is None:
@@ -130,19 +131,23 @@ def validate_content(workbook, validation_conf, cross_ref_conf):
                 value = row.get(label, None)
                 if validation_steps:
                     error_code = validate_cell(value, validation_steps,
-                                               crossrefs)
+                                               crossrefs, shown_values, label)
                     if error_code is not None:
                         yield {'id': id_, 'sheet': sheet_name, 'field': label,
                                'error_code': error_code, 'value': value}
 
 
-def validate_cell(value, validation_steps, crossrefs):
+def validate_cell(value, validation_steps, crossrefs, shown_values, label):
+
     for step in validation_steps:
         if step[TYPE] == MANDATORY:
             continue
-        error = validate_value(value, step, crossrefs)
-        if error:
-            return error
+        step['crossrefs_pointer'] = crossrefs
+        step['shown_values'] = shown_values
+        step['label'] = label
+        error_code = validate_value(value, step)
+        if error_code is not None:
+            return error_code
 
 
 def is_valid_regex(value, validation_conf):
@@ -294,6 +299,19 @@ def is_valid_taxon(value, validation_conf):
     return True
 
 
+def is_valid_unique(value, validation_conf):
+    label = validation_conf['label']
+    if label not in validation_conf['shown_values']:
+        validation_conf['shown_values'][label] = {}
+
+    already_in_file = validation_conf['shown_values'].get(label, {})
+    if value in already_in_file:
+        return False
+    else:
+        validation_conf['shown_values'][label][value] = {}
+        return True
+
+
 def validate_value2(value, step, crossrefs):
     kind = step[TYPE]
     error_code = step[ERROR_CODE]
@@ -338,18 +356,20 @@ VALIDATION_FUNCTIONS = {
     DATE: is_valid_date,
     COORDINATES: is_valid_coords,
     NUMBER: is_valid_number,
-    TAXON: is_valid_taxon}
+    TAXON: is_valid_taxon,
+    UNIQUE: is_valid_unique}
 
 
-def validate_value(value, validation_conf, crossrefs):
+def validate_value(value, validation_conf):
     kind = validation_conf[TYPE]
     try:
-        is_value_validated_func = VALIDATION_FUNCTIONS[kind]
+        is_value_valid = VALIDATION_FUNCTIONS[kind]
     except KeyError:
         msg = f'This validation type {kind} is not implemented'
         raise NotImplementedError(msg)
 
     error_code = validation_conf[ERROR_CODE]
-    validation_conf['crossrefs_pointer'] = crossrefs
-    if not is_value_validated_func(value, validation_conf):
+
+    validation_conf
+    if not is_value_valid(value, validation_conf):
         return error_code
