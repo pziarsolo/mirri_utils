@@ -330,7 +330,7 @@ def validate_value2(value, step, crossrefs):
             f'This validation type {kind} is not implemented')
 
 
-VALIDATION_FUNCTION = {
+VALIDATION_FUNCTIONS = {
     MISSING: is_valid_missing,
     REGEXP: is_valid_regex,
     CHOICES: is_valid_choices,
@@ -344,7 +344,7 @@ VALIDATION_FUNCTION = {
 def validate_value(value, validation_conf, crossrefs):
     kind = validation_conf[TYPE]
     try:
-        is_value_validated_func = VALIDATION_FUNCTION[kind]
+        is_value_validated_func = VALIDATION_FUNCTIONS[kind]
     except KeyError:
         msg = f'This validation type {kind} is not implemented'
         raise NotImplementedError(msg)
