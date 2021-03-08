@@ -225,7 +225,7 @@ def is_valid_date(value, validation_conf):
 
         except (IndexError, TypeError):
             return False
-    if year < 1900 or year > datetime.now().year:
+    if year < 1700 or year > datetime.now().year:
         return False
     if month is not None:
         if month < 1 or month > 13:
