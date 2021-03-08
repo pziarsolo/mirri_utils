@@ -1,3 +1,4 @@
+from mirri.settings import SUBTAXAS
 import re
 from pathlib import Path
 from io import BytesIO
@@ -11,7 +12,7 @@ from mirri.io.parsers.excel import workbook_sheet_reader
 from mirri.validation.error import ErrorLog, Error
 from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
-                                   MISSING, MULTIPLE, NUMBER, REGEXP, SEPARATOR,
+                                   MISSING, MULTIPLE, NUMBER, REGEXP, SEPARATOR, TAXON,
                                    TYPE, VALIDATION, VALUES)
 
 from mirri.validation.validation_conf_20200601 import MIRRI_20200601_VALLIDATION_CONF
@@ -271,6 +272,28 @@ def is_valid_number(value, validation_conf):
         return False
 
 
+def is_valid_taxon(value, validation_conf):
+    value = value.strip()
+    if not value:
+        return True
+
+    items = re.split(r" +", value)
+    genus = items[0]
+
+    if len(items) > 1:
+        species = items[1]
+        if species in ("sp", "spp", ".sp", "sp."):
+            return False
+
+        if len(items) > 2:
+            for index in range(0, len(items[2:]), 2):
+                rank = SUBTAXAS.get(items[index + 2], None)
+                if rank is None:
+                    return False
+
+    return True
+
+
 def validate_value2(value, step, crossrefs):
     kind = step[TYPE]
     error_code = step[ERROR_CODE]
@@ -314,7 +337,8 @@ VALIDATION_FUNCTION = {
     CROSSREF: is_valid_crossrefs,
     DATE: is_valid_date,
     COORDINATES: is_valid_coords,
-    NUMBER: is_valid_number}
+    NUMBER: is_valid_number,
+    TAXON: is_valid_taxon}
 
 
 def validate_value(value, validation_conf, crossrefs):
