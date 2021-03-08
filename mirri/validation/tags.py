@@ -14,3 +14,5 @@ SOURCE = "sources"
 SEPARATOR = "separator"
 MATCH = 'match'
 VALUES = 'values'
+DATE = 'date'
+COORDINATES = 'coord'

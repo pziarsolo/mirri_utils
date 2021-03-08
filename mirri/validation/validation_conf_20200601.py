@@ -1,4 +1,4 @@
-from mirri.validation.tags import (CHOICES, COLUMNS, CROSSREF, CROSSREF_NAME,
+from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
                                    MISSING, MULTIPLE, REGEXP, SEPARATOR, TYPE,
                                    VALIDATION, VALUES)
@@ -123,21 +123,33 @@ STRAIN_FIELDS = [
     },
     {
         FIELD: "Date of deposit",
+        VALIDATION: [
+            {TYPE: DATE, ERROR_CODE: "STR00X"},
+        ]
     },
     {
         FIELD: "Date of inclusion in the catalogue",
+        VALIDATION: [
+            {TYPE: DATE, ERROR_CODE: "STR00X"},
+        ]
     },
     {
         FIELD: "Collected by",
     },
     {
         FIELD: "Date of collection",
+        VALIDATION: [
+            {TYPE: DATE, ERROR_CODE: "STR00X"},
+        ]
     },
     {
         FIELD: "Isolated by",
     },
     {
         FIELD: "Date of isolation",
+        VALIDATION: [
+            {TYPE: DATE, ERROR_CODE: "STR00X"},
+        ]
     },
     {
         FIELD: "Substrate/host of isolation",
@@ -165,6 +177,9 @@ STRAIN_FIELDS = [
     },
     {
         FIELD: "Coordinates of geographic origin",
+        VALIDATION: [
+            {TYPE: COORDINATES, ERROR_CODE: "STR00X"},
+        ]
     },
     {
         FIELD: "Altitude of geographic origin",

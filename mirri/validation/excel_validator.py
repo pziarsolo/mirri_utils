@@ -2,12 +2,14 @@ import re
 from pathlib import Path
 from io import BytesIO
 from zipfile import BadZipfile
+from datetime import datetime
+from calendar import monthrange
 
 from openpyxl import load_workbook
 
 from mirri.io.parsers.excel import workbook_sheet_reader
 from mirri.validation.error import ErrorLog, Error
-from mirri.validation.tags import (CHOICES, COLUMNS, CROSSREF, CROSSREF_NAME,
+from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
                                    MISSING, MULTIPLE, REGEXP, SEPARATOR,
                                    TYPE, VALIDATION, VALUES)
@@ -142,7 +144,13 @@ def validate_cell(value, validation_steps, crossrefs):
             return error
 
 
-def is_valid_regex(value, regexp, multiple=False, separator=';'):
+def is_valid_regex(value, validation_conf):
+    if value is None:
+        return True
+    regexp = validation_conf[MATCH]
+    multiple = validation_conf.get(MULTIPLE, False)
+    separator = validation_conf.get(SEPARATOR, None)
+
     if value is None:
         return True
     if multiple:
@@ -157,13 +165,20 @@ def is_valid_regex(value, regexp, multiple=False, separator=';'):
     return True
 
 
-def is_valid_choices(value, choices, multiple=False, separator=';'):
+def is_valid_crossrefs(value, validation_conf):
+    if value is None:
+        return True
+    crossref_name = validation_conf[CROSSREF_NAME]
+    crossrefs = validation_conf['crossrefs_pointer']
+    choices = crossrefs[crossref_name]
+    multiple = validation_conf.get(MULTIPLE, False)
+    separator = validation_conf.get(SEPARATOR, None)
     if value is None:
         return True
     if multiple:
         values = [v.strip() for v in value.split(separator)]
     else:
-        values = [str(value)]
+        values = [str(value).strip()]
 
     for value in values:
         if value not in choices:
@@ -171,7 +186,78 @@ def is_valid_choices(value, choices, multiple=False, separator=';'):
     return True
 
 
-def validate_value(value, step, crossrefs):
+def is_valid_choices(value, validation_conf):
+    if value is None:
+        return True
+    choices = validation_conf[VALUES]
+    multiple = validation_conf.get(MULTIPLE, False)
+    separator = validation_conf.get(SEPARATOR, None)
+
+    if multiple:
+        values = [v.strip() for v in str(value).split(separator)]
+    else:
+        values = [str(value).strip()]
+
+    for value in values:
+        if value not in choices:
+            return False
+    return True
+
+
+def is_valid_date(value, validation_conf):
+    if value is None:
+        return True
+    if isinstance(value, datetime):
+        year = value.year
+        month = value.month
+        day = value.day
+    else:
+        value = value.replace('-', '')
+        value = value.replace('/', '')
+        month = None
+        day = None
+        try:
+            year = int(value[: 4])
+            if len(value) >= 6:
+                month = int(value[4: 6])
+                if len(value) >= 8:
+                    day = int(value[6: 8])
+
+        except (IndexError, TypeError):
+            return False
+    if year < 1900 or year > datetime.now().year:
+        return False
+    if month is not None:
+        if month < 1 or month > 13:
+            return False
+        if day is not None and day < 1 or day > monthrange(year, month)[1]:
+            return False
+    return True
+
+
+def is_valid_coords(value, validation_conf=None):
+    if value is None:
+        return True
+    try:
+        items = [i.strip() for i in value.split(";")]
+        latitude = float(items[0])
+        longitude = float(items[1])
+        if len(items) > 2:
+            precision = float(items[2])
+        if latitude < -90 or latitude > 90:
+            return False
+        if longitude < -180 or longitude > 180:
+            return False
+        return True
+    except TypeError:
+        return False
+
+
+def is_valid_missing(value, validation_conf):
+    return True if value is not None else False
+
+
+def validate_value2(value, step, crossrefs):
     kind = step[TYPE]
     error_code = step[ERROR_CODE]
 
@@ -179,9 +265,7 @@ def validate_value(value, step, crossrefs):
         if value is None:
             return error_code
     elif kind == REGEXP:
-        regexp = step[MATCH]
-        multiple = step.get(MULTIPLE, False)
-        separator = step.get(SEPARATOR, None)
+
         if not is_valid_regex(value, regexp, multiple=multiple,
                               separator=separator):
             return error_code
@@ -198,6 +282,35 @@ def validate_value(value, step, crossrefs):
         separator = step.get(SEPARATOR, None)
         if not is_valid_choices(value, choices, multiple=multiple, separator=separator):
             return error_code
+    elif kind == DATE:
+        if not is_valid_date(value):
+            return error_code
+    elif kind == COORDINATES:
+        if not is_valid_coords(value):
+            return error_code
     else:
         raise NotImplementedError(
             f'This validation type {kind} is not implemented')
+
+
+VALIDATION_FUNCTION = {
+    MISSING: is_valid_missing,
+    REGEXP: is_valid_regex,
+    CHOICES: is_valid_choices,
+    CROSSREF: is_valid_crossrefs,
+    DATE: is_valid_date,
+    COORDINATES: is_valid_coords}
+
+
+def validate_value(value, validation_conf, crossrefs):
+    kind = validation_conf[TYPE]
+    try:
+        is_value_validated_func = VALIDATION_FUNCTION[kind]
+    except KeyError:
+        msg = f'This validation type {kind} is not implemented'
+        raise NotImplementedError(msg)
+
+    error_code = validation_conf[ERROR_CODE]
+    validation_conf['crossrefs_pointer'] = crossrefs
+    if not is_value_validated_func(value, validation_conf):
+        return error_code

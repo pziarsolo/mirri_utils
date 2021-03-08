@@ -8,7 +8,7 @@ from inspect import signature
 from difflib import SequenceMatcher
 from docx2pdf import convert
 from tempfile import NamedTemporaryFile
-from mirri.entities.strain import MirriValidationError
+from mirri.entities.strain import ValidationError
 
 DOCS_FOLDER = os.path.abspath(
     os.path.join(os.path.dirname(mirri.__file__), "..", "docs")
@@ -36,7 +36,7 @@ class Entity:
         try:
             self.name = self.entity_names[self.acronym]()
         except KeyError:
-            raise MirriValidationError(f"Unknown acronym {self.acronym}.")
+            raise ValidationError(f"Unknown acronym {self.acronym}.")
 
     @property
     def name(self):
