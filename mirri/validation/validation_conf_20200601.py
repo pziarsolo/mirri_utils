@@ -1,6 +1,6 @@
 from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
-                                   MISSING, MULTIPLE, REGEXP, SEPARATOR, TYPE,
+                                   MISSING, MULTIPLE, NUMBER, REGEXP, SEPARATOR, TYPE,
                                    VALIDATION, VALUES)
 from mirri.settings import (ONTOBIOTOPE, LOCATIONS, GROWTH_MEDIA, GENOMIC_INFO,
                             STRAINS, LITERATURE_SHEET)
@@ -183,6 +183,9 @@ STRAIN_FIELDS = [
     },
     {
         FIELD: "Altitude of geographic origin",
+        VALIDATION: [
+            {TYPE: NUMBER, 'max': 8000, 'min': -200, ERROR_CODE: "STR00X"},
+        ]
     },
     {
         # value can be in the cell or in another sheet. Don't configure this

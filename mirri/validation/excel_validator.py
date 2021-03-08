@@ -11,7 +11,7 @@ from mirri.io.parsers.excel import workbook_sheet_reader
 from mirri.validation.error import ErrorLog, Error
 from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
-                                   MISSING, MULTIPLE, REGEXP, SEPARATOR,
+                                   MISSING, MULTIPLE, NUMBER, REGEXP, SEPARATOR,
                                    TYPE, VALIDATION, VALUES)
 
 from mirri.validation.validation_conf_20200601 import MIRRI_20200601_VALLIDATION_CONF
@@ -257,6 +257,20 @@ def is_valid_missing(value, validation_conf):
     return True if value is not None else False
 
 
+def is_valid_number(value, validation_conf):
+    if value is None:
+        return True
+    try:
+        value = float(value)
+    except TypeError:
+        return False
+
+    _max = validation_conf.get('max', None)
+    _min = validation_conf.get('max', None)
+    if ((_max is not None and value > _max) or (_min is not None and value < _min)):
+        return False
+
+
 def validate_value2(value, step, crossrefs):
     kind = step[TYPE]
     error_code = step[ERROR_CODE]
@@ -299,7 +313,8 @@ VALIDATION_FUNCTION = {
     CHOICES: is_valid_choices,
     CROSSREF: is_valid_crossrefs,
     DATE: is_valid_date,
-    COORDINATES: is_valid_coords}
+    COORDINATES: is_valid_coords,
+    NUMBER: is_valid_number}
 
 
 def validate_value(value, validation_conf, crossrefs):
