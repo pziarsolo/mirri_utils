@@ -139,13 +139,13 @@ def validate_content(workbook, validation_conf, cross_ref_conf):
 
 def validate_cell(value, validation_steps, crossrefs, shown_values, label):
 
-    for step in validation_steps:
-        if step[TYPE] == MANDATORY:
+    for step_conf in validation_steps:
+        if step_conf[TYPE] == MANDATORY:
             continue
-        step['crossrefs_pointer'] = crossrefs
-        step['shown_values'] = shown_values
-        step['label'] = label
-        error_code = validate_value(value, step)
+        step_conf['crossrefs_pointer'] = crossrefs
+        step_conf['shown_values'] = shown_values
+        step_conf['label'] = label
+        error_code = validate_value(value, step_conf)
         if error_code is not None:
             return error_code
 
@@ -259,7 +259,7 @@ def is_valid_coords(value, validation_conf=None):
         return False
 
 
-def is_valid_missing(value, validation_conf):
+def is_valid_missing(value, validation_conf=None):
     return True if value is not None else False
 
 
@@ -277,7 +277,7 @@ def is_valid_number(value, validation_conf):
         return False
 
 
-def is_valid_taxon(value, validation_conf):
+def is_valid_taxon(value, validation_conf=None):
     value = value.strip()
     if not value:
         return True
@@ -301,51 +301,16 @@ def is_valid_taxon(value, validation_conf):
 
 def is_valid_unique(value, validation_conf):
     label = validation_conf['label']
-    if label not in validation_conf['shown_values']:
-        validation_conf['shown_values'][label] = {}
+    shown_values = validation_conf['shown_values']
+    if label not in shown_values:
+        shown_values[label] = {}
 
-    already_in_file = validation_conf['shown_values'].get(label, {})
+    already_in_file = shown_values[label]
     if value in already_in_file:
         return False
     else:
-        validation_conf['shown_values'][label][value] = {}
+        shown_values[label][value] = {}
         return True
-
-
-def validate_value2(value, step, crossrefs):
-    kind = step[TYPE]
-    error_code = step[ERROR_CODE]
-
-    if kind == MISSING:
-        if value is None:
-            return error_code
-    elif kind == REGEXP:
-
-        if not is_valid_regex(value, regexp, multiple=multiple,
-                              separator=separator):
-            return error_code
-    elif kind == CHOICES:
-        choices = step[VALUES]
-        multiple = step.get(MULTIPLE, False)
-        separator = step.get(SEPARATOR, None)
-        if not is_valid_choices(value, choices, multiple=multiple, separator=separator):
-            return error_code
-    elif kind == CROSSREF:
-        crossref_name = step[CROSSREF_NAME]
-        choices = crossrefs[crossref_name]
-        multiple = step.get(MULTIPLE, False)
-        separator = step.get(SEPARATOR, None)
-        if not is_valid_choices(value, choices, multiple=multiple, separator=separator):
-            return error_code
-    elif kind == DATE:
-        if not is_valid_date(value):
-            return error_code
-    elif kind == COORDINATES:
-        if not is_valid_coords(value):
-            return error_code
-    else:
-        raise NotImplementedError(
-            f'This validation type {kind} is not implemented')
 
 
 VALIDATION_FUNCTIONS = {
@@ -360,16 +325,15 @@ VALIDATION_FUNCTIONS = {
     UNIQUE: is_valid_unique}
 
 
-def validate_value(value, validation_conf):
-    kind = validation_conf[TYPE]
+def validate_value(value, step_conf):
+    kind = step_conf[TYPE]
     try:
         is_value_valid = VALIDATION_FUNCTIONS[kind]
     except KeyError:
         msg = f'This validation type {kind} is not implemented'
         raise NotImplementedError(msg)
 
-    error_code = validation_conf[ERROR_CODE]
+    error_code = step_conf[ERROR_CODE]
 
-    validation_conf
-    if not is_value_valid(value, validation_conf):
+    if not is_value_valid(value, step_conf):
         return error_code
