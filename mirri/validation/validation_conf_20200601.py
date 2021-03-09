@@ -15,10 +15,10 @@ STRAIN_FIELDS = [
     {
         FIELD: "Accession number",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: 'STR001'},
-            {TYPE: UNIQUE, ERROR_CODE: 'XXX'},
-            {TYPE: MISSING, ERROR_CODE: "STR00X"},
-            {TYPE: REGEXP, MATCH: "[^ ]* [^ ]*", ERROR_CODE: "STR002"}
+            {TYPE: MANDATORY, ERROR_CODE: 'STR01'},
+            {TYPE: MISSING, ERROR_CODE: "STR02"},
+            {TYPE: UNIQUE, ERROR_CODE: 'STR03'},
+            {TYPE: REGEXP, MATCH: "[^ ]* [^ ]*", ERROR_CODE: "STR04"}
         ]
     },
     {

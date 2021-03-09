@@ -37,9 +37,9 @@ def validate_excel(fhand, configuration):
     try:
         workbook = load_workbook(filename=BytesIO(fhand.read()))
     except (BadZipfile, IOError):
-        error = Error(
-            f"The  provided file {fhand.name} is not a valid xlsx excel file",
-            'Excel file error',)
+        error = Error('Excel file error',
+                      f"The  provided file {fhand.name} is not a valid xlsx excel file",
+                      fhand.name)
         error_log.add_error(error)
         return error_log
 
@@ -48,22 +48,17 @@ def validate_excel(fhand, configuration):
                                                      validation_conf))
     if structure_errors:
         for error in structure_errors:
-            # yield {'id': None, 'sheet': sheet_name, 'field': field,
-            #        'error_code': step[ERROR_CODE], 'value': None}
-            # error = Error()
-            # error_log.add_error(error)
-            print(error)
+            error = Error(error[ERROR_CODE], id, value)
+            error_log.add_error(error)
+
         return error_log
 
     content_errors = validate_content(workbook, validation_conf,
                                       cross_ref_conf)
 
     for error in content_errors:
-        # yield {'id': None, 'sheet': sheet_name, 'field': field,
-        #                    'error_code': step[ERROR_CODE], 'value': None}
-        # error = Error()
-        # error_log.add_error(error)
-        print(error)
+        error = Error(error[ERROR_CODE], id, value)
+        error_log.add_error(error)
     return error_log
 
 
