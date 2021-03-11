@@ -117,7 +117,7 @@ ORG_TYPES = {
 }
 
 
-class MirriValidationError(Exception):
+class ValidationError(Exception):
     pass
 
 
@@ -144,11 +144,11 @@ class OrganismType(FrozenClass):
             code = int(code)
         except TypeError as error:
             msg = f"code {code} not accepted for organism type"
-            raise MirriValidationError(msg) from error
+            raise ValidationError(msg) from error
 
         if code not in ORG_TYPES.values():
             msg = f"code {code} not accepted for organism type"
-            raise MirriValidationError(msg)
+            raise ValidationError(msg)
         self._data["code"] = code
         name = None
         for _name, _code in ORG_TYPES.items():
@@ -165,13 +165,13 @@ class OrganismType(FrozenClass):
         error_msg = f"name {name} not accepted for organism type"
 
         if name not in ORG_TYPES.keys():
-            raise MirriValidationError(error_msg)
+            raise ValidationError(error_msg)
         self._data["name"] = name
         self._data["code"] = ORG_TYPES[name]
 
     def guess_type(self, value):
         if value is None or not value:
-            raise MirriValidationError(" Can not set an empty value")
+            raise ValueError(" Can not set an empty value")
         try:
             value = int(value)
             value_is_code = True
@@ -231,7 +231,7 @@ class Taxonomy(FrozenClass):
             self._data[ORGANISM_TYPE] = organism_type
         else:
             msg = "organism_type must be a list of OrganismType instances"
-            raise MirriValidationError(msg)
+            raise ValidationError(msg)
 
     @property
     def infrasubspecific_name(self):
@@ -283,7 +283,7 @@ class Taxonomy(FrozenClass):
     def species_author(self, species_author):
         if not self.species:
             msg = "Can not set species author if species is not set"
-            raise MirriValidationError(msg)
+            raise ValidationError(msg)
         self._data[SPECIES]["author"] = species_author
 
     @property
@@ -308,7 +308,7 @@ class Taxonomy(FrozenClass):
 
     def add_subtaxa(self, subtaxa_rank, subtaxa_name, subtaxa_author=None):
         if subtaxa_rank not in ALLOWED_SUBTAXA:
-            raise ValueError("{} Rank not allowed".format(subtaxa_rank))
+            raise ValidationError("{} Rank not allowed".format(subtaxa_rank))
         if subtaxa_rank not in self._data:
             self._data[subtaxa_rank] = {}
         self._data[subtaxa_rank] = {"name": subtaxa_name}
@@ -390,9 +390,9 @@ class _GeneralStep(FrozenClass):
     @location.setter
     def location(self, location: Location):
         if self._location_tag is None:
-            return MirriValidationError("Can't set location on this class")
+            return ValidationError("Can't set location on this class")
         if not isinstance(location, Location):
-            raise MirriValidationError("Location must be a Location instance")
+            raise ValidationError("Location must be a Location instance")
         self._data[self._location_tag] = location
 
     @property
@@ -402,7 +402,7 @@ class _GeneralStep(FrozenClass):
     @who.setter
     def who(self, by_who: str):
         if self._who_tag is None:
-            return MirriValidationError("Can set who on this class")
+            return ValidationError("Can set who on this class")
         self._data[self._who_tag] = by_who
 
     @property
@@ -412,10 +412,10 @@ class _GeneralStep(FrozenClass):
     @date.setter
     def date(self, _date: DateRange):
         if self._date_tag is None:
-            return MirriValidationError("Can set date on this class")
+            return ValidationError("Can set date on this class")
         if _date is not None:
             if not isinstance(_date, DateRange):
-                raise MirriValidationError("Date must be a DateRange instance")
+                raise ValidationError("Date must be a DateRange instance")
             self._data[self._date_tag] = _date
 
     def dict(self):
@@ -483,7 +483,7 @@ class Collect(_GeneralStep):
     def habitat_ontobiotope(self, habitat: str):
         if habitat is not None:
             if not re.match("OB[ST]:[0-9]{6}", habitat):
-                raise MirriValidationError(
+                raise ValidationError(
                     f"Bad ontobiotope format, {habitat}")
             self._data[ONTOBIOTOPE_ISOLATION_HABITAT] = habitat
 
@@ -531,7 +531,7 @@ class StrainId(FrozenClass):
     def __init__(self, id_dict=None, collection=None, number=None):
         if id_dict and (collection or number):
             msg = "Can not initialize with dict and number or collection"
-            raise ValueError(msg)
+            raise ValidationError(msg)
         if id_dict is None:
             id_dict = {}
         self._id_dict = id_dict
@@ -617,7 +617,7 @@ class GenomicSequence(_FieldBasedClass):
             types = " ".join([m["acronym"] for m in ALLOWED_MARKER_TYPES])
             if value not in types:
                 msg = f"{value} not in allowed marker types: {types}"
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
             self._data[MARKER_TYPE] = value
 
     @property
@@ -697,7 +697,7 @@ class Genetics(FrozenClass):
             if value not in ALLOWED_PLOIDIES:
                 msg = f"{value} not in allowed ploidies: "
                 msg += f'{", ".join(str(p) for p in ALLOWED_PLOIDIES)}'
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
             self._data[PLOIDY] = value
 
     @property
@@ -707,7 +707,7 @@ class Genetics(FrozenClass):
     @gmo.setter
     def gmo(self, value: bool):
         if value is not None and not isinstance(value, bool):
-            raise MirriValidationError("Gmos value must be boolean")
+            raise ValidationError("Gmos value must be boolean")
         self._data[GMO] = value
 
     @property
@@ -759,7 +759,7 @@ class Genetics(FrozenClass):
         for marker in value:
             if not isinstance(marker, GenomicSequence):
                 msg = "Markers needs to be a GenomicSecuence instances list"
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
         self._data[MARKERS] = value
 
 
@@ -781,7 +781,7 @@ class Growth(_FieldBasedClass):
                 self._data[TESTED_TEMPERATURE_GROWTH_RANGE] = val
             else:
                 msg = "A dict with min and max is required"
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
 
     @property
     def recommended_media(self) -> List[str]:
@@ -792,7 +792,7 @@ class Growth(_FieldBasedClass):
         if value is not None:
             if not isinstance(value, (list, set)):
                 msg = "Recommendedn media must be a list"
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
             self._data[RECOMMENDED_GROWTH_MEDIUM] = value
 
     @property
@@ -894,7 +894,7 @@ class Strain(FrozenClass):
                 msg += "according to the specification."
                 # msg = f"Nagoya protocol options not matched: {nagoya}"
                 # msg += f' options: {", ".join(ALLOWED_NAGOYA_OPTIONS)}'
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
             self._data[NAGOYA_PROTOCOL] = nagoya
 
     @property
@@ -912,7 +912,7 @@ class Strain(FrozenClass):
                 msg += "to specification."
                 # msg = f"Value ({risk_gr}) not in the allowed options: "
                 # msg += f"{', '.join(ALLOWED_RISK_GROUPS)}"
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
             self._data[RISK_GROUP] = str(risk_gr)
 
     @property
@@ -927,7 +927,7 @@ class Strain(FrozenClass):
                 msg = "The 'Restriction on use' for strain with Accession "
                 msg += f"Number {self.id.collection} {self.id.number} is not "
                 msg += "according to the specification."
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
 
             self._data[RESTRICTION_ON_USE] = restriction
 
@@ -944,7 +944,7 @@ class Strain(FrozenClass):
         if is_harmful is not None:
             if not isinstance(is_harmful, bool):
                 msg = "is_potentially harmful must be True/False"
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
             self._data[DUAL_USE] = is_harmful
 
     @property
@@ -955,7 +955,7 @@ class Strain(FrozenClass):
     def is_subject_to_quarantine(self, quarantine: bool):
         if quarantine is not None and not isinstance(quarantine, bool):
             msg = "Is subject to quarantine must be boolean"
-            raise MirriValidationError(msg)
+            raise ValidationError(msg)
         self._data[QUARANTINE] = quarantine
 
     @property
@@ -967,7 +967,7 @@ class Strain(FrozenClass):
         if value is not None:
             if not isinstance(value, bool):
                 msg = "is from reg_collection must be boolean"
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
 
             self._data[STRAIN_FROM_REGISTERED_COLLECTION] = value
 
@@ -979,7 +979,7 @@ class Strain(FrozenClass):
     def catalog_inclusion_date(self, _date: Union[None, DateRange]):
         if _date is not None:
             if not isinstance(_date, DateRange):
-                raise MirriValidationError("Date must be a DateRange instance")
+                raise ValidationError("Date must be a DateRange instance")
             self._data[DATE_OF_INCLUSION] = _date
 
     @property
@@ -989,7 +989,7 @@ class Strain(FrozenClass):
     @abs_related_files.setter
     def abs_related_files(self, value: List[str]):
         if value is not None and not isinstance(value, list):
-            raise MirriValidationError("Value must be a list")
+            raise ValidationError("Value must be a list")
         if value is not None:
             self._data[ABS_RELATED_FILES] = value
 
@@ -1000,7 +1000,7 @@ class Strain(FrozenClass):
     @mta_files.setter
     def mta_files(self, value: List[str]):
         if value is not None and not isinstance(value, list):
-            raise MirriValidationError("Value must be a list")
+            raise ValidationError("Value must be a list")
         if value is not None:
             self._data[MTA_FILES] = value
 
@@ -1013,7 +1013,7 @@ class Strain(FrozenClass):
         for on in value:
             if not isinstance(on, StrainId):
                 msg = "Other number must be a list of Strain Id instances"
-                raise MirriValidationError(msg)
+                raise ValidationError(msg)
         self._data[OTHER_CULTURE_NUMBERS] = value
 
     @property
@@ -1045,7 +1045,7 @@ class Strain(FrozenClass):
         if {v.lower() for v in value}.difference(allowed):
             msg = f"Not allowed forms of supply {value}: "
             msg += f"{', '.join(ALLOWED_FORMS_OF_SUPPLY)}"
-            raise MirriValidationError(msg)
+            raise ValidationError(msg)
         self._data[FORM_OF_SUPPLY] = value
 
     @property
@@ -1103,12 +1103,12 @@ class Strain(FrozenClass):
     @publications.setter
     def publications(self, value: List[Publication]):
         if value is not None:
-            error_msg = "Publications must be Publication instaces"
+            error_msg = "Publications must be list Publication instances"
             if not isinstance(value, list):
-                raise MirriValidationError(error_msg)
+                raise ValidationError(error_msg)
             for pub in value:
                 if not isinstance(pub, Publication):
-                    raise MirriValidationError(error_msg)
+                    raise ValidationError(error_msg)
             self._data[PUBLICATIONS] = value
 
     # mierder

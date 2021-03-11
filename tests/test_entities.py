@@ -13,7 +13,7 @@ from mirri.entities.strain import (
     Deposit,
     GenomicSequence,
     Isolation,
-    MirriValidationError,
+    ValidationError,
     OrganismType,
     Strain,
     StrainId,
@@ -117,6 +117,8 @@ class TestOrganismType(unittest.TestCase):
         except TypeError:
             pass
 
+        org_type = OrganismType("Archaea")
+
 
 class TestTaxonomy(unittest.TestCase):
     def test_taxonomy_basic(self):
@@ -163,7 +165,7 @@ class TestStrain(unittest.TestCase):
         try:
             strain.nagoya_protocol = "asdas"
             self.fail()
-        except MirriValidationError:
+        except ValidationError:
             pass
 
         strain.nagoya_protocol = NAGOYA_APPLIES
@@ -226,21 +228,21 @@ class TestStrain(unittest.TestCase):
         try:
             strain.collect.habitat_ontobiotope = "OBT:11111"
             self.fail()
-        except MirriValidationError:
+        except ValidationError:
             pass
 
         # publications
         try:
             strain.publications = 1
             self.fail()
-        except MirriValidationError:
+        except ValidationError:
             pass
         pub = Publication()
         pub.id = "1"
         try:
             strain.publications = pub
             self.fail()
-        except MirriValidationError:
+        except ValidationError:
             pass
 
         strain.publications = [pub]
