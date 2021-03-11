@@ -35,6 +35,13 @@ class ErrorLog():
         self._counter = 0
         self.document = docx.Document(self._fpath_to_style_doc)
 
+    def __str__(self) -> str:
+        output = f"""Error Log for file {self.input_filename}\nENTITY | CODE   | MESSAGE"""
+        for acronym, error_list in self.get_errors().items():
+            for error in error_list:
+                output += f"\n{acronym:6} | {error.code:6} | {error.message[:100]}"
+        return output
+
     def write(self, path: str):
         """Write erros to log file
 

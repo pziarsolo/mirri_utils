@@ -20,7 +20,8 @@ class ErrorMessage():
         return [
             func
             for func in dir(self)
-            if callable(getattr(self, func)) and
+            if func.isupper() and
+            callable(getattr(self, func)) and
             not func.startswith("__")
         ]
 

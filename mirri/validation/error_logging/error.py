@@ -113,4 +113,4 @@ class Error():
 
     @property
     def message(self) -> str:
-        return ErrorMessage().message(self.code, self.pk, self.data)
+        return ErrorMessage(self.code, self.pk, self.data).message
