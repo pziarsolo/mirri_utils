@@ -9,7 +9,7 @@ from calendar import monthrange
 from openpyxl import load_workbook
 
 from mirri.io.parsers.excel import workbook_sheet_reader
-from mirri.validation.error import ErrorLog, Error
+from mirri.validation.error_logging import ErrorLog, Error
 from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
                                    MISSING, MULTIPLE, NUMBER, REGEXP, SEPARATOR, TAXON,

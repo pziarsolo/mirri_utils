@@ -1,3 +1,4 @@
+from typing import Optional
 import docx
 import os
 import mirri
@@ -27,19 +28,12 @@ class ErrorLog():
         self.input_filename = input_filename
         self.cc = cc
         self.date = datetime.strptime(
-            date, '%d-%m-%Y').date() if date is not None else None
+            date, r'%d-%m-%Y').date() if date is not None else None
 
-        self.errors = {}
+        self._errors = {}
         self.limit = limit
         self._counter = 0
-
-        self.fpath_to_style_doc = os.path.join(
-            DOCS_FOLDER, 'Error_Log_Style_Sheet.docx')
-        self.fpath_how_to_compile = os.path.join(
-            DOCS_FOLDER, 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf')
-        self.fpath_recommendations = os.path.join(
-            DOCS_FOLDER, 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf')
-        self.document = docx.Document(self.fpath_to_style_doc)
+        self.document = docx.Document(self._fpath_to_style_doc)
 
     def write(self, path: str):
         """Write erros to log file
@@ -67,16 +61,16 @@ class ErrorLog():
         paragraph = self.document.add_paragraph(
             'If you need help, please refer to the instructions contained in "')
         self._hyperlink(
-            paragraph, 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf', self.fpath_how_to_compile)
+            paragraph, 'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf', self._fpath_how_to_compile)
         paragraph.add_run('" and "')
         self._hyperlink(
-            paragraph, 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf', self.fpath_recommendations)
+            paragraph, 'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf', self._fpath_recommendations)
         paragraph.add_run(
             '".\nYou can also contact the MIRRI ICT by email using ')
         self._hyperlink(paragraph, 'ICT Support',
                         f'mailto:{mail_to}?Subject={subject}')
 
-        if 'EFS' in self.errors:
+        if 'EFS' in self._errors:
             entity = Entity("EFS")
             self.document.add_page_break()
             self.document.add_heading(
@@ -87,14 +81,14 @@ class ErrorLog():
 
         if self._counter == self.limit:
             self._limit_message()
-        elif len(self.errors.keys()) > 1:
+        elif len(self._errors.keys()) > 1:
             self.document.add_page_break()
             self.document.add_heading(
                 'Analysis of Data Set', level=1).style = self.document.styles['Heading 1']
             self.document.add_paragraph(
                 'Your Data shows the following errors or missing items:')
 
-            for entity_acronym in self.errors:
+            for entity_acronym in self._errors:
                 if entity_acronym in ['EFS', 'UCT']:
                     continue
                 entity = Entity(entity_acronym)
@@ -109,7 +103,7 @@ class ErrorLog():
 
             if self._counter == self.limit:
                 self._limit_message()
-            elif 'UCT' in self.errors:
+            elif 'UCT' in self._errors:
                 self.document.add_page_break()
                 self.document.add_heading(
                     'Uncategorized Errors', level=1).style = self.document.styles['Heading 1']
@@ -186,9 +180,9 @@ class ErrorLog():
         subhdr_cells[1].paragraphs[0].style = self.document.styles['Table Header']
 
         if sort_func is not None:
-            errors = sorted(self.errors[entity.acronym], key=sort_func)
+            errors = sorted(self._errors[entity.acronym], key=sort_func)
         else:
-            errors = self.errors[entity.acronym]
+            errors = self._errors[entity.acronym]
 
         for error in errors:
             row_cells = table.add_row().cells
@@ -210,82 +204,52 @@ class ErrorLog():
         )
 
     @property
-    def input_filename(self):
-        """
-            Getter for input filename
+    def _fpath_to_style_doc(self) -> str:
+        return os.path.join(DOCS_FOLDER, 'Error_Log_Style_Sheet.docx')
 
-            return
-                input filename [str]: name of the file which the error log is derived from
-        """
+    @property
+    def _fpath_how_to_compile(self) -> str:
+        return os.path.join(
+            DOCS_FOLDER,
+            'ICT-TaskForce_HowToCompileTheSheets_v20200601.pdf'
+        )
+
+    @property
+    def _fpath_recommendations(self) -> str:
+        return os.path.join(
+            DOCS_FOLDER,
+            'ICT-TaskForce_RecommendationsToCollections_v20200601.pdf'
+        )
+
+    @property
+    def input_filename(self) -> str:
         return self._input_filename
 
     @input_filename.setter
-    def input_filename(self, input_filename: str):
-        """
-            Setter for input filename
-
-            Args:
-                input filename (str): name of the file which the error log is derived from
-        """
+    def input_filename(self, input_filename: str) -> None:
         self._input_filename = input_filename
 
     @property
-    def cc(self):
-        """
-            Getter for culture collection identifier
-
-            return
-                cc [str]: culture collection identifier
-        """
+    def cc(self) -> str:
         return self._cc
 
     @cc.setter
-    def cc(self, cc: str):
-        """
-            Setter for culture collection identifier
-
-            Args:
-                cc (str): culture collection identifier
-        """
+    def cc(self, cc: str) -> None:
         self._cc = cc
 
     @property
-    def date(self):
-        """
-            Getter for date the inputed file was submited for validation
-
-            return
-                date [str]: date the inputed file was submited for validation
-        """
+    def date(self) -> Optional[datetime]:
         return self._date
 
     @date.setter
-    def date(self, date):
-        """
-            Setter for date the inputed file was submited for validation
-
-            Args:
-                date (str): date the inputed file was submited for validation
-        """
+    def date(self, date: Optional[datetime] = None) -> None:
         self._date = date
 
-    def get_errors(self):
-        """
-            Getter for errors identified
+    def get_errors(self) -> dict:
+        return self._errors
 
-            return
-                errors [dict]: errors identified
-        """
-        return self.errors
-
-    def add_error(self, error: Error):
-        """
-            Add an error
-
-            Args:
-                error (Error): error to be added
-        """
-        if error.entity.acronym not in self.errors:
-            self.errors[error.entity.acronym] = [error]
+    def add_error(self, error: Error) -> list:
+        if error.entity.acronym not in self._errors:
+            self._errors[error.entity.acronym] = [error]
         else:
-            self.errors[error.entity.acronym].append(error)
+            self._errors[error.entity.acronym].append(error)
