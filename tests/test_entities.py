@@ -226,21 +226,21 @@ class TestStrain(unittest.TestCase):
         try:
             strain.collect.habitat_ontobiotope = "OBT:11111"
             self.fail()
-        except ValueError:
+        except MirriValidationError:
             pass
 
         # publications
         try:
             strain.publications = 1
             self.fail()
-        except ValueError:
+        except MirriValidationError:
             pass
         pub = Publication()
         pub.id = "1"
         try:
             strain.publications = pub
             self.fail()
-        except ValueError:
+        except MirriValidationError:
             pass
 
         strain.publications = [pub]

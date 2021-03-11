@@ -1,5 +1,6 @@
 import sys
 from io import BytesIO
+from zipfile import BadZipfile
 from mirri.validation.mirri_excel_structure import validate_excel_structure
 from pathlib import Path
 from itertools import chain
@@ -22,11 +23,17 @@ TYPES_TRANSLATOR = {
 
 
 def validate_mirri_excel(fhand, version="20200601", debug=False):
-    # fhand = r"C:\Users\jbravo\Desktop\KPD_MIRRI-IS_dataset_v20201116_v1.2.xlsx"
-    workbook = load_workbook(filename=BytesIO(fhand.read()))
-
     excel_name = Path(fhand.name).stem
     error_log = ErrorLog(excel_name)
+
+    try:
+        workbook = load_workbook(filename=BytesIO(fhand.read()))
+    except (BadZipfile, IOError):
+        error = Error(
+            f"The  provided file {fhand.name} is not a valid xlsx excel file",
+            'Excel file error',)
+        error_log.add_error(error)
+        return error_log
 
     # excel structure errors
     structure_errors = list(validate_excel_structure(workbook))
@@ -34,6 +41,7 @@ def validate_mirri_excel(fhand, version="20200601", debug=False):
         for error in structure_errors:
             error_log.add_error(error)
         return error_log
+
     if debug:
         sys.stderr.write("validating content\n")
     # excel content errors
