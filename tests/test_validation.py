@@ -11,17 +11,19 @@ class MirriExcelValidationTests(unittest.TestCase):
         in_path = TEST_DATA_DIR / "invalid_structure.mirri.xlsx"
         with in_path.open("rb") as fhand:
             error_log = validate_mirri_excel(fhand)
+
+        self.assertIn("STR", error_log.get_errors().keys())
+        self.assertIn("XXX", error_log.get_errors().keys())
+        str_error = error_log.get_errors()["STR"]
+        xxx_error = error_log.get_errors()["XXX"]
+
+        error_msgs = [err.message for err in str_error]
+        print(error_msgs)
         return
-        self.assertIn("EFS", error_log.errors.keys())
-        self.assertIn("GMD", error_log.errors.keys())
-        efs_error = error_log.errors["EFS"]
-        gmd_error = error_log.errors["GMD"]
-
-        error_msgs = [err.message for err in efs_error]
-
         self.assertIn(
             "The 'Ontobiotope' sheet is missing. Please check the provided excel template",
             error_msgs,
+
         )
 
         self.assertIn(
@@ -37,6 +39,9 @@ class MirriExcelValidationTests(unittest.TestCase):
         in_path = TEST_DATA_DIR / "invalid_content.mirri.xlsx"
         with in_path.open("rb") as fhand:
             error_log = validate_mirri_excel(fhand)
+        for kind, errors in error_log.get_errors().items():
+            for error in errors:
+                print(kind, error.message, error.code)
 
     def test_validation_valid(self):
         in_path = TEST_DATA_DIR / "valid.mirri.xlsx"
