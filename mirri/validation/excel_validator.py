@@ -24,7 +24,7 @@ def validate_mirri_excel(fhand, version="20200601"):
     else:
         raise NotImplementedError("Only version20200601 is implemented")
 
-    validate_excel(fhand, configuration)
+    return validate_excel(fhand, configuration)
 
 
 def validate_excel(fhand, configuration):
@@ -48,7 +48,8 @@ def validate_excel(fhand, configuration):
                                                      validation_conf))
     if structure_errors:
         for error in structure_errors:
-            error = Error(error[ERROR_CODE], id, value)
+            error = Error(error[ERROR_CODE], pk=error['id'],
+                          data=error['value'])
             error_log.add_error(error)
 
         return error_log
@@ -57,7 +58,7 @@ def validate_excel(fhand, configuration):
                                       cross_ref_conf)
 
     for error in content_errors:
-        error = Error(error[ERROR_CODE], id, value)
+        error = Error(error[ERROR_CODE], pk=error['id'], data=error['value'])
         error_log.add_error(error)
     return error_log
 
