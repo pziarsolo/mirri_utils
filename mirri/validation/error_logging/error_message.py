@@ -114,7 +114,7 @@ class ErrorMessage():
         return f"The 'Country' named as {self.value} is incorrect."
 
     def GOD04(self):
-        return f"The 'Locality' is missing for Country {self.value}."
+        return f"The 'Locality' is a mandatory field for each Country. It is missing for Country {self.value}."
 
     """
         Literature Error Codes
@@ -139,7 +139,7 @@ class ErrorMessage():
         return f"The 'Title' is missing for ID number {self.pk}."
 
     def LID07(self):
-        return "The 'Journal' is a mandatory field  in the Literature sheet. The column can not be empty."
+        return "The 'Journal' is a mandatory field in the Literature sheet. The column can not be empty."
 
     def LID08(self):
         return f"The 'Journal' is missing for ID number {self.pk}."
@@ -167,155 +167,155 @@ class ErrorMessage():
     """
 
     def STD01(self):
-        return "The 'Accession number' is a mandatory field in the Strains sheet. The column can not be empty."
+        return "The 'Accession number' column is a mandatory field in the Strains sheet."
 
     def STD02(self):
-        return "The 'Accession number' can not be empty."
+        return "The 'Accession number' column is missing or incorrectly named."
 
     def STD03(self):
         return f"The 'Accesion number' must be unique. The '{self.value}' is repeated."
 
     def STD04(self):
-        return f"The 'Accession number' {self.pk} is not according to the specification. \
-            It must be a sequence of one or more '<substring of characters> <substring of characters>' \
-            separated by a semicolon."
+        return f"The 'Accession number' {self.pk} is not according to the specification."
 
     def STD05(self):
-        return f"The 'Other culture collection numbers' for strain with Accession Number {self.pk} is not according to the specification. \
-            It must be a sequence of one or more '<substring of characters> <substring of characters>' \
-            separated by a semicolon."
+        return f"The 'Restriction on use' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
 
     def STD06(self):
-        return "The 'Restriction on use' is a mandatory field. The column can not be empty."
+        return "The 'Restriction on use' column is missing or incorrectly named."
 
     def STD07(self):
-        return f"The 'Restriction on use' for strain with Accession Number {self.pk} is not according to the specification."
+        return f"The 'Restriction on use' for strain with Accession Number {self.pk} is not according to the specification.\
+            Your value is {self.value} and the accepted values are 1, 2, 3."
 
     def STD08(self):
-        return "The 'Nagoya protocol restrictions and compliance conditions' is a mandatory field. The column can not be empty."
+        return f"The 'Nagoya protocol restrictions and compliance conditions' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
 
     def STD09(self):
-        return f"The 'Nagoya protocol restrictions and compliance conditions' for strain with Accession Number {self.pk} is not according to the specification."
+        return f"The 'Nagoya protocol restrictions and compliance conditions' column is missing or incorrectly named."
 
     def STD10(self):
-        return f"The 'ABS related files' for strain with Accession Number {self.pk} is not a valid URL."
+        return f"The 'Nagoya protocol restrictions and compliance conditions' for strain with Accession Number {self.pk} is not according to the specification.\
+            Your value is {self.value} and the accepted values are 1, 2, 3."
 
     def STD11(self):
-        return f"The 'MTA file' for strain with Accession Number {self.pk} is not a valid URL."
+        return f"The 'Strain from a registered collection' for strain with Accession Number {self.pk} is not according to specification.\
+            Your value is {self.value} and the accepted values are 1, 2, 3."
 
     def STD12(self):
-        return f"The 'Strain from a registered collection' for strain with Accession Number {self.pk} is not according to specification."
+        return f"The 'Risk group' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
 
     def STD13(self):
-        return "The 'Risk group' is a mandatory field. The column can not be empty."
+        return "The 'Risk group' column is missing or incorrectly named."
 
     def STD14(self):
-        return f"The 'Risk group' for strain with Accession Number {self.pk} is not according to specification."
+        return f"The 'Risk group' for strain with Accession Number {self.pk} is not according to specification.\
+            Your value is {self.value} and the accepted values are 1, 2, 3, 4."
 
     def STD15(self):
-        return f"The 'Dual use' for strain with Accession Number {self.pk} is not according to specification."
+        return f"The 'Dual use' for strain with Accession Number {self.pk} is not according to specification.\
+            Your value is {self.value} and the accepted values are 1, 2."
 
     def STD16(self):
-        return f"The “Quarantine in europe” for strain with Accession Number {self.pk} is not according to specification."
+        return f"The “Quarantine in europe” for strain with Accession Number {self.pk} is not according to specification.\
+            Your value is {self.value} and the accepted values are 1, 2."
 
     def STD17(self):
-        return "The 'Organism type' is a mandatory field. The column can not be empty."
+        return f"The 'Organism type' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
 
     def STD18(self):
-        return f"The 'Organism type' for strain with Accession Number {self.pk} is incorrect."
+        return "The 'Organism type' column is missing or incorrectly named."
 
     def STD19(self):
-        return "The 'Taxon name' is a mandatory field. The column can not be empty."
+        return f"The 'Organism type' for strain with Accession Number {self.pk} is not according to specification.\
+            Your value is {self.value} and the accepted values are 'Algae', 'Archaea', 'Bacteria', 'Cyanobacteria', \
+            'Filamentous Fungi',  'Phage', 'Plasmid', 'Virus', 'Yeast'."
 
     def STD20(self):
-        return f"The 'Taxon name' is missing for strain with Accession Number {self.pk}."
+        return f"The 'Taxon name' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
 
     def STD21(self):
-        return f"The 'Infrasubspecific names' for strain with Accession Number {self.pk} is incorrect."
+        return "The 'Taxon name' column is missing or incorrectly name."
 
     def STD22(self):
-        return f"The 'History of deposit' sequence for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'Taxon name' for strain with Accession Number {self.pk} is not according to specification."
 
     def STD23(self):
-        return f"The 'Date of deposit' for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'Interspecific hybrid' for strain with Accession Number {self.pk} is not according to specification.\
+            Your value is {self.value} and the accepted values are 1, 2."
 
     def STD24(self):
-        return f"The 'Date of collection' for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'History of deposit' for strain with Accession Number {self.pk} is not according to specification."
 
     def STD25(self):
-        return f"The 'Date of isolation' for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'Date of deposit' for strain with Accession Number {self.pk} is incorrect.\
+            The allowed formats are 'YYYY-MM-DD', 'YYYYMMDD', 'YYYYMM', and 'YYYY'."
 
     def STD26(self):
-        return f"The 'Date of inclusion in the catalogue' for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'Date of inclusion in the catalogue' for strain with Accession Number {self.pk} is incorrect.\
+            The allowed formats are 'YYYY-MM-DD', 'YYYYMMDD', 'YYYYMM', and 'YYYY'."
 
     def STD27(self):
-        return f"The 'Tested temperature growth range' for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'Date of collection' for strain with Accession Number {self.pk} is incorrect.\
+            The allowed formats are 'YYYY-MM-DD', 'YYYYMMDD', 'YYYYMM', and 'YYYY'."
 
     def STD28(self):
-        return f"The 'Recommended growth temperature' is a mandatory field for eash strain. The column can not be empty."
+        return f"The 'Date of isolation' for strain with Accession Number {self.pk} is incorrect.\
+            The allowed formats are 'YYYY-MM-DD', 'YYYYMMDD', 'YYYYMM', and 'YYYY'."
 
     def STD29(self):
-        return f"The 'Recommended growth temperature' is missing for strain with Accession Number {self.pk}."
+        return f"The 'Tested temperature growth range' for strain with Accession Number {self.pk} is incorrect.\
+            It must have two decimal numbers separated by ','"
 
     def STD30(self):
-        return "The 'Recommended medium for growth' is a mandatory field. The column can not be empty."
+        return f"The 'Recommended growth temperature' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
 
     def STD31(self):
-        return f"The 'Recommended medium for growth' is missing for strain with Accession Number {self.pk}."
+        return "The 'Recommended growth temperature' column is missing or incorrectly named."
 
     def STD32(self):
-        return "The 'Forms of supply' is a mandatory field. The column can not be empty."
+        return f"The 'Recommended growth temperature' for strain with Accession Number {self.pk} is incorrect.\
+            It must have two decimal numbers separated by ','."
 
     def STD33(self):
-        return f"The 'Forms of supply' is missing for strain with Accession Number {self.pk}."
+        return f"The 'Recommended medium for growth' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
 
     def STD34(self):
-        return f"The 'Coordinates of geographic origin' for strain with Accession Number {self.pk} are incorrect."
+        return "The 'Recommended medium for growth' column is missing or incorreclt named."
 
     def STD35(self):
-        return f"The 'Altitude of geographic origin' for strain with Accession Number {self.pk} are incorrect."
+        return f"The value of 'Recommended medium for growth' for strain with Accession Number {self.pk} is not in the Growth Media Sheet."
 
     def STD36(self):
-        return "The 'Geographic origin' is a mandatory field. The column can not be empty."
+        return f"The 'Forms of supply' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
 
     def STD37(self):
-        return f"The 'Geographic origin' is missing for strain with Accession Number {self.pk}."
+        return "The 'Forms of supply' column is missing or incorrectly named."
 
     def STD38(self):
-        return f"The 'GMO' for strain with Accession Number {self.pk} is incorrect."
+        return f"The value of 'Forms of supply' for strain with Accession Number {self.pk} is not in the Forms of Supply Sheet."
 
     def STD39(self):
-        return f"The 'Literature' for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'Coordinates of geographic origin' column for strain with Accession Number {self.pk} is incorrect."
 
     def STD40(self):
-        return f"The 'Sexual state' for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'Altitude of geographic origin' column for strain with Accession Number {self.pk} is incorrect."
 
     def STD41(self):
-        return f"The 'Ploidy' for strain with Accession Number {self.pk} is incorrect."
+        return f"The value of 'Ontobiotope term for the isolation habitat' for strain with Accession Number {self.pk} is not in the Ontobiotope Sheet."
 
     def STD42(self):
-        return f"The 'Interspecific hybrid' for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'GMO' for strain with Accession Number {self.pk} is not according to specification.\
+            Your value is {self.value} and the accepted values are 1, 2"
 
     def STD43(self):
-        return f"The 'Plasmids collection fields' for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'Sexual State' for strain with Accession Number {self.pk} is not according to specification.\
+            Your value is {self.value} and the accepted values are 'Mata', 'Matalpha', 'Mata/Matalpha', \
+            'Matb', 'Mata/Matb', 'MTLa', 'MTLalpha', 'MTLa/MTLalpha', 'MAT1-1', 'MAT1-2', 'MAT1', 'MAT2', 'MT+', 'MT-'"
 
     def STD44(self):
-        return f"The 'Ontobiotope term for the isolation habitat' for strain with Accession Number {self.pk} is incorrect."
-
-    def STD45(self):
-        return f"The 'Literature linked to the sequence/genome' for strain with Accession Number {self.pk} is incorrect."
-
-    def STD46(self):
-        return f"The “Taxon Name” for strain with Accession Number {self.pk} is not according to specification."
-
-    def STD47(self):
-        return f"The “Location” for strain with Accession Number {self.pk} is not in Geographic Origin sheet."
-
-    def STD48(self):
-        return f"The 'Organism Type' is missing for strain with Accession Number {self.pk}."
-
-    def STD49(self):
-        return f"The 'Nagoya protocol restrictions and compliance conditions' is missing for strain with Accession Number {self.pk}."
+        return f"The 'Ploidy' for strain with Accession Number {self.pk} is not according to specification.\
+            Your value is {self.value} and the accepted values are 0, 1, 2, 3, 4, 9"
 
     """
         Genomic Information Error Codes
