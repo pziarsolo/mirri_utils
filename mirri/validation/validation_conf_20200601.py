@@ -15,28 +15,28 @@ STRAIN_FIELDS = [
     {
         FIELD: "Accession number",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: 'STR001'},
-            {TYPE: UNIQUE, ERROR_CODE: 'STR002'},
-            {TYPE: MISSING, ERROR_CODE: "STR003"},
-            {TYPE: REGEXP, MATCH: "[^ ]* [^ ]*", ERROR_CODE: "STR004"}
+            {TYPE: MANDATORY, ERROR_CODE: 'STD01'},
+            {TYPE: UNIQUE, ERROR_CODE: 'STD02'},
+            {TYPE: MISSING, ERROR_CODE: "STD03"},
+            {TYPE: REGEXP, MATCH: "[^ ]* [^ ]*", ERROR_CODE: "STD04"}
         ]
     },
     {
         FIELD: "Restrictions on use",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR005"},
-            {TYPE: MISSING, ERROR_CODE: "STR006"},
+            {TYPE: MANDATORY, ERROR_CODE: "STD05"},
+            {TYPE: MISSING, ERROR_CODE: "STD06"},
             {TYPE: CHOICES, VALUES: ["1", "2", "3"],
-             MULTIPLE: False, ERROR_CODE: "STR007"}
+             MULTIPLE: False, ERROR_CODE: "STD07"}
         ]
     },
     {
         FIELD: "Nagoya protocol restrictions and compliance conditions",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR008"},
-            {TYPE: MISSING, ERROR_CODE: "STR009"},
+            {TYPE: MANDATORY, ERROR_CODE: "STD08"},
+            {TYPE: MISSING, ERROR_CODE: "STD09"},
             {TYPE: CHOICES, VALUES: ["1", "2", "3"],
-             MULTIPLE: False, ERROR_CODE: "STR010"}
+             MULTIPLE: False, ERROR_CODE: "STD10"}
         ]
     },
     {
@@ -50,7 +50,7 @@ STRAIN_FIELDS = [
     {
         FIELD: "Other culture collection numbers",
         # VALIDATION: [
-        #     {TYPE: REGEXP, "match": "[^ ]* [^ ]*", ERROR_CODE: "STR007",
+        #     {TYPE: REGEXP, "match": "[^ ]* [^ ]*", ERROR_CODE: "STD07",
         #      MULTIPLE: True, SEPARATOR: ";"}
         # ]
     },
@@ -58,50 +58,50 @@ STRAIN_FIELDS = [
         FIELD: "Strain from a registered collection",
         VALIDATION: [
             {TYPE: CHOICES, VALUES: ["1", "2"],
-             ERROR_CODE: "STR011"}
+             ERROR_CODE: "STD11"}
         ]
     },
     {
         FIELD: "Risk Group",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR012"},
-            {TYPE: MISSING, ERROR_CODE: "STR013"},
+            {TYPE: MANDATORY, ERROR_CODE: "STD12"},
+            {TYPE: MISSING, ERROR_CODE: "STD13"},
             {TYPE: CHOICES, VALUES: ["1", "2", "3", "4"],
-             MULTIPLE: False, ERROR_CODE: "STR014"}
+             MULTIPLE: False, ERROR_CODE: "STD14"}
         ]
     },
     {
         FIELD: "Dual use",
         VALIDATION: [
             {TYPE: CHOICES, VALUES: ["1", "2"],
-             ERROR_CODE: "STR015"}
+             ERROR_CODE: "STD15"}
         ]
     },
     {
         FIELD: "Quarantine in Europe",
         VALIDATION: [
             {TYPE: CHOICES, VALUES: ["1", "2"],
-             ERROR_CODE: "STR016"}
+             ERROR_CODE: "STD16"}
         ]
     },
     {
         FIELD: "Organism type",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR017"},
-            {TYPE: MISSING, ERROR_CODE: "STR018"},
+            {TYPE: MANDATORY, ERROR_CODE: "STD17"},
+            {TYPE: MISSING, ERROR_CODE: "STD18"},
             {TYPE: CHOICES, VALUES: ["Algae", "Archaea", "Bacteria",
                                      "Cyanobacteria", "Filamentous Fungi",
                                      "Phage", "Plasmid", "Virus", "Yeast",
                                      "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-             MULTIPLE: True, SEPARATOR: ";",  ERROR_CODE: "STR019"}
+             MULTIPLE: True, SEPARATOR: ";",  ERROR_CODE: "STD19"}
         ]
     },
     {
         FIELD: "Taxon name",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR020"},
-            {TYPE: MISSING, ERROR_CODE: "STR021"},
-            {TYPE: TAXON, ERROR_CODE: "STR022"}
+            {TYPE: MANDATORY, ERROR_CODE: "STD20"},
+            {TYPE: MISSING, ERROR_CODE: "STD21"},
+            {TYPE: TAXON, ERROR_CODE: "STD22"}
         ]
     },
     {
@@ -114,7 +114,7 @@ STRAIN_FIELDS = [
         FIELD: "Interspecific hybrid",
         VALIDATION: [
             {TYPE: CHOICES, VALUES: ["1", "2"],
-             ERROR_CODE: "STR023"}
+             ERROR_CODE: "STD23"}
         ]
     },
     {
@@ -123,7 +123,7 @@ STRAIN_FIELDS = [
     {
         FIELD: "History of deposit",
         VALIDATION: [
-            {TYPE: REGEXP, "match": "[^ ]* [^ ]*", ERROR_CODE: "STR024",  # modify the regex
+            {TYPE: REGEXP, "match": "[^ ]* [^ ]*", ERROR_CODE: "STD24",  # modify the regex
              MULTIPLE: True, SEPARATOR: ";"}
         ]
     },
@@ -133,13 +133,13 @@ STRAIN_FIELDS = [
     {
         FIELD: "Date of deposit",
         VALIDATION: [
-            {TYPE: DATE, ERROR_CODE: "STR025"},
+            {TYPE: DATE, ERROR_CODE: "STD25"},
         ]
     },
     {
         FIELD: "Date of inclusion in the catalogue",
         VALIDATION: [
-            {TYPE: DATE, ERROR_CODE: "STR026"},
+            {TYPE: DATE, ERROR_CODE: "STD26"},
         ]
     },
     {
@@ -148,7 +148,7 @@ STRAIN_FIELDS = [
     {
         FIELD: "Date of collection",
         VALIDATION: [
-            {TYPE: DATE, ERROR_CODE: "STR027"},
+            {TYPE: DATE, ERROR_CODE: "STD27"},
         ]
     },
     {
@@ -157,7 +157,7 @@ STRAIN_FIELDS = [
     {
         FIELD: "Date of isolation",
         VALIDATION: [
-            {TYPE: DATE, ERROR_CODE: "STR028"},
+            {TYPE: DATE, ERROR_CODE: "STD28"},
         ]
     },
     {
@@ -166,35 +166,35 @@ STRAIN_FIELDS = [
     {
         FIELD: "Tested temperature growth range",
         VALIDATION: [
-            {TYPE: DECIMAL, ERROR_CODE: "STR029",
+            {TYPE: DECIMAL, ERROR_CODE: "STD29",
              MULTIPLE: True, SEPARATOR: ";"}
         ]
     },
     {
         FIELD: "Recommended growth temperature",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR030"},
-            {TYPE: MISSING, ERROR_CODE: "STR031"},
-            {TYPE: DECIMAL, ERROR_CODE: "STR032",
+            {TYPE: MANDATORY, ERROR_CODE: "STD30"},
+            {TYPE: MISSING, ERROR_CODE: "STD31"},
+            {TYPE: DECIMAL, ERROR_CODE: "STD32",
              MULTIPLE: True, SEPARATOR: ";"}
         ]
     },
     {
         FIELD: "Recommended medium for growth",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR033"},
-            {TYPE: MISSING, ERROR_CODE: "STR034"},
+            {TYPE: MANDATORY, ERROR_CODE: "STD33"},
+            {TYPE: MISSING, ERROR_CODE: "STD34"},
             {TYPE: CROSSREF, CROSSREF_NAME: "Growth media",
-             MULTIPLE: True, SEPARATOR: "/", ERROR_CODE: "STR035"}
+             MULTIPLE: True, SEPARATOR: "/", ERROR_CODE: "STD35"}
         ]
     },
     {
         FIELD: "Form of supply",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR036"},
-            {TYPE: MISSING, ERROR_CODE: "STR037"},
+            {TYPE: MANDATORY, ERROR_CODE: "STD36"},
+            {TYPE: MISSING, ERROR_CODE: "STD37"},
             {TYPE: CROSSREF, CROSSREF_NAME: "Forms of supply",
-             MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STR038"}
+             MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STD38"}
         ]
     },
     {
@@ -203,13 +203,13 @@ STRAIN_FIELDS = [
     {
         FIELD: "Coordinates of geographic origin",
         VALIDATION: [
-            {TYPE: COORDINATES, ERROR_CODE: "STR039"},
+            {TYPE: COORDINATES, ERROR_CODE: "STD39"},
         ]
     },
     {
         FIELD: "Altitude of geographic origin",
         VALIDATION: [
-            {TYPE: NUMBER, 'max': 8000, 'min': -200, ERROR_CODE: "STR040"},
+            {TYPE: NUMBER, 'max': 8000, 'min': -200, ERROR_CODE: "STD40"},
         ]
     },
     {
@@ -223,14 +223,14 @@ STRAIN_FIELDS = [
         FIELD: "Ontobiotope term for the isolation habitat",
         VALIDATION: [
             {TYPE: CROSSREF, CROSSREF_NAME: "Ontobiotope",
-             MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STR041"}
+             MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STD41"}
         ]
     },
     {
         FIELD: "GMO",
         VALIDATION: [
             {TYPE: CHOICES, VALUES: ["1", "2"],
-             ERROR_CODE: "STR042"}
+             ERROR_CODE: "STD42"}
         ]
     },
     {
@@ -248,14 +248,14 @@ STRAIN_FIELDS = [
             {TYPE: CHOICES, VALUES: ["Mata", "Matalpha", "Mata/Matalpha", "Mata",
                                      "Matb", "Mata/Matb", "MTLa", "MTLalpha", "MTLa/MTLalpha",
                                      "MAT1-1", "MAT1-2", "MAT1", "MAT2", "MT+", "MT-"],
-             ERROR_CODE: "STR043"}
+             ERROR_CODE: "STD43"}
         ]
     },
     {
         FIELD: "Ploidy",
         VALIDATION: [
             {TYPE: CHOICES, VALUES: ["0", "1", "2", "3", "4", "9"],
-             ERROR_CODE: "STR044"}
+             ERROR_CODE: "STD44"}
         ]
     },
     {
@@ -300,15 +300,15 @@ SHEETS_SCHEMA = {
             {
                 FIELD: "ID",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
                 FIELD: "Country",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"}
+                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"}
                 ]
             },
             {
@@ -322,8 +322,8 @@ SHEETS_SCHEMA = {
             {
                 FIELD: "Locality",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"}
+                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"}
                 ]
             }
         ],
@@ -335,15 +335,15 @@ SHEETS_SCHEMA = {
             {
                 FIELD: "Acronym",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"}
+                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"}
                 ]
             },
             {
                 FIELD: "Description",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"}
+                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"}
                 ]
             },
             {
@@ -359,8 +359,8 @@ SHEETS_SCHEMA = {
             {
                 FIELD: "Strain AN",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                     {TYPE: CROSSREF, CROSSREF_NAME: "Strains",
                      ERROR_CODE: "XXX"},
                 ]
@@ -368,8 +368,8 @@ SHEETS_SCHEMA = {
             {
                 FIELD: "Marker",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                     {TYPE: CHOICES, ERROR_CODE: "XXX",
                      VALUES: ['16S rRNA', 'ACT', 'CaM', 'EF-1α', 'ITS',
                               'LSU', 'RPB1', 'RPB2', 'TUBB']}
@@ -378,8 +378,8 @@ SHEETS_SCHEMA = {
             {
                 FIELD: "INSDC AN",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
@@ -403,49 +403,49 @@ SHEETS_SCHEMA = {
                 FIELD: "ID",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
                 FIELD: "Full reference",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
                 FIELD: "Authors",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
                 FIELD: "Title",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
                 FIELD: "Journal",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
                 FIELD: "Year",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
                 FIELD: "Volume",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
@@ -456,7 +456,7 @@ SHEETS_SCHEMA = {
                 FIELD: "First page",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
@@ -489,15 +489,15 @@ SHEETS_SCHEMA = {
             {
                 FIELD: "ID",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
             {
                 FIELD: "Name",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-                    {TYPE: MISSING, ERROR_CODE: "STR00X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
+                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
                 ]
             },
         ]
