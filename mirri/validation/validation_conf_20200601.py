@@ -15,28 +15,28 @@ STRAIN_FIELDS = [
     {
         FIELD: "Accession number",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: 'STR01'},
-            {TYPE: MISSING, ERROR_CODE: "STR02"},
-            {TYPE: UNIQUE, ERROR_CODE: 'STR03'},
-            {TYPE: REGEXP, MATCH: "[^ ]* [^ ]*", ERROR_CODE: "STR04"}
+            {TYPE: MANDATORY, ERROR_CODE: 'STR001'},
+            {TYPE: UNIQUE, ERROR_CODE: 'STR002'},
+            {TYPE: MISSING, ERROR_CODE: "STR003"},
+            {TYPE: REGEXP, MATCH: "[^ ]* [^ ]*", ERROR_CODE: "STR004"}
         ]
     },
     {
         FIELD: "Restrictions on use",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR003"},
-            {TYPE: MISSING, ERROR_CODE: "STR00X"},
+            {TYPE: MANDATORY, ERROR_CODE: "STR005"},
+            {TYPE: MISSING, ERROR_CODE: "STR006"},
             {TYPE: CHOICES, VALUES: ["1", "2", "3"],
-             MULTIPLE: False, ERROR_CODE: "STR004"}
+             MULTIPLE: False, ERROR_CODE: "STR007"}
         ]
     },
     {
         FIELD: "Nagoya protocol restrictions and compliance conditions",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR005"},
-            {TYPE: MISSING, ERROR_CODE: "STR00X"},
+            {TYPE: MANDATORY, ERROR_CODE: "STR008"},
+            {TYPE: MISSING, ERROR_CODE: "STR009"},
             {TYPE: CHOICES, VALUES: ["1", "2", "3"],
-             MULTIPLE: False, ERROR_CODE: "STR006"}
+             MULTIPLE: False, ERROR_CODE: "STR010"}
         ]
     },
     {
@@ -58,50 +58,50 @@ STRAIN_FIELDS = [
         FIELD: "Strain from a registered collection",
         VALIDATION: [
             {TYPE: CHOICES, VALUES: ["1", "2"],
-             ERROR_CODE: "STR008"}
+             ERROR_CODE: "STR011"}
         ]
     },
     {
         FIELD: "Risk Group",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR009"},
-            {TYPE: MISSING, ERROR_CODE: "STR00X"},
+            {TYPE: MANDATORY, ERROR_CODE: "STR012"},
+            {TYPE: MISSING, ERROR_CODE: "STR013"},
             {TYPE: CHOICES, VALUES: ["1", "2", "3", "4"],
-             MULTIPLE: False, ERROR_CODE: "STR0010"}
+             MULTIPLE: False, ERROR_CODE: "STR014"}
         ]
     },
     {
         FIELD: "Dual use",
         VALIDATION: [
             {TYPE: CHOICES, VALUES: ["1", "2"],
-             ERROR_CODE: "STR0011"}
+             ERROR_CODE: "STR015"}
         ]
     },
     {
         FIELD: "Quarantine in Europe",
         VALIDATION: [
             {TYPE: CHOICES, VALUES: ["1", "2"],
-             ERROR_CODE: "STR0012"}
+             ERROR_CODE: "STR016"}
         ]
     },
     {
         FIELD: "Organism type",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR013"},
-            {TYPE: MISSING, ERROR_CODE: "STR00X"},
+            {TYPE: MANDATORY, ERROR_CODE: "STR017"},
+            {TYPE: MISSING, ERROR_CODE: "STR018"},
             {TYPE: CHOICES, VALUES: ["Algae", "Archaea", "Bacteria",
                                      "Cyanobacteria", "Filamentous Fungi",
                                      "Phage", "Plasmid", "Virus", "Yeast",
                                      "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-             MULTIPLE: True, SEPARATOR: ";",  ERROR_CODE: "STR014"}
+             MULTIPLE: True, SEPARATOR: ";",  ERROR_CODE: "STR019"}
         ]
     },
     {
         FIELD: "Taxon name",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR015"},
-            {TYPE: MISSING, ERROR_CODE: "STR00X"},
-            {TYPE: TAXON, ERROR_CODE: "STR016"}
+            {TYPE: MANDATORY, ERROR_CODE: "STR020"},
+            {TYPE: MISSING, ERROR_CODE: "STR021"},
+            {TYPE: TAXON, ERROR_CODE: "STR022"}
         ]
     },
     {
@@ -111,13 +111,21 @@ STRAIN_FIELDS = [
         FIELD: "Comment on taxonomy",
     },
     {
-        FIELD: "Interspecific hybrid"
+        FIELD: "Interspecific hybrid",
+        VALIDATION: [
+            {TYPE: CHOICES, VALUES: ["1", "2"],
+             ERROR_CODE: "STR023"}
+        ]
     },
     {
         FIELD: "Status",
     },
     {
-        FIELD: "History of deposit"
+        FIELD: "History of deposit",
+        VALIDATION: [
+            {TYPE: REGEXP, "match": "[^ ]* [^ ]*", ERROR_CODE: "STR024",  # modify the regex
+             MULTIPLE: True, SEPARATOR: ";"}
+        ]
     },
     {
         FIELD: "Depositor"
@@ -125,13 +133,13 @@ STRAIN_FIELDS = [
     {
         FIELD: "Date of deposit",
         VALIDATION: [
-            {TYPE: DATE, ERROR_CODE: "STR00X"},
+            {TYPE: DATE, ERROR_CODE: "STR025"},
         ]
     },
     {
         FIELD: "Date of inclusion in the catalogue",
         VALIDATION: [
-            {TYPE: DATE, ERROR_CODE: "STR00X"},
+            {TYPE: DATE, ERROR_CODE: "STR026"},
         ]
     },
     {
@@ -140,7 +148,7 @@ STRAIN_FIELDS = [
     {
         FIELD: "Date of collection",
         VALIDATION: [
-            {TYPE: DATE, ERROR_CODE: "STR00X"},
+            {TYPE: DATE, ERROR_CODE: "STR027"},
         ]
     },
     {
@@ -149,7 +157,7 @@ STRAIN_FIELDS = [
     {
         FIELD: "Date of isolation",
         VALIDATION: [
-            {TYPE: DATE, ERROR_CODE: "STR00X"},
+            {TYPE: DATE, ERROR_CODE: "STR028"},
         ]
     },
     {
@@ -157,21 +165,37 @@ STRAIN_FIELDS = [
     },
     {
         FIELD: "Tested temperature growth range",
+        VALIDATION: [
+            {TYPE: DECIMAL, ERROR_CODE: "STR029",
+             MULTIPLE: True, SEPARATOR: ";"}
+        ]
     },
     {
         FIELD: "Recommended growth temperature",
+        VALIDATION: [
+            {TYPE: MANDATORY, ERROR_CODE: "STR030"},
+            {TYPE: MISSING, ERROR_CODE: "STR031"},
+            {TYPE: DECIMAL, ERROR_CODE: "STR032",
+             MULTIPLE: True, SEPARATOR: ";"}
+        ]
     },
     {
         FIELD: "Recommended medium for growth",
         VALIDATION: [
-            {TYPE: MANDATORY, ERROR_CODE: "STR00X"},
-            {TYPE: MISSING, ERROR_CODE: "STR00X"},
+            {TYPE: MANDATORY, ERROR_CODE: "STR033"},
+            {TYPE: MISSING, ERROR_CODE: "STR034"},
             {TYPE: CROSSREF, CROSSREF_NAME: "Growth media",
-             MULTIPLE: True, SEPARATOR: "/", ERROR_CODE: "STR00X"}
+             MULTIPLE: True, SEPARATOR: "/", ERROR_CODE: "STR035"}
         ]
     },
     {
         FIELD: "Form of supply",
+        VALIDATION: [
+            {TYPE: MANDATORY, ERROR_CODE: "STR036"},
+            {TYPE: MISSING, ERROR_CODE: "STR037"},
+            {TYPE: CROSSREF, CROSSREF_NAME: "Forms of supply",
+             MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STR038"}
+        ]
     },
     {
         FIELD: "Other denomination",
@@ -179,13 +203,13 @@ STRAIN_FIELDS = [
     {
         FIELD: "Coordinates of geographic origin",
         VALIDATION: [
-            {TYPE: COORDINATES, ERROR_CODE: "STR00X"},
+            {TYPE: COORDINATES, ERROR_CODE: "STR039"},
         ]
     },
     {
         FIELD: "Altitude of geographic origin",
         VALIDATION: [
-            {TYPE: NUMBER, 'max': 8000, 'min': -200, ERROR_CODE: "STR00X"},
+            {TYPE: NUMBER, 'max': 8000, 'min': -200, ERROR_CODE: "STR040"},
         ]
     },
     {
@@ -197,9 +221,17 @@ STRAIN_FIELDS = [
     },
     {
         FIELD: "Ontobiotope term for the isolation habitat",
+        VALIDATION: [
+            {TYPE: CROSSREF, CROSSREF_NAME: "Ontobiotope",
+             MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STR041"}
+        ]
     },
     {
-        FIELD: "GMO"
+        FIELD: "GMO",
+        VALIDATION: [
+            {TYPE: CHOICES, VALUES: ["1", "2"],
+             ERROR_CODE: "STR042"}
+        ]
     },
     {
         FIELD: "GMO construction information",
@@ -212,9 +244,19 @@ STRAIN_FIELDS = [
     },
     {
         FIELD: "Sexual state",
+        VALIDATION: [
+            {TYPE: CHOICES, VALUES: ["Mata", "Matalpha", "Mata/Matalpha", "Mata",
+                                     "Matb", "Mata/Matb", "MTLa", "MTLalpha", "MTLa/MTLalpha",
+                                     "MAT1-1", "MAT1-2", "MAT1", "MAT2", "MT+", "MT-"],
+             ERROR_CODE: "STR043"}
+        ]
     },
     {
         FIELD: "Ploidy",
+        VALIDATION: [
+            {TYPE: CHOICES, VALUES: ["0", "1", "2", "3", "4", "9"],
+             ERROR_CODE: "STR044"}
+        ]
     },
     {
         FIELD: "Plasmids",
