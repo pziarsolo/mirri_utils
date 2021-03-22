@@ -101,11 +101,10 @@ def _get_values_from_columns(workbook, sheet_name, columns):
 
 
 def get_all_crossrefs(workbook, cross_refs_names):
-    crossrefs = {}
-    for ref_name, columns in cross_refs_names.items():
-        crossrefs[ref_name] = _get_values_from_columns(workbook, ref_name,
-                                                       columns)
-    return crossrefs
+    return {
+        ref_name: _get_values_from_columns(workbook, ref_name, columns)
+        for ref_name, columns in cross_refs_names.items()
+    }
 
 
 def validate_content(workbook, validation_conf, cross_ref_conf):
@@ -155,11 +154,8 @@ def is_valid_regex(value, validation_conf):
 
     if value is None:
         return True
-    if multiple:
-        values = [v.strip() for v in value.split(separator)]
-    else:
-        values = [value]
-
+    values = [v.strip() for v in value.split(
+        separator)] if multiple else [value]
     for value in values:
         matches_regexp = re.fullmatch(regexp, value)
         if not matches_regexp:
@@ -182,10 +178,7 @@ def is_valid_crossrefs(value, validation_conf):
     else:
         values = [str(value).strip()]
 
-    for value in values:
-        if value not in choices:
-            return False
-    return True
+    return all(value in choices for value in values)
 
 
 def is_valid_choices(value, validation_conf):
@@ -200,10 +193,7 @@ def is_valid_choices(value, validation_conf):
     else:
         values = [str(value).strip()]
 
-    for value in values:
-        if value not in choices:
-            return False
-    return True
+    return all(value in choices for value in values)
 
 
 def is_valid_date(value, validation_conf):
@@ -238,6 +228,7 @@ def is_valid_date(value, validation_conf):
 
 
 def is_valid_coords(value, validation_conf=None):
+    # sourcery skip: return-identity
     if value is None:
         return True
     try:
@@ -256,7 +247,7 @@ def is_valid_coords(value, validation_conf=None):
 
 
 def is_valid_missing(value, validation_conf=None):
-    return True if value is not None else False
+    return value is not None
 
 
 def is_valid_number(value, validation_conf):
@@ -304,9 +295,8 @@ def is_valid_unique(value, validation_conf):
     already_in_file = shown_values[label]
     if value in already_in_file:
         return False
-    else:
-        shown_values[label][value] = {}
-        return True
+    shown_values[label][value] = {}
+    return True
 
 
 VALIDATION_FUNCTIONS = {
