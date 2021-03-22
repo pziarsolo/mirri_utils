@@ -62,6 +62,9 @@ class Entity():
     def GID(self) -> str:
         return 'Genomic Information'
 
+    def OTD(self) -> str:
+        return 'Ontobiotope'
+
     def UCT(self) -> str:
         return 'Uncategorized'
 
