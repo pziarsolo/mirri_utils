@@ -95,72 +95,93 @@ class ErrorMessage():
     """
 
     def GMD01(self):
-        return "The 'Acronym' is a mandatory field in the Growth Media sheet. The column can not be empty."
+        return "The 'Acronym' column is a mandatory field in the Growth Media sheet."
 
     def GMD02(self):
-        return "The 'Description' is a mandatory field in the Growth Media sheet. The column can not be empty."
+        return "The 'Acronym' column is empty or has missing values."
+
+    def GMD03(self):
+        return "The 'Description' column is a mandatory field in the Growth Media sheet. The column can not be empty."
+
+    def GMD04(self):
+        return f"The 'Description' for growth media with Acronym {self.pk} is missing."
 
     """
         Geographic Origin Error Codes
     """
 
     def GOD01(self):
-        return "The 'ID' is a mandatory field in the Geographic Origin sheet. The column can not be empty."
+        return "The 'ID' column is a mandatory field in the Geographic Origin sheet."
 
     def GOD02(self):
-        return "The 'Country' is a mandatory field in the Geographic Origin sheet. The column can not be empty."
+        return "The 'ID' column is empty or has missing values."
 
     def GOD03(self):
-        return f"The 'Country' named as {self.value} is incorrect."
+        return "The 'Country' column is a mandatory field in the Geographic Origin sheet. The column can not be empty."
 
     def GOD04(self):
-        return f"The 'Locality' is a mandatory field for each Country. It is missing for Country {self.value}."
+        return f"The 'Country' for geographic origin with ID {self.pk} is missing."
+
+    def GOD05(self):
+        return f"The 'Country' for geographic origin with ID {self.pk} is incorrect."
+
+    def GOD06(self):
+        return f"The 'Locality' column is a mandatory field in the Geographic Origin sheet. The column can not be empty."
+
+    def GOD07(self):
+        return f"The 'Locality' for geographic origin with ID {self.pk} is missing."
 
     """
         Literature Error Codes
     """
 
     def LID01(self):
-        return "The 'ID' is a mandatory field in the Literature sheet. The column can not be empty."
+        return "The 'ID' column is a mandatory field in the Literature sheet."
 
     def LID02(self):
-        return "The 'Full reference' is a mandatory field in the Literature sheet. The column can not be empty."
+        return "The 'ID' column empty or missing values."
 
     def LID03(self):
-        return "The 'Authors' is a mandatory field in the Literature sheet. The column can not be empty."
+        return "The 'Full reference' column is a mandatory field in the Literature sheet. The column can not be empty."
 
     def LID04(self):
-        return f"The 'Authors' is missing for ID number {self.pk}."
+        return f"The 'Full reference' for literature with ID {self.pk} is missing."
 
     def LID05(self):
-        return "The 'Title' is a mandatory field in the Literature sheet. The column can not be empty."
+        return "The 'Authors' column is a mandatory field in the Literature sheet. The column can not be empty."
 
     def LID06(self):
-        return f"The 'Title' is missing for ID number {self.pk}."
+        return f"The 'Authors' for literature with ID {self.pk} is missing."
 
     def LID07(self):
-        return "The 'Journal' is a mandatory field in the Literature sheet. The column can not be empty."
+        return "The 'Title' column is a mandatory field in the Literature sheet. The column can not be empty."
 
     def LID08(self):
-        return f"The 'Journal' is missing for ID number {self.pk}."
+        return f"The 'Title' for literature with ID {self.pk} is missing."
 
     def LID09(self):
-        return "The 'Year' is a mandatory field in the Literature sheet. The column can not be empty."
+        return "The 'Journal' column is a mandatory field in the Literature sheet. The column can not be empty."
 
-    def LID10(self,):
-        return f"The 'Year' is missing for ID number {self.pk}."
+    def LID10(self):
+        return f"The 'Journal' for literature with ID {self.pk} is missing."
 
     def LID11(self):
-        return "The 'Volume' is a mandatory field in the Literature sheet. The column can not be empty."
+        return "The 'Year' column is a mandatory field in the Literature sheet. The column can not be empty."
 
-    def LID12(self):
-        return f"The 'Volume' is missing for ID number {self.pk}."
+    def LID12(self,):
+        return f"The 'Year' for literature with ID {self.pk} is missing."
 
     def LID13(self):
-        return "The 'First page' is a mandatory field. The column can not be empty."
+        return "The 'Volume' column is a mandatory field in the Literature sheet. The column can not be empty."
 
     def LID14(self):
-        return f"The 'First page' is missing for ID number {self.pk}."
+        return f"The 'Volume' for literature with ID {self.pk} is missing."
+
+    def LID15(self):
+        return "The 'First page' column is a mandatory field. The column can not be empty."
+
+    def LID16(self):
+        return f"The 'First page' for literature with ID {self.pk} is missing."
 
     """
         Strains Error Codes
@@ -170,29 +191,30 @@ class ErrorMessage():
         return "The 'Accession number' column is a mandatory field in the Strains sheet."
 
     def STD02(self):
-        return "The 'Accession number' column is missing or incorrectly named."
+        return "The 'Accession number' column is empty or has missing values."
 
     def STD03(self):
         return f"The 'Accesion number' must be unique. The '{self.value}' is repeated."
 
     def STD04(self):
-        return f"The 'Accession number' {self.pk} is not according to the specification."
+        return f"The 'Accession number' {self.pk} is not according to the specification.\
+            The value must be of the format '<Sequence of characters> <sequence of characters>'."
 
     def STD05(self):
-        return f"The 'Restriction on use' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
+        return f"The 'Restriction on use' column is a mandatory field in the Strains Sheet. The column can not be empty."
 
     def STD06(self):
-        return "The 'Restriction on use' column is missing or incorrectly named."
+        return f"The 'Restriction on use' for strain with Accession Number {self.pk} is missing."
 
     def STD07(self):
         return f"The 'Restriction on use' for strain with Accession Number {self.pk} is not according to the specification.\
             Your value is {self.value} and the accepted values are 1, 2, 3."
 
     def STD08(self):
-        return f"The 'Nagoya protocol restrictions and compliance conditions' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
+        return f"The 'Nagoya protocol restrictions and compliance conditions' column is a mandatory field in the Strains Sheet. The column can not be empty."
 
     def STD09(self):
-        return f"The 'Nagoya protocol restrictions and compliance conditions' column is missing or incorrectly named."
+        return f"The 'Nagoya protocol restrictions and compliance conditions' for strain with Accession Number {self.pk} is missing."
 
     def STD10(self):
         return f"The 'Nagoya protocol restrictions and compliance conditions' for strain with Accession Number {self.pk} is not according to the specification.\
@@ -203,10 +225,10 @@ class ErrorMessage():
             Your value is {self.value} and the accepted values are 1, 2, 3."
 
     def STD12(self):
-        return f"The 'Risk group' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
+        return "The 'Risk group' column is a mandatory field in the Strains Sheet. The column can not be empty."
 
     def STD13(self):
-        return "The 'Risk group' column is missing or incorrectly named."
+        return f"The 'Risk group' for strain with Accession Number {self.pk} is missing."
 
     def STD14(self):
         return f"The 'Risk group' for strain with Accession Number {self.pk} is not according to specification.\
@@ -221,31 +243,31 @@ class ErrorMessage():
             Your value is {self.value} and the accepted values are 1, 2."
 
     def STD17(self):
-        return f"The 'Organism type' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
+        return f"The 'Organism type' column is a mandatory field in the Strains Sheet. The column can not be empty."
 
     def STD18(self):
-        return "The 'Organism type' column is missing or incorrectly named."
+        return f"The 'Organism type' for strain with Accession Number {self.pk} is missing."
 
     def STD19(self):
         return f"The 'Organism type' for strain with Accession Number {self.pk} is not according to specification.\
             Your value is {self.value} and the accepted values are 'Algae', 'Archaea', 'Bacteria', 'Cyanobacteria', \
-            'Filamentous Fungi',  'Phage', 'Plasmid', 'Virus', 'Yeast'."
+            'Filamentous Fungi',  'Phage', 'Plasmid', 'Virus', 'Yeast', 1, 2, 3, 4, 5, 6, 7, 8, 9."
 
     def STD20(self):
-        return f"The 'Taxon name' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
+        return f"The 'Taxon name' column is a mandatory field in the Strains Sheet. The column can not be empty."
 
     def STD21(self):
-        return "The 'Taxon name' column is missing or incorrectly name."
+        return f"The 'Taxon name' for strain with Accession Number {self.pk} is missing."
 
     def STD22(self):
-        return f"The 'Taxon name' for strain with Accession Number {self.pk} is not according to specification."
+        return f"The 'Taxon name' for strain with Accession Number {self.pk} is incorrect."
 
     def STD23(self):
         return f"The 'Interspecific hybrid' for strain with Accession Number {self.pk} is not according to specification.\
             Your value is {self.value} and the accepted values are 1, 2."
 
     def STD24(self):
-        return f"The 'History of deposit' for strain with Accession Number {self.pk} is not according to specification."
+        return f"The 'History of deposit' for strain with Accession Number {self.pk} is incorrect."
 
     def STD25(self):
         return f"The 'Date of deposit' for strain with Accession Number {self.pk} is incorrect.\
@@ -268,38 +290,41 @@ class ErrorMessage():
             It must have two decimal numbers separated by ','"
 
     def STD30(self):
-        return f"The 'Recommended growth temperature' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
+        return f"The 'Recommended growth temperature' column is a mandatory field in the Strains Sheet. The column can not be empty."
 
     def STD31(self):
-        return "The 'Recommended growth temperature' column is missing or incorrectly named."
+        return f"The 'Recommended growth temperature' for strain with Accession Number {self.pk} is missing."
 
     def STD32(self):
         return f"The 'Recommended growth temperature' for strain with Accession Number {self.pk} is incorrect.\
             It must have two decimal numbers separated by ','."
 
     def STD33(self):
-        return f"The 'Recommended medium for growth' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
+        return f"The 'Recommended medium for growth' column is a mandatory field in the Strains Sheet. The column can not be empty."
 
     def STD34(self):
-        return "The 'Recommended medium for growth' column is missing or incorreclt named."
+        return f"The 'Recommended medium for growth' for strain with Accession Number {self.pk} is missing."
 
     def STD35(self):
         return f"The value of 'Recommended medium for growth' for strain with Accession Number {self.pk} is not in the Growth Media Sheet."
 
     def STD36(self):
-        return f"The 'Forms of supply' column for strain with Accession Number {self.pk} is a mandatory field in the Strains Sheet."
+        return f"The 'Forms of supply' column is a mandatory field in the Strains Sheet. The column can not be empty."
 
     def STD37(self):
-        return "The 'Forms of supply' column is missing or incorrectly named."
+        return f"The 'Forms of supply' for strain with Accession Number {self.pk} is missing."
 
     def STD38(self):
         return f"The value of 'Forms of supply' for strain with Accession Number {self.pk} is not in the Forms of Supply Sheet."
 
     def STD39(self):
-        return f"The 'Coordinates of geographic origin' column for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'Coordinates of geographic origin' column for strain with Accession Number {self.pk} is incorrect.\
+            The allowed formats are two or three decimal numbers separated by ','. Moreover, the first number must be\
+            between [-90, 90], the second between [-180, 180], and the third, if provided, can assume any value."
 
     def STD40(self):
-        return f"The 'Altitude of geographic origin' column for strain with Accession Number {self.pk} is incorrect."
+        return f"The 'Altitude of geographic origin' column for strain with Accession Number {self.pk} is incorrect.\
+            The allowed formats are one decimal number between [-200, 8000]."
 
     def STD41(self):
         return f"The value of 'Ontobiotope term for the isolation habitat' for strain with Accession Number {self.pk} is not in the Ontobiotope Sheet."
@@ -322,13 +347,48 @@ class ErrorMessage():
     """
 
     def GID01(self):
-        return f"The 'Strain Acession Number' (Strain AN) with ID {self.pk} is incorrect."
+        return f"The 'Strain Acession Number' (Strain AN) column is a mandatory field in the Genomic Information Sheet."
 
     def GID02(self):
-        return f"The 'Marker' for Strain with ID {self.pk} is incorrect."
+        return f"The 'Strain Acession Number' (Strain AN) column is empty or has missing values."
 
     def GID03(self):
-        return f"The 'INSDC AN' for Strain with ID {self.pk} is incorrect."
+        return f"The value of 'Strain Acession Number' (Strain AN) {self.value} is not in the Strains sheet."
 
     def GID04(self):
-        return f"The 'Sequence' for Strain with ID {self.pk} is incorrect."
+        return f"The 'Marker' column is a mandatory field in the Genomic Information Sheet. The column can not be empty."
+
+    def GID05(self):
+        return f"The 'Marker' for genomic information with Strain AN {self.pk} is missing."
+
+    def GID06(self):
+        return f"The 'Marker' for genomic information with Strain AN {self.pk} is incorrect."
+
+    def GID07(self):
+        return f"The 'INSDC AN' column is a mandatory field in the Genomic Information Sheet. The column can not be empty."
+
+    def GID08(self):
+        return f"The 'INSDC AN' for genomic information with Strain AN {self.pk} is missing."
+
+    def GID09(self):
+        return f"The 'INSDC AN' for genomic information with Strain AN {self.pk} is incorrect."
+
+    def GID10(self):
+        return f"The 'Sequence' for genomic information with Strain AN {self.pk} is incorrect.\
+            It must be a sequence of 'G', 'T', 'A', 'C' characteres of any length and without white spaces."
+
+    """
+        Ontobiotope Error Codes
+    """
+
+    def OTD01(self):
+        return "The 'ID' columns is a mandatory field in the Ontobiotope Sheet."
+
+    def OTD02(self):
+        return "The 'ID' columns is empty or has missing values."
+
+    def OTD03(self):
+        return "The 'Name' columns is a mandatory field in the Ontobiotope Sheet. The column can not be empty."
+
+    def OTD04(self):
+        return f"The 'Name' for ontobiotope with ID {self.pk} is missing."

@@ -16,8 +16,8 @@ STRAIN_FIELDS = [
         FIELD: "Accession number",
         VALIDATION: [
             {TYPE: MANDATORY, ERROR_CODE: 'STD01'},
-            {TYPE: UNIQUE, ERROR_CODE: 'STD02'},
-            {TYPE: MISSING, ERROR_CODE: "STD03"},
+            {TYPE: UNIQUE, ERROR_CODE: 'STD03'},
+            {TYPE: MISSING, ERROR_CODE: "STD02"},
             {TYPE: REGEXP, MATCH: "[^ ]* [^ ]*", ERROR_CODE: "STD04"}
         ]
     },
@@ -166,7 +166,7 @@ STRAIN_FIELDS = [
     {
         FIELD: "Tested temperature growth range",
         VALIDATION: [
-            {TYPE: DECIMAL, ERROR_CODE: "STD29",
+            {TYPE: REGEXP, "match": r"\d+", ERROR_CODE: "STD29",
              MULTIPLE: True, SEPARATOR: ";"}
         ]
     },
@@ -175,7 +175,7 @@ STRAIN_FIELDS = [
         VALIDATION: [
             {TYPE: MANDATORY, ERROR_CODE: "STD30"},
             {TYPE: MISSING, ERROR_CODE: "STD31"},
-            {TYPE: DECIMAL, ERROR_CODE: "STD32",
+            {TYPE: REGEXP, "match": r"\d+", ERROR_CODE: "STD32",
              MULTIPLE: True, SEPARATOR: ";"}
         ]
     },
@@ -245,7 +245,7 @@ STRAIN_FIELDS = [
     {
         FIELD: "Sexual state",
         VALIDATION: [
-            {TYPE: CHOICES, VALUES: ["Mata", "Matalpha", "Mata/Matalpha", "Mata",
+            {TYPE: CHOICES, VALUES: ["Mata", "Matalpha", "Mata/Matalpha",
                                      "Matb", "Mata/Matb", "MTLa", "MTLalpha", "MTLa/MTLalpha",
                                      "MAT1-1", "MAT1-2", "MAT1", "MAT2", "MT+", "MT-"],
              ERROR_CODE: "STD43"}
@@ -294,21 +294,20 @@ SHEETS_SCHEMA = {
     LOCATIONS: {
         "acronym": "GOD",
         "id_field": "ID",
-        VALIDATION: {TYPE: MANDATORY, ERROR_CODE: "ESFXXX"},
-
+        VALIDATION: {TYPE: MANDATORY, ERROR_CODE: "EFS02"},
         COLUMNS: [
             {
                 FIELD: "ID",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "GOD01"},
+                    {TYPE: MISSING, ERROR_CODE: "GOD02"},
                 ]
             },
             {
                 FIELD: "Country",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"}
+                    {TYPE: MANDATORY, ERROR_CODE: "GOD03"},
+                    {TYPE: MISSING, ERROR_CODE: "GOD04"}
                 ]
             },
             {
@@ -322,8 +321,8 @@ SHEETS_SCHEMA = {
             {
                 FIELD: "Locality",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"}
+                    {TYPE: MANDATORY, ERROR_CODE: "GOD06"},
+                    {TYPE: MISSING, ERROR_CODE: "GOD07"}
                 ]
             }
         ],
@@ -331,19 +330,20 @@ SHEETS_SCHEMA = {
     GROWTH_MEDIA: {
         "acronym": "GMD",
         "id_field": "Acronym",
+        VALIDATION: {TYPE: MANDATORY, ERROR_CODE: "EFS01"},
         COLUMNS: [
             {
                 FIELD: "Acronym",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"}
+                    {TYPE: MANDATORY, ERROR_CODE: "GMD01"},
+                    {TYPE: MISSING, ERROR_CODE: "GMD02"}
                 ]
             },
             {
                 FIELD: "Description",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"}
+                    {TYPE: MANDATORY, ERROR_CODE: "GMD03"},
+                    {TYPE: MISSING, ERROR_CODE: "GMD04"}
                 ]
             },
             {
@@ -355,22 +355,23 @@ SHEETS_SCHEMA = {
     GENOMIC_INFO: {
         "acronym": "GID",
         "id_field": "Strain AN",
+        VALIDATION: {TYPE: MANDATORY, ERROR_CODE: "EFS08"},
         COLUMNS: [
             {
                 FIELD: "Strain AN",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "GID01"},
+                    {TYPE: MISSING, ERROR_CODE: "GID02"},
                     {TYPE: CROSSREF, CROSSREF_NAME: "Strains",
-                     ERROR_CODE: "XXX"},
+                     ERROR_CODE: "GID03"},
                 ]
             },
             {
                 FIELD: "Marker",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
-                    {TYPE: CHOICES, ERROR_CODE: "XXX",
+                    {TYPE: MANDATORY, ERROR_CODE: "GID04"},
+                    {TYPE: MISSING, ERROR_CODE: "GID05"},
+                    {TYPE: CHOICES, ERROR_CODE: "GID06",
                      VALUES: ['16S rRNA', 'ACT', 'CaM', 'EF-1α', 'ITS',
                               'LSU', 'RPB1', 'RPB2', 'TUBB']}
                 ]
@@ -378,8 +379,8 @@ SHEETS_SCHEMA = {
             {
                 FIELD: "INSDC AN",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "GID07"},
+                    {TYPE: MISSING, ERROR_CODE: "GID08"},
                 ]
             },
             {
@@ -391,61 +392,61 @@ SHEETS_SCHEMA = {
     STRAINS: {
         "acronym": "STD",
         'id_field': 'Accession number',
-        VALIDATION: {MANDATORY: True, ERROR_CODE: "ESFXXX"},
-
+        VALIDATION: {TYPE: MANDATORY, ERROR_CODE: "EFS05"},
         COLUMNS: STRAIN_FIELDS,
     },
     LITERATURE_SHEET: {
         "acronym": "LID",
         'id_field': 'ID',
+        VALIDATION: {TYPE: MANDATORY, ERROR_CODE: "EFS03"},
         COLUMNS: [
             {
                 FIELD: "ID",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "LID01"},
+                    {TYPE: MISSING, ERROR_CODE: "LID02"},
                 ]
             },
             {
                 FIELD: "Full reference",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "LID03"},
+                    {TYPE: MISSING, ERROR_CODE: "LID04"},
                 ]
             },
             {
                 FIELD: "Authors",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "LID05"},
+                    {TYPE: MISSING, ERROR_CODE: "LID06"},
                 ]
             },
             {
                 FIELD: "Title",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "LID07"},
+                    {TYPE: MISSING, ERROR_CODE: "LID08"},
                 ]
             },
             {
                 FIELD: "Journal",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "LID09"},
+                    {TYPE: MISSING, ERROR_CODE: "LID10"},
                 ]
             },
             {
                 FIELD: "Year",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "LID11"},
+                    {TYPE: MISSING, ERROR_CODE: "LID12"},
                 ]
             },
             {
                 FIELD: "Volume",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "LID13"},
+                    {TYPE: MISSING, ERROR_CODE: "LID14"},
                 ]
             },
             {
@@ -455,8 +456,8 @@ SHEETS_SCHEMA = {
             {
                 FIELD: "First page",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "XXX"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "LID15"},
+                    {TYPE: MISSING, ERROR_CODE: "LID16"},
                 ]
             },
             {
@@ -484,27 +485,37 @@ SHEETS_SCHEMA = {
     ONTOBIOTOPE: {
         "acronym": "OTD",
         "id_field": "ID",
-        VALIDATION: {MANDATORY: True, ERROR_CODE: 'XXX'},
+        VALIDATION: {TYPE: MANDATORY, ERROR_CODE: "EFS06"},
         COLUMNS: [
             {
                 FIELD: "ID",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "OTD01"},
+                    {TYPE: MISSING, ERROR_CODE: "OTD02"},
                 ]
             },
             {
                 FIELD: "Name",
                 VALIDATION: [
-                    {TYPE: MANDATORY, ERROR_CODE: "STD0X"},
-                    {TYPE: MISSING, ERROR_CODE: "STD0X"},
+                    {TYPE: MANDATORY, ERROR_CODE: "OTD03"},
+                    {TYPE: MISSING, ERROR_CODE: "OTD04"},
                 ]
             },
         ]
     },
     # MARKERS: {
     #     "acronym": "MKD",
-    #     COLUMNS: [("Acronym", False), ("Marker", False)],
+    #     "id_field": "",
+    #     COLUMNS: [
+    #         {
+    #             FIELD: "Acronym",
+    #             VALIDATION: []
+    #         },
+    #         {
+    #             FIELD: "Marker",
+    #             VALIDATION: []
+    #         },
+    #     ],
     # },
 }
 
