@@ -123,8 +123,8 @@ STRAIN_FIELDS = [
     {
         FIELD: "History of deposit",
         VALIDATION: [
-            {TYPE: REGEXP, "match": "[^ ]* [^ ]*", ERROR_CODE: "STD24",  # modify the regex
-             MULTIPLE: True, SEPARATOR: ";"}
+            # {TYPE: REGEXP, "match": "[^ ]* [^ ]*", ERROR_CODE: "STD24",  # modify the regex
+            #  MULTIPLE: True, SEPARATOR: ";"}
         ]
     },
     {
@@ -193,8 +193,8 @@ STRAIN_FIELDS = [
         VALIDATION: [
             {TYPE: MANDATORY, ERROR_CODE: "STD36"},
             {TYPE: MISSING, ERROR_CODE: "STD37"},
-            {TYPE: CROSSREF, CROSSREF_NAME: "Forms of supply",
-             MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STD38"}
+            # {TYPE: CROSSREF, CROSSREF_NAME: "Forms of supply",
+            #  MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STD38"}
         ]
     },
     {

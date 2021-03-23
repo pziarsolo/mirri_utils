@@ -35,11 +35,10 @@ def validate_excel(fhand, configuration):
     error_log = ErrorLog(excel_name)
 
     try:
-        workbook = load_workbook(filename=BytesIO(fhand.read()))
+        workbook = load_workbook(filename=BytesIO(
+            fhand.read()), read_only=True, data_only=True)
     except (BadZipfile, IOError):
-        error = Error('Excel file error',
-                      f"The  provided file {fhand.name} is not a valid xlsx excel file",
-                      fhand.name)
+        error = Error('EXL00', fhand.name, fhand.name)
         error_log.add_error(error)
         return error_log
 
@@ -54,8 +53,10 @@ def validate_excel(fhand, configuration):
 
         return error_log
 
+    crossrefs = get_all_crossrefs(workbook, cross_ref_conf)
+
     content_errors = validate_content(workbook, validation_conf,
-                                      cross_ref_conf)
+                                      crossrefs)
 
     for error in content_errors:
         error = Error(error[ERROR_CODE], pk=error['id'], data=error['value'])
@@ -65,7 +66,9 @@ def validate_excel(fhand, configuration):
 
 def validate_excel_structure(workbook, validation_conf):
     for sheet_name, sheet_conf in validation_conf.items():
-        mandatory = sheet_conf.get(VALIDATION, {}).get(MANDATORY, False)
+        mandatory = sheet_conf.get(VALIDATION, {}).get(TYPE, None)
+        mandatory = mandatory == MANDATORY
+
         error_code = sheet_conf.get(VALIDATION, {}).get(ERROR_CODE, False)
         try:
             sheet = workbook[sheet_name]
@@ -103,13 +106,15 @@ def _get_values_from_columns(workbook, sheet_name, columns):
 def get_all_crossrefs(workbook, cross_refs_names):
     crossrefs = {}
     for ref_name, columns in cross_refs_names.items():
-        crossrefs[ref_name] = _get_values_from_columns(workbook, ref_name,
-                                                       columns)
+        try:
+            crossrefs[ref_name] = _get_values_from_columns(workbook, ref_name,
+                                                           columns)
+        except ValueError:
+            raise
     return crossrefs
 
 
-def validate_content(workbook, validation_conf, cross_ref_conf):
-    crossrefs = get_all_crossrefs(workbook, cross_ref_conf)
+def validate_content(workbook, validation_conf, crossrefs):
     for sheet_name in validation_conf.keys():
         sheet_conf = validation_conf[sheet_name]
         sheet_id_column = sheet_conf['id_field']
@@ -117,9 +122,14 @@ def validate_content(workbook, validation_conf, cross_ref_conf):
         for row in workbook_sheet_reader(workbook, sheet_name):
             id_ = row.get(sheet_id_column, None)
             if id_ is None:
+                error_code = None
+                for column in sheet_conf[COLUMNS]:
+                    if column[FIELD] == sheet_id_column:
+                        error_code = [step[ERROR_CODE]
+                                      for step in column[VALIDATION] if step[TYPE] == MISSING][0]
                 yield {'id': id_, 'sheet': sheet_name,
                        'field': sheet_id_column,
-                       'error_code': None, 'value': None}
+                       'error_code': error_code, 'value': None}
                 continue
             for column in sheet_conf[COLUMNS]:
                 label = column[FIELD]
@@ -149,16 +159,13 @@ def validate_cell(value, validation_steps, crossrefs, shown_values, label):
 def is_valid_regex(value, validation_conf):
     if value is None:
         return True
+    value = str(value)
     regexp = validation_conf[MATCH]
     multiple = validation_conf.get(MULTIPLE, False)
     separator = validation_conf.get(SEPARATOR, None)
 
-    if value is None:
-        return True
-    if multiple:
-        values = [v.strip() for v in value.split(separator)]
-    else:
-        values = [value]
+    values = [v.strip() for v in value.split(
+        separator)] if multiple else [value]
 
     for value in values:
         matches_regexp = re.fullmatch(regexp, value)
@@ -182,10 +189,7 @@ def is_valid_crossrefs(value, validation_conf):
     else:
         values = [str(value).strip()]
 
-    for value in values:
-        if value not in choices:
-            return False
-    return True
+    return all(value in choices for value in values)
 
 
 def is_valid_choices(value, validation_conf):
@@ -200,10 +204,7 @@ def is_valid_choices(value, validation_conf):
     else:
         values = [str(value).strip()]
 
-    for value in values:
-        if value not in choices:
-            return False
-    return True
+    return all(value in choices for value in values)
 
 
 def is_valid_date(value, validation_conf):
@@ -232,12 +233,13 @@ def is_valid_date(value, validation_conf):
     if month is not None:
         if month < 1 or month > 13:
             return False
-        if day is not None and day < 1 or day > monthrange(year, month)[1]:
+        if day is not None and (day < 1 or day > monthrange(year, month)[1]):
             return False
     return True
 
 
 def is_valid_coords(value, validation_conf=None):
+    # sourcery skip: return-identity
     if value is None:
         return True
     try:
@@ -256,7 +258,7 @@ def is_valid_coords(value, validation_conf=None):
 
 
 def is_valid_missing(value, validation_conf=None):
-    return True if value is not None else False
+    return value is not None
 
 
 def is_valid_number(value, validation_conf):
@@ -304,9 +306,9 @@ def is_valid_unique(value, validation_conf):
     already_in_file = shown_values[label]
     if value in already_in_file:
         return False
-    else:
-        shown_values[label][value] = {}
-        return True
+
+    shown_values[label][value] = {}
+    return True
 
 
 VALIDATION_FUNCTIONS = {

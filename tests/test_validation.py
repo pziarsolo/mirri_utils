@@ -7,7 +7,7 @@ TEST_DATA_DIR = Path(__file__).parent / "data"
 
 
 class MirriExcelValidationTests(unittest.TestCase):
-    def test_validation_structure(self):
+    def xtest_validation_structure(self):
         in_path = TEST_DATA_DIR / "invalid_structure.mirri.xlsx"
         with in_path.open("rb") as fhand:
             error_log = validate_mirri_excel(fhand)
@@ -41,7 +41,7 @@ class MirriExcelValidationTests(unittest.TestCase):
             error_log = validate_mirri_excel(fhand)
         for kind, errors in error_log.get_errors().items():
             for error in errors:
-                print(kind, error.message, error.code)
+                print(error.pk, error.data, error.message, error.code)
 
     def test_validation_valid(self):
         in_path = TEST_DATA_DIR / "valid.mirri.xlsx"

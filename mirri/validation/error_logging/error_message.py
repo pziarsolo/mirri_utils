@@ -66,6 +66,9 @@ class ErrorMessage():
         Excel File Structure Error Codes
     """
 
+    def EXL00(self):
+        return f"The provided file '{self.pk}' is not an excel(xlsx) file"
+
     def EFS01(self):
         return "The 'Growth media' sheet is missing. Please check the provided excel template."
 
