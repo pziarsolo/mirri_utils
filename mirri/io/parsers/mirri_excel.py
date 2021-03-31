@@ -37,7 +37,7 @@ def parse_mirri_excel(fhand, version="20200601"):
     if version == "20200601":
         return _parse_mirri_v20200601(fhand)
     else:
-        raise NotImplementedError("Only version20200601 is implemented")
+        raise NotImplementedError("Only version 20200601 is implemented")
 
 
 def _parse_mirri_v20200601(fhand):
@@ -94,11 +94,12 @@ def parse_publications(wb):
         pub = Publication()
         for pub_field in PUBLICATION_FIELDS:
             label = pub_field["label"]
-            attribute = pub_field["attribute"]
             if label == "ID":
                 continue
             col_val = row.get(label, None)
+
             if col_val:
+                attribute = pub_field["attribute"]
                 setattr(pub, attribute, col_val)
         yield pub
 
@@ -113,7 +114,7 @@ def parse_strains(wb, locations, growth_media, markers, publications,
     growth_media = index_list_by(growth_media, 'Acronym')
     publications = index_list_by_attr(publications, 'id')
     markers = index_markers(markers)
-    print(markers)
+
     for strain_row in workbook_sheet_reader(wb, STRAINS, "Accession number"):
         strain = Strain()
         strain_id = None

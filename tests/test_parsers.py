@@ -20,8 +20,8 @@ class MirriExcelTests(unittest.TestCase):
 
         strains = list(parsed_data["strains"])
         strain = strains[0]
-        self.assertEqual(strain.publications[0].id, 1)
-        self.assertEqual(strain.publications[0].title, "Cosa")
+        self.assertEqual(strain.publications[0].id, "1")
+        self.assertEqual(strain.publications[0].title, None)
         self.assertEqual(strain.id.number, "1")
 
     def xtest_mirri_excel_parser_invalid_fail(self):

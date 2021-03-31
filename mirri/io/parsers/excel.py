@@ -9,7 +9,12 @@ def excel_dict_reader(fhand, sheet_name, mandatory_column_name=None):
     return workbook_sheet_reader(wb, sheet_name, mandatory_column_name=mandatory_column_name)
 
 
-def workbook_sheet_reader(workbook, sheet_name, mandatory_column_name=None):
+def is_none(value):
+    return value is None
+
+
+def workbook_sheet_reader(workbook, sheet_name, mandatory_column_name=None,
+                          allowed_empty_line_slots=5):
     try:
         sheet = workbook[sheet_name]
     except KeyError as error:
@@ -17,6 +22,7 @@ def workbook_sheet_reader(workbook, sheet_name, mandatory_column_name=None):
 
     first = True
     header = []
+    empty_lines = 0
     for row in sheet.rows:
         values = []
         for cell in row:
@@ -30,6 +36,13 @@ def workbook_sheet_reader(workbook, sheet_name, mandatory_column_name=None):
             header = values
             first = False
             continue
+        if not any(values):
+            empty_lines += 1
+            if empty_lines >= allowed_empty_line_slots:
+                break
+            continue
+        empty_lines = 0
+
         data = dict(zip(header, values))
         if mandatory_column_name is not None and not data[mandatory_column_name]:
             # msg = f"Exiting before end of sheet {sheet_name} ends.\n"

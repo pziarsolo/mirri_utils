@@ -1,23 +1,26 @@
+from mirri.validation.tags import ERROR_CODE, MATCH, REGEXP, TYPE
 import unittest
 from pathlib import Path
 
-from mirri.validation.excel_validator import validate_mirri_excel
+from mirri.validation.excel_validator import is_valid_regex, validate_mirri_excel
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
 
 
 class MirriExcelValidationTests(unittest.TestCase):
-    def xtest_validation_structure(self):
+
+    def test_validation_structure(self):
         in_path = TEST_DATA_DIR / "invalid_structure.mirri.xlsx"
         with in_path.open("rb") as fhand:
             error_log = validate_mirri_excel(fhand)
 
-        self.assertIn("STR", error_log.get_errors().keys())
-        self.assertIn("XXX", error_log.get_errors().keys())
-        str_error = error_log.get_errors()["STR"]
-        xxx_error = error_log.get_errors()["XXX"]
+        print(error_log.get_errors().keys())
 
-        error_msgs = [err.message for err in str_error]
+        self.assertIn("STD", error_log.get_errors().keys())
+        self.assertIn("GID", error_log.get_errors().keys())
+        str_error = error_log.get_errors()["STD"]
+        xxx_error = error_log.get_errors()["GID"]
+        error_msgs = [err.code for err in str_error]
         print(error_msgs)
         return
         self.assertIn(
@@ -50,7 +53,20 @@ class MirriExcelValidationTests(unittest.TestCase):
             # self.assertFalse(error_log.errors)
 
 
+class ValidatoionFunctionsTest(unittest.TestCase):
+
+    def test_is_valid_regex(self):
+        value = 'hhh 222'
+        conf = {TYPE: REGEXP, MATCH: "[^ ]* [^ ]*", ERROR_CODE: "STD04"}
+        self.assertTrue(is_valid_regex(value, conf))
+
+        value = 'hhh 222 3443'
+        conf = {TYPE: REGEXP, MATCH: "[^ ]* [^ ]*", ERROR_CODE: "STD04"}
+        self.assertFalse(is_valid_regex(value, conf))
+
+
 if __name__ == "__main__":
-    # import sys;sys.argv = ['',
-    #                        'MirriExcelTests.test_mirri_excel_parser_invalid']
+    import sys
+    sys.argv = ['',
+                'ValidatoionFunctionsTest.test_is_valid_regex']
     unittest.main()
