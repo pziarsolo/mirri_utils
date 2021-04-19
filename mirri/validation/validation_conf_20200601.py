@@ -1,8 +1,8 @@
 from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
-                                   MISSING, MULTIPLE, NUMBER, REGEXP, SEPARATOR, TAXON, TYPE, UNIQUE,
+                                   MISSING, MULTIPLE, NAGOYA, NUMBER, REGEXP, ROW_VALIDATION, SEPARATOR, TAXON, TYPE, UNIQUE,
                                    VALIDATION, VALUES)
-from mirri.settings import (ONTOBIOTOPE, LOCATIONS, GROWTH_MEDIA, GENOMIC_INFO,
+from mirri.settings import (GEOGRAPHIC_ORIGIN, ONTOBIOTOPE, LOCATIONS, GROWTH_MEDIA, GENOMIC_INFO,
                             STRAINS, LITERATURE_SHEET)
 # MARKERS,
 # SEXUAL_STATE_SHEET,
@@ -393,6 +393,9 @@ SHEETS_SCHEMA = {
         "acronym": "STD",
         'id_field': 'Accession number',
         VALIDATION: {TYPE: MANDATORY, ERROR_CODE: "EFS05"},
+        ROW_VALIDATION: [
+            {TYPE: NAGOYA, ERROR_CODE: "STRXXX"},
+        ],
         COLUMNS: STRAIN_FIELDS,
     },
     LITERATURE_SHEET: {
@@ -529,4 +532,7 @@ CROSS_REF_CONF = {
 
 MIRRI_20200601_VALLIDATION_CONF = {
     'sheet_schema': SHEETS_SCHEMA,
-    'cross_ref_conf': CROSS_REF_CONF}
+    'cross_ref_conf': CROSS_REF_CONF,
+    'keep_sheets_in_memory': [
+        {'sheet_name': LOCATIONS, 'indexed_by': 'Locality'}]
+}
