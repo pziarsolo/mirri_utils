@@ -67,6 +67,6 @@ class ValidatoionFunctionsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     import sys
-    sys.argv = ['',
-                'ValidatoionFunctionsTest.test_is_valid_regex']
+    # sys.argv = ['',
+    #             'ValidatoionFunctionsTest.test_is_valid_regex']
     unittest.main()
