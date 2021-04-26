@@ -204,7 +204,7 @@ def is_valid_nagoya(row, in_memory_sheets):
         geo_origin = in_memory_sheets[LOCATIONS].get(location_index, {})
         country = geo_origin.get('Country', None)
 
-    print(row, country)
+    #print(row, country)
     return True
 
 
