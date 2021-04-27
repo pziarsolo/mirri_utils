@@ -196,7 +196,7 @@ def validate_cell(value, validation_steps, crossrefs, shown_values, label):
             return error_code
 
 
-def is_valid_nagoya(row, in_memory_sheets):
+def is_valid_nagoya(row, in_memory_sheets):  # sourcery skip: return-identity
     location_index = row.get('Geographic origin', None)
     if location_index is None:
         country = None
@@ -204,7 +204,18 @@ def is_valid_nagoya(row, in_memory_sheets):
         geo_origin = in_memory_sheets[LOCATIONS].get(location_index, {})
         country = geo_origin.get('Country', None)
 
-    #print(row, country)
+    _date = row.get("Date of collection", None)
+    if _date is None:
+        _date = row.get("Date of isolation", None)
+    if _date is None:
+        _date = row.get("Date of deposit", None)
+    if _date is None:
+        _date = row.get("Date of inclusion in the catalogue", None)
+    year = int(_date[:4]) if _date is not None else None
+
+    if year is not None and year >= 2014 and country is None:
+        return False
+
     return True
 
 
