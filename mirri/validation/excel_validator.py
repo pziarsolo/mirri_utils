@@ -211,7 +211,10 @@ def is_valid_nagoya(row, in_memory_sheets):  # sourcery skip: return-identity
         _date = row.get("Date of deposit", None)
     if _date is None:
         _date = row.get("Date of inclusion in the catalogue", None)
-    year = int(_date[:4]) if _date is not None else None
+    if _date is not None:
+        year = _date.year if isinstance(_date, datetime) else int(_date[:4])
+    else:
+        year = None
 
     if year is not None and year >= 2014 and country is None:
         return False

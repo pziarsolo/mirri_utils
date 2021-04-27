@@ -12,8 +12,8 @@ from mirri.entities.strain import (GenomicSequence, ValidationError,
                                    OrganismType, Strain, StrainId)
 from mirri.settings import (COMMERCIAL_USE_WITH_AGREEMENT, GENOMIC_INFO,
                             GROWTH_MEDIA, LITERATURE_SHEET, LOCATIONS,
-                            MIRRI_FIELDS, NAGOYA_APPLIES, NAGOYA_NO_APPLIES,
-                            NAGOYA_NO_CLEAR_APPLIES, NO_RESTRICTION,
+                            MIRRI_FIELDS, NAGOYA_DOCS_AVAILABLE, NAGOYA_NO_RESTRICTIONS,
+                            NAGOYA_PROBABLY_SCOPE, NO_RESTRICTION,
                             ONLY_RESEARCH, ONTOBIOTOPE,
                             PUBLICATION_FIELDS, STRAINS, SUBTAXAS)
 
@@ -23,9 +23,9 @@ RESTRICTION_USE_TRANSLATOR = {
     3: COMMERCIAL_USE_WITH_AGREEMENT,
 }
 NAGOYA_TRANSLATOR = {
-    1: NAGOYA_NO_APPLIES,
-    2: NAGOYA_APPLIES,
-    3: NAGOYA_NO_CLEAR_APPLIES,
+    1: NAGOYA_NO_RESTRICTIONS,
+    2: NAGOYA_DOCS_AVAILABLE,
+    3: NAGOYA_PROBABLY_SCOPE,
 }
 TRUEFALSE_TRANSLATOR = {
     1: False,

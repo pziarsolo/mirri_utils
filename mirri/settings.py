@@ -170,12 +170,12 @@ ALLOWED_SUBTAXA = ["subspecies", "variety", "convarietas", "group", "forma"]
 ALLOWED_TAXONOMIC_RANKS = ["family", "genus", "species"] + ALLOWED_SUBTAXA
 
 # nagoya
-NAGOYA_NO_APPLIES = "nagoya_does_not_apply"
-NAGOYA_APPLIES = "nagoya_does_apply"
-NAGOYA_NO_CLEAR_APPLIES = "nagoya_no_clear"
+NAGOYA_NO_RESTRICTIONS = "no_known_restrictions_under_the_Nagoya_protocol"
+NAGOYA_DOCS_AVAILABLE = "documents_providing_proof_of_legal_access_and_terms_of_use_available_at_the_collection"
+NAGOYA_PROBABLY_SCOPE = "strain_probably_in_scope,_please_contact_the_culture_collection"
 
-ALLOWED_NAGOYA_OPTIONS = [NAGOYA_NO_APPLIES,
-                          NAGOYA_APPLIES, NAGOYA_NO_CLEAR_APPLIES]
+ALLOWED_NAGOYA_OPTIONS = [NAGOYA_NO_RESTRICTIONS,
+                          NAGOYA_DOCS_AVAILABLE, NAGOYA_PROBABLY_SCOPE]
 
 # Use restriction
 NO_RESTRICTION = "no_restriction"

@@ -31,7 +31,7 @@ from mirri.settings import (
     ISOLATION,
     LOCATION,
     MARKERS,
-    NAGOYA_APPLIES,
+    NAGOYA_DOCS_AVAILABLE,
     NAGOYA_PROTOCOL,
     ORGANISM_TYPE,
     OTHER_CULTURE_NUMBERS,
@@ -168,8 +168,8 @@ class TestStrain(unittest.TestCase):
         except ValidationError:
             pass
 
-        strain.nagoya_protocol = NAGOYA_APPLIES
-        strain.dict()[NAGOYA_PROTOCOL] = NAGOYA_APPLIES
+        strain.nagoya_protocol = NAGOYA_DOCS_AVAILABLE
+        strain.dict()[NAGOYA_PROTOCOL] = NAGOYA_DOCS_AVAILABLE
 
         strain.collect.location.country = "spain"
 
