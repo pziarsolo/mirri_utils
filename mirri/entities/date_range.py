@@ -27,7 +27,7 @@ class DateRange:
         return _strdate
 
     def __bool__(self):
-        return True if self._year or self._month or self._day else False
+        return self._year or self._month or self._day
 
     def _create_range(self):
         year = self._year
