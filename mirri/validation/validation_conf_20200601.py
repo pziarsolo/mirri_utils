@@ -63,6 +63,7 @@ STRAIN_FIELDS = [
     },
     {
         FIELD: "Risk Group",
+
         VALIDATION: [
             {TYPE: MANDATORY, ERROR_CODE: "STD12"},
             {TYPE: MISSING, ERROR_CODE: "STD13"},

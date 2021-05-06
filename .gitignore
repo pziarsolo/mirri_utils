@@ -3,5 +3,5 @@
 .project
 .pydevproject
 .vscode
-
 logs/*
+main.py
