@@ -550,6 +550,9 @@ class StrainId(FrozenClass):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __str__(self):
+        return f'{self.collection} {self.number}'
+
     def dict(self):
         return self._id_dict
 

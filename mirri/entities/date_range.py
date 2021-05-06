@@ -7,7 +7,6 @@ from datetime import date
 class DateRange:
     def __init__(self, year=None, month=None, day=None):
         self._year = year
-
         if month is not None and (month < 1 or month > 12):
             raise ValueError("Month must be between 1 and 12")
         self._month = month

@@ -1,12 +1,10 @@
-from mirri.settings import (PUB_AUTHORS, PUB_DOI, PUB_ID, PUB_JOURNAL,
-                            PUB_TITLE, PUB_VOLUMEN)
+from mirri.settings import (BOOK_EDITOR, BOOK_PUBLISHER, BOOK_TITLE,
+                            PUB_AUTHORS, PUB_DOI, PUB_FIRST_PAGE, PUB_ID,
+                            PUB_ISSUE, PUB_JOURNAL, PUB_LAST_PAGE,
+                            PUB_PUBMED_ID, PUB_TITLE, PUB_VOLUMEN)
 
 # Maybe we could implement some crossref calls to fill all field data
 # and get DOI where ever is possible
-
-PUB_ISSUE = ''
-PUB_FIRST_PAGE = ''
-PUB_LAST_PAGE = ''
 
 
 class Publication():
@@ -15,6 +13,8 @@ class Publication():
         self._data = {}
         if data and PUB_ID in data:
             self.id = data[PUB_ID]
+        if data and PUB_PUBMED_ID in data:
+            self.pubmed_id = data[PUB_PUBMED_ID]
         if data and PUB_DOI in data:
             self.doi = data[PUB_DOI]
         if data and PUB_TITLE in data:
@@ -31,6 +31,12 @@ class Publication():
             self.first_page = data[PUB_FIRST_PAGE]
         if data and PUB_LAST_PAGE in data:
             self.last_page = data[PUB_LAST_PAGE]
+        if data and BOOK_EDITOR in data:
+            self.editor = data[BOOK_EDITOR]
+        if data and BOOK_PUBLISHER in data:
+            self.publisher = data[BOOK_PUBLISHER]
+        if data and BOOK_TITLE in data:
+            self.book_title = data[BOOK_TITLE]
 
     def __bool__(self):
         return bool(self._data)
@@ -46,6 +52,15 @@ class Publication():
     def id(self, value: str):
         if value is not None:
             self._data[PUB_ID] = value
+
+    @property
+    def pubmed_id(self):
+        return self._data.get(PUB_PUBMED_ID, None)
+
+    @pubmed_id.setter
+    def pubmed_id(self, value: str):
+        if value is not None:
+            self._data[PUB_PUBMED_ID] = value
 
     @property
     def doi(self):
@@ -118,3 +133,30 @@ class Publication():
     def last_page(self, value: str):
         if value is not None:
             self._data[PUB_LAST_PAGE] = value
+
+    @property
+    def book_title(self):
+        return self._data.get(BOOK_TITLE, None)
+
+    @book_title.setter
+    def book_title(self, value: str):
+        if value is not None:
+            self._data[BOOK_TITLE] = value
+
+    @property
+    def editors(self):
+        return self._data.get(BOOK_EDITOR, None)
+
+    @editors.setter
+    def editors(self, value: str):
+        if value is not None:
+            self._data[BOOK_EDITOR] = value
+
+    @property
+    def publisher(self):
+        return self._data.get(BOOK_PUBLISHER, None)
+
+    @publisher.setter
+    def publisher(self, value: str):
+        if value is not None:
+            self._data[BOOK_PUBLISHER] = value

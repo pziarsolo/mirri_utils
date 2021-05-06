@@ -88,7 +88,7 @@ class Location(_FieldBasedClass):
 
     @latitude.setter
     def latitude(self, latitude: float):
-        self._data[latitude] = latitude
+        self._data[LATITUDE] = latitude
 
     @property
     def longitude(self) -> Union[float, None]:

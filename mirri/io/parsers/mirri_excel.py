@@ -204,7 +204,10 @@ def parse_strains(wb, locations, growth_media, markers, publications,
                     pub = publications.get(pub_id, None)
                     if pub is None:
                         pub = Publication()
-                        pub.id = pub_id
+                        if '/' in pub_id:
+                            pub.doi = pub_id
+                        else:
+                            pub.pubmed_id = pub_id
                     pubs.append(pub)
                 rsetattr(strain, attribute, pubs)
             elif attribute == 'ontobiotope':

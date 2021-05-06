@@ -227,6 +227,7 @@ ALLOWED_MARKER_TYPES = [
 PUBLICATIONS = "publications"
 PUB_ID = "pub_id"
 PUB_DOI = "pub_doi"
+PUB_PUBMED_ID = ''
 PUB_FULL_REFERENCE = "full_reference"
 PUB_TITLE = "title"
 PUB_AUTHORS = "authors"
@@ -237,8 +238,8 @@ PUB_ISSUE = "issue"
 PUB_FIRST_PAGE = "first_page"
 PUB_LAST_PAGE = "last_page"
 BOOK_TITLE = "book_title"
-BOOK_EDITOR = "editor"
-BOOK_PUBLISHER = "publisher"
+BOOK_EDITOR = "book_editor"
+BOOK_PUBLISHER = "book_publisher"
 
 
 PUBLICATION_FIELDS = [
