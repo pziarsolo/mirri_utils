@@ -1,5 +1,4 @@
 from datetime import datetime
-from re import MULTILINE, UNICODE
 import unittest
 from pathlib import Path
 
@@ -9,7 +8,6 @@ from mirri.validation.tags import (
     CROSSREF,
     CROSSREF_NAME,
     DATE,
-    ERROR_CODE,
     MATCH,
     MISSING,
     MULTIPLE,
@@ -32,7 +30,9 @@ from mirri.validation.excel_validator import (
     is_valid_regex,
     is_valid_taxon,
     is_valid_unique,
-    validate_mirri_excel)
+    is_valid_file,
+    validate_mirri_excel,
+)
 
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
@@ -69,14 +69,29 @@ class MirriExcelValidationTests(unittest.TestCase):
             "The 'Acronym' is a mandatory field. The column can not be empty.",
         )
 
+    # DOING
     def test_validation_content(self):
+        in_path = TEST_DATA_DIR / "valid.mirri.xlsx"
+        with in_path.open("rb") as fhand:
+            error_log = validate_mirri_excel(fhand)
+        self.assertTrue(len(error_log.get_errors()) == 0)
+
         in_path = TEST_DATA_DIR / "invalid_content.mirri.xlsx"
         with in_path.open("rb") as fhand:
             error_log = validate_mirri_excel(fhand)
-        for kind, errors in error_log.get_errors().items():
-            for error in errors:
+
+        errors = error_log.get_errors()
+
+        self.assertTrue(len(errors) > 0)
+        self.assertNotIn("EFS", errors.keys())
+        self.assertIn("STD", errors.keys())
+
+        # TODO: check each message individually
+        for entity, error_list in errors.items():
+            for error in error_list:
                 print(error.pk, error.data, error.message, error.code)
 
+    # TODO: what is this supposed to do?
     def test_validation_valid(self):
         in_path = TEST_DATA_DIR / "valid.mirri.xlsx"
         with in_path.open("rb") as fhand:
@@ -368,6 +383,13 @@ class ValidatoionFunctionsTest(unittest.TestCase):
             }
         }
         self.assertFalse(is_valid_unique(value, conf))
+
+    def test_is_valid_file(self):
+        path = "whatever.xlsx"
+        self.assertTrue(is_valid_file(path))
+
+        path = "whatever.csv"
+        self.assertFalse(is_valid_file(path))
 
 
 if __name__ == "__main__":

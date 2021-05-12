@@ -379,6 +379,11 @@ def is_valid_unique(value, validation_conf):
     return True
 
 
+def is_valid_file(path):
+    file_extension = Path(path).suffix
+    return file_extension in [".xlsx", ".xlsm", ".xltx", ".xltm"]
+
+
 VALIDATION_FUNCTIONS = {
     MISSING: is_valid_missing,
     REGEXP: is_valid_regex,
