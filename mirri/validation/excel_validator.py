@@ -340,6 +340,8 @@ def is_valid_number(value, validation_conf):
     if ((_max is not None and value > _max) or (_min is not None and value < _min)):
         return False
 
+    return True
+
 
 def is_valid_taxon(value, validation_conf=None):
     value = value.strip()
