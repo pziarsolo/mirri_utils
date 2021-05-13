@@ -1,6 +1,7 @@
 from datetime import datetime
 import unittest
 from pathlib import Path
+from itertools import chain
 
 from mirri.validation.tags import (
     CHOICES,
@@ -71,32 +72,30 @@ class MirriExcelValidationTests(unittest.TestCase):
 
     # DOING
     def test_validation_content(self):
-        in_path = TEST_DATA_DIR / "valid.mirri.xlsx"
-        with in_path.open("rb") as fhand:
-            error_log = validate_mirri_excel(fhand)
-        self.assertTrue(len(error_log.get_errors()) == 0)
-
         in_path = TEST_DATA_DIR / "invalid_content.mirri.xlsx"
         with in_path.open("rb") as fhand:
             error_log = validate_mirri_excel(fhand)
 
         errors = error_log.get_errors()
+        entities = errors.keys()
+        messages = list(chain.from_iterable(errors.values()))
 
         self.assertTrue(len(errors) > 0)
-        self.assertNotIn("EFS", errors.keys())
-        self.assertIn("STD", errors.keys())
+        self.assertNotIn("EFS", entities)
+        self.assertIn("STD", entities)
 
-        # TODO: check each message individually
-        for entity, error_list in errors.items():
-            for error in error_list:
-                print(error.pk, error.data, error.message, error.code)
+        # TODO: check presence of error messages
+        self.assertIn("<message>", messages)
+        # for entity, error_list in errors.items():
+        #     for error in error_list:
+        #         print(error.pk, error.data, error.message, error.code)
 
-    # TODO: what is this supposed to do?
     def test_validation_valid(self):
         in_path = TEST_DATA_DIR / "valid.mirri.xlsx"
         with in_path.open("rb") as fhand:
             error_log = validate_mirri_excel(fhand)
-            # self.assertFalse(error_log.errors)
+
+        self.assertTrue(len(error_log.get_errors()) == 0)
 
 
 class ValidatoionFunctionsTest(unittest.TestCase):
