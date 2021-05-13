@@ -60,6 +60,7 @@ COLLECTION_CODE = "collection_code"
 STRAIN_PUI = "strain_pui"
 STRAIN_URL = "strain_url"
 
+ID_SYNONYMS = 'id_synonyms'
 # Taxonomy
 GENUS = "genus"
 SPECIES = "species"

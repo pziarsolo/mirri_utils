@@ -18,6 +18,7 @@ from mirri.settings import (
     SITE,
     STATE,
 )
+import pycountry
 
 
 class Location(_FieldBasedClass):
@@ -56,7 +57,11 @@ class Location(_FieldBasedClass):
 
     @country.setter
     def country(self, code3: str):
-        self._data[COUNTRY] = code3
+        if code3 is not None:
+            _country = pycountry.countries.get(alpha_3=code3)
+            if _country is None:
+                raise ValueError(f'{code3}, not a valid 3 letter country name')
+            self._data[COUNTRY] = code3
 
     @property
     def province(self) -> Union[str, None]:

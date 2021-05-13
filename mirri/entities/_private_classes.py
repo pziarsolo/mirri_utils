@@ -2,6 +2,7 @@ class FrozenClass(object):
     __isfrozen = False
 
     def __setattr__(self, key, value):
+        # print(dir(self))
         if self.__isfrozen and not hasattr(self, key):
             msg = f"Can not add {key} to {self.__class__.__name__}. It is not one of its attributes"
             raise TypeError(msg)

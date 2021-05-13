@@ -83,6 +83,7 @@ from mirri.settings import (
     STRAIN_PUI,
     STRAIN_URL,
     SUBSTRATE_HOST_OF_ISOLATION,
+    ID_SYNONYMS,
     TAXONOMY,
     TESTED_TEMPERATURE_GROWTH_RANGE,
 )
@@ -174,13 +175,8 @@ class OrganismType(FrozenClass):
             raise ValueError(" Can not set an empty value")
         try:
             value = int(value)
-            value_is_code = True
-        except ValueError:
-            value_is_code = False
-
-        if value_is_code:
             self.code = value
-        else:
+        except ValueError:
             self.name = value
 
 
@@ -201,6 +197,7 @@ class Taxonomy(FrozenClass):
                 self.comments = data[COMMENTS_ON_TAXONOMY]
             if INTERSPECIFIC_HYBRID in data:
                 self.interspecific_hybrid = data[INTERSPECIFIC_HYBRID]
+
         self._freeze()
 
     def __bool__(self):
@@ -882,6 +879,14 @@ class Strain(FrozenClass):
     @id.setter
     def id(self, _id: StrainId):
         self._data[STRAIN_ID] = _id
+
+    @property
+    def synonyms(self) -> List[StrainId]:
+        return self._data.get(ID_SYNONYMS, None)
+
+    @synonyms.setter
+    def synonyms(self, ids: List[StrainId]):
+        self._data[ID_SYNONYMS] = ids
 
     @property
     def nagoya_protocol(self) -> str:
