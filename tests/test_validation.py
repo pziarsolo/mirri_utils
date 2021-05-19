@@ -78,14 +78,15 @@ class MirriExcelValidationTests(unittest.TestCase):
 
         errors = error_log.get_errors()
         entities = errors.keys()
+        # TODO: errors.vales are Error instances
         messages = list(chain.from_iterable(errors.values()))
 
         self.assertTrue(len(errors) > 0)
         self.assertNotIn("EFS", entities)
         self.assertIn("STD", entities)
 
-        # TODO: check presence of error messages
-        self.assertIn("<message>", messages)
+        # TODO: instead of error messages test error codes!
+
         # for entity, error_list in errors.items():
         #     for error in error_list:
         #         print(error.pk, error.data, error.message, error.code)
@@ -284,6 +285,14 @@ class ValidatoionFunctionsTest(unittest.TestCase):
         conf = {TYPE: COORDINATES}
         self.assertFalse(is_valid_coords(value, conf))
 
+        value = "abc def"
+        conf = {TYPE: COORDINATES}
+        self.assertFalse(is_valid_coords(value, conf))
+
+        value = 123
+        conf = {TYPE: COORDINATES}
+        self.assertFalse(is_valid_coords(value, conf))
+
     def test_is_valid_number(self):
         value = 1
         conf = {TYPE: NUMBER}
@@ -383,6 +392,7 @@ class ValidatoionFunctionsTest(unittest.TestCase):
         }
         self.assertFalse(is_valid_unique(value, conf))
 
+    # TODO: try open the file to check if its excel
     def test_is_valid_file(self):
         path = "whatever.xlsx"
         self.assertTrue(is_valid_file(path))
