@@ -384,6 +384,8 @@ def is_valid_unique(value, validation_conf):
     if value in already_in_file:
         return False
 
+    # NOTE: what's the use of this?
+    # What is the expected format for value and shown_values?
     shown_values[label][value] = {}
     return True
 
