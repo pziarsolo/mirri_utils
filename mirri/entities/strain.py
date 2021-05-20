@@ -911,7 +911,7 @@ class Strain(FrozenClass):
             self._data[RESTRICTION_ON_USE] = restriction
 
     @property
-    def is_potentially_harmful(self) -> bool:
+    def is_potentially_harmful(self) -> bool: # can_be_use_as_weapon
         return self._data.get(DUAL_USE, None)
 
     @is_potentially_harmful.setter

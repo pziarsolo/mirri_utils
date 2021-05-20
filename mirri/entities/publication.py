@@ -6,37 +6,31 @@ from mirri.settings import (BOOK_EDITOR, BOOK_PUBLISHER, BOOK_TITLE,
 # Maybe we could implement some crossref calls to fill all field data
 # and get DOI where ever is possible
 
+RECORD_ID = 'RecordId'
+RECORD_NAME = 'RecordName'
 
-class Publication():
 
+class Publication:
     def __init__(self, data=None):
         self._data = {}
-        if data and PUB_ID in data:
-            self.id = data[PUB_ID]
-        if data and PUB_PUBMED_ID in data:
-            self.pubmed_id = data[PUB_PUBMED_ID]
-        if data and PUB_DOI in data:
-            self.doi = data[PUB_DOI]
-        if data and PUB_TITLE in data:
-            self.title = data[PUB_TITLE]
-        if data and PUB_AUTHORS in data:
-            self.authors = data[PUB_AUTHORS]
-        if data and PUB_JOURNAL in data:
-            self.journal = data[PUB_JOURNAL]
-        if data and PUB_VOLUMEN in data:
-            self.volumen = data[PUB_VOLUMEN]
-        if data and PUB_ISSUE in data:
-            self.issue = data[PUB_ISSUE]
-        if data and PUB_FIRST_PAGE in data:
-            self.first_page = data[PUB_FIRST_PAGE]
-        if data and PUB_LAST_PAGE in data:
-            self.last_page = data[PUB_LAST_PAGE]
-        if data and BOOK_EDITOR in data:
-            self.editor = data[BOOK_EDITOR]
-        if data and BOOK_PUBLISHER in data:
-            self.publisher = data[BOOK_PUBLISHER]
-        if data and BOOK_TITLE in data:
-            self.book_title = data[BOOK_TITLE]
+        if data:
+            self.record_id = data.get('RecordId', None)
+            self.record_name = data.get('RecordName', None)
+            self.pubmed_id = data.get(PUB_PUBMED_ID, None)
+            self.doi = data.get(PUB_DOI, None)
+            self.title = data.get(PUB_TITLE, None)
+            self.authors = data.get(PUB_AUTHORS, None)
+            self.journal = data.get(PUB_JOURNAL, None)
+            self.volumen = data.get(PUB_VOLUMEN, None)
+            self.issue = data.get(PUB_ISSUE, None)
+            self.first_page = data.get(PUB_FIRST_PAGE, None)
+            self.last_page = data.get(PUB_LAST_PAGE, None)
+            self.editor = data.get(BOOK_EDITOR, None)
+            self.publisher = data.get(BOOK_PUBLISHER, None)
+            self.book_title = data.get(BOOK_TITLE, None)
+            self.isbn = data.get('ISBN', None)
+            self.issn = data.get('ISSN', None)
+            self.year = data.get('Year', None)
 
     def __bool__(self):
         return bool(self._data)
@@ -45,13 +39,22 @@ class Publication():
         return self._data
 
     @property
-    def id(self):
-        return self._data.get(PUB_ID, None)
+    def record_id(self) -> int:
+        return self._data.get(RECORD_ID, None)
 
-    @id.setter
-    def id(self, value: str):
+    @record_id.setter
+    def record_id(self, value: int):
         if value is not None:
-            self._data[PUB_ID] = value
+            self._data[RECORD_ID] = value
+
+    @property
+    def record_name(self) -> int:
+        return self._data.get(RECORD_NAME, None)
+
+    @record_name.setter
+    def record_name(self, value: int):
+        if value is not None:
+            self._data[RECORD_NAME] = value
 
     @property
     def pubmed_id(self):
@@ -61,6 +64,24 @@ class Publication():
     def pubmed_id(self, value: str):
         if value is not None:
             self._data[PUB_PUBMED_ID] = value
+
+    @property
+    def isbn(self):
+        return self._data.get('ISBN', None)
+
+    @isbn.setter
+    def isbn(self, value: str):
+        if value is not None:
+            self._data['ISBN'] = value
+
+    @property
+    def issn(self):
+        return self._data.get('ISSN', None)
+
+    @issn.setter
+    def issn(self, value: str):
+        if value is not None:
+            self._data['ISSN'] = value
 
     @property
     def doi(self):
@@ -79,6 +100,7 @@ class Publication():
     def title(self, value: str):
         if value is not None:
             self._data[PUB_TITLE] = value
+            self._data[RECORD_NAME] = value
 
     @property
     def authors(self):
@@ -160,3 +182,12 @@ class Publication():
     def publisher(self, value: str):
         if value is not None:
             self._data[BOOK_PUBLISHER] = value
+
+    @property
+    def year(self) -> int:
+        return self._data.get('Year', None)
+
+    @year.setter
+    def year(self, value: int):
+        if value is not None:
+            self._data['Year'] = value
