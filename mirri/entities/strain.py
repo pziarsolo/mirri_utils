@@ -11,6 +11,9 @@ from collections import OrderedDict
 from copy import deepcopy
 from typing import List, Union
 
+import pycountry
+
+from mirri import  ValidationError
 from mirri.entities._private_classes import _FieldBasedClass, FrozenClass
 from mirri.entities.date_range import DateRange
 from mirri.entities.location import Location
@@ -118,10 +121,6 @@ ORG_TYPES = {
 }
 
 
-class ValidationError(Exception):
-    pass
-
-
 class OrganismType(FrozenClass):
 
     def __init__(self, value=None):
@@ -164,10 +163,10 @@ class OrganismType(FrozenClass):
     @name.setter
     def name(self, name: str):
         error_msg = f"name {name} not accepted for organism type"
-
-        if name not in ORG_TYPES.keys():
+        accepted_types = ORG_TYPES.keys()
+        if name not in accepted_types:
             raise ValidationError(error_msg)
-        self._data["name"] = name
+        self._data["name"] = name  # TODO: are we case sensitive?
         self._data["code"] = ORG_TYPES[name]
 
     def guess_type(self, value):
@@ -437,14 +436,14 @@ class Collect(_GeneralStep):
             data = {}
 
         self.habitat = data.get(ISOLATION_HABITAT, None)
-        self.habitat_ontobiotype = data.get(ONTOBIOTOPE_ISOLATION_HABITAT,
+        self.habitat_ontobiotope = data.get(ONTOBIOTOPE_ISOLATION_HABITAT,
                                             None)
         self._freeze()
 
     def __str__(self):
         info = ""
         if self.location:
-            info += f"{self.location}"
+            info += f"{pycountry.countries.get(alpha_3=str(self.location.country)).name}"
         if self.date:
             info += f" in {self.date.strfdate}"
         if self.who:
@@ -600,43 +599,6 @@ class StrainId(FrozenClass):
         return StrainId(self._id_dict)
 
 
-class GenomicSequence(_FieldBasedClass):
-    _fields = [
-        {"attribute": "marker_type", "label": MARKER_TYPE},
-        {"attribute": "marker_id", "label": MARKER_INSDC},
-        {"attribute": "marker_seq", "label": MARKER_SEQ},
-    ]
-
-    @property
-    def marker_type(self):
-        return self._data.get(MARKER_TYPE, None)
-
-    @marker_type.setter
-    def marker_type(self, value: str):
-        if value is not None:
-            types = " ".join([m["acronym"] for m in ALLOWED_MARKER_TYPES])
-            if value not in types:
-                msg = f"{value} not in allowed marker types: {types}"
-                raise ValidationError(msg)
-            self._data[MARKER_TYPE] = value
-
-    @property
-    def marker_id(self) -> str:
-        return self._data.get(MARKER_INSDC, None)
-
-    @marker_id.setter
-    def marker_id(self, value: str):
-        self._data[MARKER_INSDC] = value
-
-    @property
-    def marker_seq(self) -> str:
-        return self._data.get(MARKER_SEQ, None)
-
-    @marker_seq.setter
-    def marker_seq(self, value: str):
-        self._data[MARKER_SEQ] = value
-
-
 class Genetics(FrozenClass):
     def __init__(self, data=None):
         self._data = {}
@@ -675,7 +637,13 @@ class Genetics(FrozenClass):
             if value is None or value == []:
                 continue
             elif isinstance(value, list):
-                value = [v.dict() for v in value]
+                a = []
+                for v in value:
+                    if not isinstance(v, str):
+                        a.append(v.dict())
+                    else:
+                        a.append(v)
+                value = a
             data[key] = value
         return data
 
@@ -862,11 +830,14 @@ class Strain(FrozenClass):
                 value = value.dict()
                 if value == {}:
                     value = None
-            elif field in [OTHER_CULTURE_NUMBERS, PUBLICATIONS]:
+
+            elif field in [OTHER_CULTURE_NUMBERS, PUBLICATIONS, ID_SYNONYMS]:
                 value = [item.dict() for item in value]
                 if value == []:
                     value = None
-
+            elif field == DATE_OF_INCLUSION:
+                value = value.strfdate
+                0
             if value is not None:
                 data[field] = value
 

@@ -212,7 +212,7 @@ def is_valid_nagoya(row, in_memory_sheets):  # sourcery skip: return-identity
     if _date is None:
         _date = row.get("Date of inclusion in the catalogue", None)
     if _date is not None:
-        year = _date.year if isinstance(_date, datetime) else int(_date[:4])
+        year = _date.year if isinstance(_date, datetime) else int(str(_date)[:4])
     else:
         year = None
 
@@ -281,6 +281,7 @@ def is_valid_date(value, validation_conf):
         month = value.month
         day = value.day
     else:
+        value = str(value)
         value = value.replace('-', '')
         value = value.replace('/', '')
         month = None

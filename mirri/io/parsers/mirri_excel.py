@@ -4,12 +4,12 @@ from io import BytesIO
 
 from openpyxl import load_workbook
 
-from mirri import rsetattr
+from mirri import rsetattr, ValidationError
 from mirri.io.parsers.excel import workbook_sheet_reader
 from mirri.entities.publication import Publication
 from mirri.entities.date_range import DateRange
-from mirri.entities.strain import (GenomicSequence, ValidationError,
-                                   OrganismType, Strain, StrainId)
+from mirri.entities.strain import OrganismType, Strain, StrainId
+from mirri.entities.sequence import  GenomicSequence
 from mirri.settings import (COMMERCIAL_USE_WITH_AGREEMENT, GENOMIC_INFO,
                             GROWTH_MEDIA, LITERATURE_SHEET, LOCATIONS,
                             MIRRI_FIELDS, NAGOYA_DOCS_AVAILABLE, NAGOYA_NO_RESTRICTIONS,

@@ -15,14 +15,15 @@ class FrozenClass(object):
 class _FieldBasedClass(FrozenClass):
     _fields = []
 
-    def __init__(self, data=None):
+    def __init__(self, data=None, freeze=True):
         self._data = {}
         if data is None:
             data = {}
         for field in self._fields:
             value = data.get(field["label"], None)
             setattr(self, field["attribute"], value)
-        self._freeze()
+        if freeze:
+            self._freeze()
 
     def __eq__(self, o: object) -> bool:
         for field in self._fields:

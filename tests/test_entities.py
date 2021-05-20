@@ -3,9 +3,10 @@ Created on 2020(e)ko abe. 2(a)
 
 @author: peio
 """
-from mirri.entities.publication import Publication
+
 import unittest
 
+from mirri.entities.publication import Publication
 from mirri.entities.date_range import DateRange
 from mirri.entities.location import Location
 from mirri.entities.strain import (
@@ -38,6 +39,7 @@ from mirri.settings import (
     PLOIDY,
     RECOMMENDED_GROWTH_MEDIUM,
     TAXONOMY,
+    DATE_OF_INCLUSION
 )
 
 
@@ -90,20 +92,20 @@ class TestCollect(unittest.TestCase):
         collect = Collect()
         self.assertEqual(collect.dict(), {})
 
-        collect.location.country = "spain"
+        collect.location.country = "ESP"
         collect.date = DateRange().strpdate("2012----")
 
         collect.who = "pepito"
         self.assertEqual(
             dict(collect.dict()),
             {
-                "location": {"countryOfOriginCode": "spain"},
+                "location": {"countryOfOriginCode": "ESP"},
                 "collected_by": "pepito",
                 "date_of_collection": "2012----",
             },
         )
         self.assertEqual(collect.__str__(),
-                         "Collected: spain in 2012---- by pepito")
+                         "Collected: Spain in 2012---- by pepito")
 
 
 class TestOrganismType(unittest.TestCase):
@@ -171,9 +173,9 @@ class TestStrain(unittest.TestCase):
         strain.nagoya_protocol = NAGOYA_DOCS_AVAILABLE
         strain.dict()[NAGOYA_PROTOCOL] = NAGOYA_DOCS_AVAILABLE
 
-        strain.collect.location.country = "spain"
+        strain.collect.location.country = "ESP"
 
-        self.assertEqual(strain.dict()[COLLECT][LOCATION][COUNTRY], "spain")
+        self.assertEqual(strain.dict()[COLLECT][LOCATION][COUNTRY], "ESP")
 
         strain.genetics.ploidy = 9
         self.assertEqual(strain.dict()[GENETICS][PLOIDY], 9)
@@ -247,6 +249,10 @@ class TestStrain(unittest.TestCase):
 
         strain.publications = [pub]
         self.assertEqual(strain.publications[0].id, "1")
+
+        strain.catalog_inclusion_date = DateRange(year=1992)
+        self.assertEqual(strain.dict()[DATE_OF_INCLUSION], '1992----')
+
         import pprint
 
         # pprint.pprint(strain.dict())
