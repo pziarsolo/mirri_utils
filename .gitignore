@@ -4,4 +4,4 @@
 .pydevproject
 .vscode
 logs/*
-main.py
+data/*

@@ -37,6 +37,9 @@ from mirri.validation.excel_validator import (
 
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
+TS_VALUE = "value"
+TS_CONF = "conf"
+TS_ASSERT = "assert_func"
 
 
 class MirriExcelValidationTests(unittest.TestCase):
@@ -46,50 +49,55 @@ class MirriExcelValidationTests(unittest.TestCase):
         with in_path.open("rb") as fhand:
             error_log = validate_mirri_excel(fhand)
 
-        print(error_log.get_errors().keys())
+        entities = []
+        err_codes = []
+        for ett, errors in error_log.get_errors().items():
+            entities.append(ett)
+            err_codes.extend([err.code for err in errors])
 
-        self.assertIn("STD", error_log.get_errors().keys())
-        self.assertIn("GID", error_log.get_errors().keys())
-        str_error = error_log.get_errors()["STD"]
-        xxx_error = error_log.get_errors()["GID"]
-        error_msgs = [err.code for err in str_error]
-        print(error_msgs)
-        return
-        self.assertIn(
-            "The 'Ontobiotope' sheet is missing. Please check the provided excel template",
-            error_msgs,
+        self.assertIn("EFS", entities)
+        self.assertIn("STD", entities)
+        self.assertIn("GOD", entities)
+        self.assertIn("GMD", entities)
 
-        )
+        self.assertIn("EFS03", err_codes)
+        self.assertIn("EFS06", err_codes)
+        self.assertIn("EFS08", err_codes)
+        self.assertIn("GOD06", err_codes)
+        self.assertIn("GMD01", err_codes)
+        self.assertIn("STD05", err_codes)
+        self.assertIn("STD08", err_codes)
+        self.assertIn("STD12", err_codes)
 
-        self.assertIn(
-            "The 'Sexual state' sheet is missing. Please check the provided excel template",
-            error_msgs,
-        )
-        self.assertEqual(
-            gmd_error[0].message,
-            "The 'Acronym' is a mandatory field. The column can not be empty.",
-        )
-
-    # DOING
     def test_validation_content(self):
         in_path = TEST_DATA_DIR / "invalid_content.mirri.xlsx"
         with in_path.open("rb") as fhand:
             error_log = validate_mirri_excel(fhand)
 
-        errors = error_log.get_errors()
-        entities = errors.keys()
-        # TODO: errors.vales are Error instances
-        messages = list(chain.from_iterable(errors.values()))
+        entities = []
+        err_codes = []
+        for ett, errors in error_log.get_errors().items():
+            entities.append(ett)
+            err_codes.extend([err.code for err in errors])
 
-        self.assertTrue(len(errors) > 0)
+        self.assertTrue(len(err_codes) > 0)
+
         self.assertNotIn("EFS", entities)
         self.assertIn("STD", entities)
+        self.assertIn("GOD", entities)
+        self.assertIn("GID", entities)
 
-        # TODO: instead of error messages test error codes!
-
-        # for entity, error_list in errors.items():
-        #     for error in error_list:
-        #         print(error.pk, error.data, error.message, error.code)
+        self.assertIn("GOD04", err_codes)
+        self.assertIn("GOD07", err_codes)
+        self.assertIn("GID03", err_codes)
+        self.assertIn("STD11", err_codes)
+        self.assertIn("STD15", err_codes)
+        self.assertIn("STD22", err_codes)
+        self.assertIn("STD04", err_codes)
+        self.assertIn("STD10", err_codes)
+        self.assertIn("STD07", err_codes)
+        self.assertIn("STD14", err_codes)
+        self.assertIn("STD16", err_codes)
 
     def test_validation_valid(self):
         in_path = TEST_DATA_DIR / "valid.mirri.xlsx"
@@ -102,303 +110,472 @@ class MirriExcelValidationTests(unittest.TestCase):
 class ValidatoionFunctionsTest(unittest.TestCase):
 
     def test_is_valid_regex(self):
-        value = 'abcDEF'
-        conf = {TYPE: REGEXP, MATCH: r"[a-zA-Z]+"}
-        self.assertTrue(is_valid_regex(value, conf))
+        tests = [
+            {
+                TS_VALUE: "abcDEF",
+                TS_CONF: {TYPE: REGEXP, MATCH: r"[a-zA-Z]+"},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "123456",
+                TS_CONF: {TYPE: REGEXP, MATCH: r"[a-zA-Z]+"},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: "123456",
+                TS_CONF: {TYPE: REGEXP, MATCH: r"\d+"},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "abcdef",
+                TS_CONF: {TYPE: REGEXP, MATCH: r"\d+"},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: "abc 123",
+                TS_CONF: {TYPE: REGEXP, MATCH: r"\w+(\s\w+)*$"},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "123 abc",
+                TS_CONF: {TYPE: REGEXP, MATCH: r"\w+(\s\w+)*$"},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "123      ",
+                TS_CONF: {TYPE: REGEXP, MATCH: r"\w+(\s\w+)*$"},
+                TS_ASSERT: self.assertFalse
+            },
+        ]
 
-        value = '123456'
-        conf = {TYPE: REGEXP, MATCH: r"[a-zA-Z]+"}
-        self.assertFalse(is_valid_regex(value, conf))
-
-        value = '123456'
-        conf = {TYPE: REGEXP, MATCH: r"\d+"}
-        self.assertTrue(is_valid_regex(value, conf))
-
-        value = 'abcdef'
-        conf = {TYPE: REGEXP, MATCH: r"\d+"}
-        self.assertFalse(is_valid_regex(value, conf))
-
-        value = 'abc 123'
-        conf = {TYPE: REGEXP, MATCH: r"^\w+(\s\w+)*$"}
-        self.assertTrue(is_valid_regex(value, conf))
-
-        value = '123 abc'
-        conf = {TYPE: REGEXP, MATCH: r"^\w+(\s\w+)*$"}
-        self.assertTrue(is_valid_regex(value, conf))
-
-        value = '123      '
-        conf = {TYPE: REGEXP, MATCH: r"^\w+(\s\w+)*$"}
-        self.assertFalse(is_valid_regex(value, conf))
+        for test in tests:
+            value = test[TS_VALUE]
+            conf = test[TS_CONF]
+            assert_func = test[TS_ASSERT]
+            with self.subTest(value=value):
+                assert_func(is_valid_regex(value, conf))
 
     def test_is_valid_choices(self):
-        value = "1"
-        conf = {TYPE: CHOICES, VALUES: ["1", "2", "3", "4"]}
-        self.assertTrue(is_valid_choices(value, conf))
+        tests = [
+            {
+                TS_VALUE: "1",
+                TS_CONF: {TYPE: CHOICES, VALUES: ["1", "2", "3", "4"]},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "1, 3",
+                TS_CONF: {
+                    TYPE: CHOICES,
+                    VALUES: ["1", "2", "3", "4"],
+                    MULTIPLE: True,
+                    SEPARATOR: ","
+                },
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "5",
+                TS_CONF: {TYPE: CHOICES, VALUES: ["1", "2", "3", "4"]},
+                TS_ASSERT: self.assertFalse
+            },
+        ]
 
-        value = "1, 3"
-        conf = {TYPE: CHOICES, VALUES: [
-            "1", "2", "3", "4"], MULTIPLE: True, SEPARATOR: ","}
-        self.assertTrue(is_valid_choices(value, conf))
-
-        value = "5"
-        conf = {TYPE: CHOICES, VALUES: ["1", "2", "3", "4"]}
-        self.assertFalse(is_valid_choices(value, conf))
+        for test in tests:
+            value = test[TS_VALUE]
+            conf = test[TS_CONF]
+            assert_func = test[TS_ASSERT]
+            with self.subTest(value=value):
+                assert_func(is_valid_choices(value, conf))
 
     def test_is_valid_crossref(self):
-        value = "abc"
-        cross_ref = {"values": ["abc", "def", "ghi"]}
-        conf = {
-            TYPE: CROSSREF,
-            CROSSREF_NAME: "values",
-            "crossrefs_pointer": cross_ref,
-        }
-        self.assertTrue(is_valid_crossrefs(value, conf))
+        tests = [
+            {
+                TS_VALUE: "abc",
+                TS_CONF: {
+                    TYPE: CROSSREF,
+                    CROSSREF_NAME: "values",
+                    "crossrefs_pointer": {"values": ["abc", "def", "ghi"]},
+                },
+                TS_ASSERT: self.assertTrue,
+            },
+            {
+                TS_VALUE: "123",
+                TS_CONF: {
+                    TYPE: CROSSREF,
+                    CROSSREF_NAME: "values",
+                    "crossrefs_pointer": {"values": ["abc", "def", "ghi"]},
+                },
+                TS_ASSERT: self.assertFalse,
+            },
+            {
+                TS_VALUE: "abc, def",
+                TS_CONF: {
+                    TYPE: CROSSREF,
+                    CROSSREF_NAME: "values",
+                    "crossrefs_pointer": {"values": ["abc", "def", "ghi"]},
+                    MULTIPLE: True,
+                    SEPARATOR: ",",
+                },
+                TS_ASSERT: self.assertTrue,
+            },
+            {
+                TS_VALUE: "abc, 123",
+                TS_CONF: {
+                    TYPE: CROSSREF,
+                    CROSSREF_NAME: "values",
+                    "crossrefs_pointer": {"values": ["abc", "def", "ghi"]},
+                    MULTIPLE: True,
+                    SEPARATOR: ",",
+                },
+                TS_ASSERT: self.assertFalse,
+            },
+        ]
 
-        value = "123"
-        cross_ref = {"values": ["abc", "def", "ghi"]}
-        conf = {
-            TYPE: CROSSREF,
-            CROSSREF_NAME: "values",
-            "crossrefs_pointer": cross_ref,
-        }
-        self.assertFalse(is_valid_crossrefs(value, conf))
-
-        value = "abc, def"
-        cross_ref = {"values": ["abc", "def", "ghi"]}
-        conf = {
-            TYPE: CROSSREF,
-            CROSSREF_NAME: "values",
-            "crossrefs_pointer": cross_ref,
-            MULTIPLE: True,
-            SEPARATOR: ",",
-        }
-        self.assertTrue(is_valid_crossrefs(value, conf))
-
-        value = "abc, 123"
-        cross_ref = {"values": ["abc", "def", "ghi"]}
-        conf = {
-            TYPE: CROSSREF,
-            CROSSREF_NAME: "values",
-            "crossrefs_pointer": cross_ref,
-            MULTIPLE: True,
-            SEPARATOR: ",",
-        }
-        self.assertFalse(is_valid_crossrefs(value, conf))
+        for test in tests:
+            value = test[TS_VALUE]
+            conf = test[TS_CONF]
+            assert_func = test[TS_ASSERT]
+            with self.subTest(value=value):
+                assert_func(is_valid_crossrefs(value, conf))
 
     def test_is_valid_missing(self):
-        value = 1
-        conf = {TYPE: MISSING}
-        self.assertTrue(is_valid_missing(value, conf))
+        tests = [
+            {
+                TS_VALUE: 1,
+                TS_CONF: {TYPE: MISSING},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "abc",
+                TS_CONF: {TYPE: MISSING},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: None,
+                TS_CONF: {TYPE: MISSING},
+                TS_ASSERT: self.assertFalse
+            },
+        ]
 
-        value = "abc"
-        conf = {TYPE: MISSING}
-        self.assertTrue(is_valid_missing(value, conf))
-
-        value = None
-        conf = {TYPE: MISSING}
-        self.assertFalse(is_valid_missing(value, conf))
-
-    # TODO
-    def test_is_valid_mandatory(self):
-        # is it required? this would be the same as test_is_valid_missing
-        pass
+        for test in tests:
+            value = test[TS_VALUE]
+            conf = test[TS_CONF]
+            assert_func = test[TS_ASSERT]
+            with self.subTest(value=value):
+                assert_func(is_valid_missing(value, conf))
 
     def test_is_valid_date(self):
-        value = '2020-04-07'
-        conf = {TYPE: DATE}
-        self.assertTrue(is_valid_date(value, conf))
+        tests = [
+            {
+                TS_VALUE: '2020-04-07',
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: '2020/04/07',
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: datetime(2021, 5, 1),
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: '2020-05',
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: '2020/05',
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: 2020,
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: '2021 05 01',
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: '04-07-2020',
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: '2021-02-31',
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: '2021-15',
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: '15-2021',
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: 3000,
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: -2020,
+                TS_CONF: {TYPE: DATE},
+                TS_ASSERT: self.assertFalse
+            },
+        ]
 
-        value = '2020/04/07'
-        conf = {TYPE: DATE}
-        self.assertTrue(is_valid_date(value, conf))
-
-        value = datetime(2021, 5, 1)
-        conf = {TYPE: DATE}
-        self.assertTrue(is_valid_date(value, conf))
-
-        value = '2020-05'
-        conf = {TYPE: DATE}
-        self.assertTrue(is_valid_date(value, conf))
-
-        value = '2020/05'
-        conf = {TYPE: DATE}
-        self.assertTrue(is_valid_date(value, conf))
-
-        value = '2021 05 01'
-        conf = {TYPE: DATE}
-        self.assertFalse(is_valid_date(value, conf))
-
-        value = '04-07-2020'
-        conf = {TYPE: DATE}
-        self.assertFalse(is_valid_date(value, conf))
-
-        value = '2021-02-31'
-        conf = {TYPE: DATE}
-        self.assertFalse(is_valid_date(value, conf))
-
-        value = '2021-15'
-        conf = {TYPE: DATE}
-        self.assertFalse(is_valid_date(value, conf))
-
-        value = '15-2021'
-        conf = {TYPE: DATE}
-        self.assertFalse(is_valid_date(value, conf))
+        for test in tests:
+            value = test[TS_VALUE]
+            conf = test[TS_CONF]
+            assert_func = test[TS_ASSERT]
+            with self.subTest(value=value):
+                assert_func(is_valid_date(value, conf))
 
     def test_is_valid_coordinates(self):
-        value = "23; 50"
-        conf = {TYPE: COORDINATES}
-        self.assertTrue(is_valid_coords(value, conf))
+        tests = [
+            {
+                TS_VALUE: "23; 50",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "-90; -100",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "90; 100",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "0; 0",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "10; 20; 5",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "10; 20; -5",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "91; 50",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: "87; 182",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: "-200; 182",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: "20, 40",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: "abc def",
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: 123,
+                TS_CONF: {TYPE: COORDINATES},
+                TS_ASSERT: self.assertFalse
+            },
+        ]
 
-        value = "-90; -100"
-        conf = {TYPE: COORDINATES}
-        self.assertTrue(is_valid_coords(value, conf))
-
-        value = "90; 100"
-        conf = {TYPE: COORDINATES}
-        self.assertTrue(is_valid_coords(value, conf))
-
-        value = "0; 0"
-        conf = {TYPE: COORDINATES}
-        self.assertTrue(is_valid_coords(value, conf))
-
-        value = "10; 20; 5"
-        conf = {TYPE: COORDINATES}
-        self.assertTrue(is_valid_coords(value, conf))
-
-        value = "10; 20; -5"
-        conf = {TYPE: COORDINATES}
-        self.assertTrue(is_valid_coords(value, conf))
-
-        value = "91; 50"
-        conf = {TYPE: COORDINATES}
-        self.assertFalse(is_valid_coords(value, conf))
-
-        value = "87; 182"
-        conf = {TYPE: COORDINATES}
-        self.assertFalse(is_valid_coords(value, conf))
-
-        value = "-200; 182"
-        conf = {TYPE: COORDINATES}
-        self.assertFalse(is_valid_coords(value, conf))
-
-        value = "20, 40"
-        conf = {TYPE: COORDINATES}
-        self.assertFalse(is_valid_coords(value, conf))
-
-        value = "abc def"
-        conf = {TYPE: COORDINATES}
-        self.assertFalse(is_valid_coords(value, conf))
-
-        value = 123
-        conf = {TYPE: COORDINATES}
-        self.assertFalse(is_valid_coords(value, conf))
+        for test in tests:
+            value = test[TS_VALUE]
+            conf = test[TS_CONF]
+            assert_func = test[TS_ASSERT]
+            with self.subTest(value=value):
+                assert_func(is_valid_coords(value, conf))
 
     def test_is_valid_number(self):
-        value = 1
-        conf = {TYPE: NUMBER}
-        self.assertTrue(is_valid_number(value, conf))
+        tests = [
+            {
+                TS_VALUE: 1,
+                TS_CONF: {TYPE: NUMBER},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: 2.5,
+                TS_CONF: {TYPE: NUMBER},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "10",
+                TS_CONF: {TYPE: NUMBER},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "10.5",
+                TS_CONF: {TYPE: NUMBER},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: 5,
+                TS_CONF: {TYPE: NUMBER, "min": 0},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: 5,
+                TS_CONF: {TYPE: NUMBER, "max": 10},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: 5,
+                TS_CONF: {TYPE: NUMBER, "min": 0, "max": 10},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "hello",
+                TS_CONF: {TYPE: NUMBER},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: 10,
+                TS_CONF: {TYPE: NUMBER, "max": 5},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: 0,
+                TS_CONF: {TYPE: NUMBER, "min": 5},
+                TS_ASSERT: self.assertFalse
+            },
+        ]
 
-        value = 2.5
-        conf = {TYPE: NUMBER}
-        self.assertTrue(is_valid_number(value, conf))
-
-        value = "10"
-        conf = {TYPE: NUMBER}
-        self.assertTrue(is_valid_number(value, conf))
-
-        value = "10.5"
-        conf = {TYPE: NUMBER}
-        self.assertTrue(is_valid_number(value, conf))
-
-        value = 5
-        conf = {TYPE: NUMBER, "min": 0}
-        self.assertTrue(is_valid_number(value, conf))
-
-        value = 5
-        conf = {TYPE: NUMBER, "max": 10}
-        self.assertTrue(is_valid_number(value, conf))
-
-        value = 5
-        conf = {TYPE: NUMBER, "min": 0, "max": 10}
-        self.assertTrue(is_valid_number(value, conf))
-
-        value = 'hello'
-        conf = {TYPE: NUMBER}
-        self.assertFalse(is_valid_number(value, conf))
-
-        value = 10
-        conf = {TYPE: NUMBER, "max": 5}
-        self.assertFalse(is_valid_number(value, conf))
-
-        value = 0
-        conf = {TYPE: NUMBER, "min": 5}
-        self.assertFalse(is_valid_number(value, conf))
+        for test in tests:
+            value = test[TS_VALUE]
+            conf = test[TS_CONF]
+            assert_func = test[TS_ASSERT]
+            with self.subTest(value=value):
+                assert_func(is_valid_number(value, conf))
 
     def test_is_valid_taxon(self):
-        value = 'sp. species'
-        conf = {TYPE: TAXON}
-        self.assertTrue(is_valid_taxon(value, conf))
+        tests = [
+            {
+                TS_VALUE: 'sp. species',
+                TS_CONF: {TYPE: TAXON},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: 'spp species subsp. subspecies',
+                TS_CONF: {TYPE: TAXON},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: 'spp species subsp. subspecies var. variety',
+                TS_CONF: {TYPE: TAXON},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: 'spp taxon',
+                TS_CONF: {TYPE: TAXON},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: 'Candidaceae',
+                TS_CONF: {TYPE: TAXON},
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: 'sp sp species',
+                TS_CONF: {TYPE: TAXON},
+                TS_ASSERT: self.assertFalse
+            },
+            {
+                TS_VALUE: 'spp species abc. def',
+                TS_CONF: {TYPE: TAXON},
+                TS_ASSERT: self.assertFalse
+            },
+        ]
 
-        value = 'spp species subsp. subspecies'
-        conf = {TYPE: TAXON}
-        self.assertTrue(is_valid_taxon(value, conf))
-
-        value = 'spp species subsp. subspecies var. variety'
-        conf = {TYPE: TAXON}
-        self.assertTrue(is_valid_taxon(value, conf))
-
-        value = 'spp taxon'
-        conf = {TYPE: TAXON}
-        self.assertTrue(is_valid_taxon(value, conf))
-
-        value = 'Hello'
-        conf = {TYPE: TAXON}
-        self.assertFalse(is_valid_taxon(value, conf))
-
-        value = 'sp sp species'
-        conf = {TYPE: TAXON}
-        self.assertFalse(is_valid_taxon(value, conf))
-
-        value = 'spp species abc. def'
-        conf = {TYPE: TAXON}
-        self.assertFalse(is_valid_taxon(value, conf))
+        for test in tests:
+            value = test[TS_VALUE]
+            conf = test[TS_CONF]
+            assert_func = test[TS_ASSERT]
+            with self.subTest(value=value):
+                assert_func(is_valid_taxon(value, conf))
 
     def test_is_valid_unique(self):
-        value = "abc"
-        conf = {
-            TYPE: UNIQUE,
-            "label": "values",
-            "shown_values": {}
-        }
-        self.assertTrue(is_valid_unique(value, conf))
+        tests = [
+            {
+                TS_VALUE: "abc",
+                TS_CONF: {
+                    TYPE: UNIQUE,
+                    "label": "values",
+                    "shown_values": {}
+                },
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "jkl",
+                TS_CONF: {
+                    TYPE: UNIQUE,
+                    "label": "values",
+                    "shown_values": {
+                        "values": ["abc", "def", "ghi"],
+                    }
+                },
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: "abc",
+                TS_CONF: {
+                    TYPE: UNIQUE,
+                    "label": "values",
+                    "shown_values": {
+                        "values": ["abc", "def", "ghi"],
+                    }
+                },
+                TS_ASSERT: self.assertFalse
+            },
+        ]
 
-        value = "jkl"
-        conf = {
-            TYPE: UNIQUE,
-            "label": "values",
-            "shown_values": {
-                "values": ["abc", "def", "ghi"],
-            }
-        }
-        self.assertTrue(is_valid_unique(value, conf))
+        for test in tests:
+            value = test[TS_VALUE]
+            conf = test[TS_CONF]
+            assert_func = test[TS_ASSERT]
+            with self.subTest(value=value):
+                assert_func(is_valid_unique(value, conf))
 
-        value = "abc"
-        conf = {
-            TYPE: UNIQUE,
-            "label": "values",
-            "shown_values": {
-                "values": ["abc", "def", "ghi"],
-            }
-        }
-        self.assertFalse(is_valid_unique(value, conf))
-
-    # TODO: try open the file to check if its excel
     def test_is_valid_file(self):
-        path = "whatever.xlsx"
-        self.assertTrue(is_valid_file(path))
+        tests = [
+            {
+                TS_VALUE: TEST_DATA_DIR / "invalid_structure.mirri.xlsx",
+                TS_ASSERT: self.assertTrue
+            },
+            {
+                TS_VALUE: TEST_DATA_DIR / "invalid_excel.mirri.json",
+                TS_ASSERT: self.assertFalse
+            },
+        ]
 
-        path = "whatever.csv"
-        self.assertFalse(is_valid_file(path))
+        for test in tests:
+            value = test[TS_VALUE]
+            assert_func = test[TS_ASSERT]
+            with self.subTest(value=value):
+                assert_func(is_valid_file(value,))
 
 
 if __name__ == "__main__":

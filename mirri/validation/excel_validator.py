@@ -280,7 +280,11 @@ def is_valid_date(value, validation_conf):
         year = value.year
         month = value.month
         day = value.day
-    else:
+    elif isinstance(value, int):
+        year = value
+        month = None
+        day = None
+    elif isinstance(value, str):
         value = value.replace('-', '')
         value = value.replace('/', '')
         month = None
@@ -294,6 +298,9 @@ def is_valid_date(value, validation_conf):
 
         except (IndexError, TypeError):
             return False
+    else:
+        return False
+
     if year < 1700 or year > datetime.now().year:
         return False
     if month is not None:
@@ -319,7 +326,7 @@ def is_valid_coords(value, validation_conf=None):
         if longitude < -180 or longitude > 180:
             return False
         return True
-    except TypeError:
+    except:
         return False
 
 
@@ -334,9 +341,11 @@ def is_valid_number(value, validation_conf):
         value = float(value)
     except TypeError:
         return False
+    except ValueError:
+        return False
 
     _max = validation_conf.get('max', None)
-    _min = validation_conf.get('max', None)
+    _min = validation_conf.get('min', None)
     if ((_max is not None and value > _max) or (_min is not None and value < _min)):
         return False
 
@@ -380,8 +389,15 @@ def is_valid_unique(value, validation_conf):
 
 
 def is_valid_file(path):
-    file_extension = Path(path).suffix
-    return file_extension in [".xlsx", ".xlsm", ".xltx", ".xltm"]
+    try:
+        with path.open("rb") as fhand:
+            error_log = validate_mirri_excel(fhand)
+            if "EXL" in error_log.get_errors():
+                return False
+    except:
+        return False
+
+    return True
 
 
 VALIDATION_FUNCTIONS = {
