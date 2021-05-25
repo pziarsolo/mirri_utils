@@ -7,3 +7,4 @@ logs/*
 main.py
 *secrets.py
 *.pytest_cache
+data/*
