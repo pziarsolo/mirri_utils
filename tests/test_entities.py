@@ -9,10 +9,10 @@ import unittest
 from mirri.entities.publication import Publication
 from mirri.entities.date_range import DateRange
 from mirri.entities.location import Location
+from mirri.entities.sequence import GenomicSequence
 from mirri.entities.strain import (
     Collect,
     Deposit,
-    GenomicSequence,
     Isolation,
     ValidationError,
     OrganismType,
@@ -255,7 +255,7 @@ class TestStrain(unittest.TestCase):
 
         import pprint
 
-        # pprint.pprint(strain.dict())
+        pprint.pprint(strain.dict())
 
 
 class TestIsolation(unittest.TestCase):

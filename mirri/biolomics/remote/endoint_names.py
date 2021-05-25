@@ -1,0 +1,7 @@
+SEQUENCE_WS = 'sequence'
+STRAIN_WS = 'strain'
+GROWTH_MEDIUM_WS = 'growth_medium'
+TAXONOMY_WS = 'taxonomy'
+COUNTRY_WS = 'country'
+ONTOBIOTOPE_WS = 'ontobiotope'
+BIBLIOGRAPHY_WS = 'bibliography'

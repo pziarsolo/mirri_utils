@@ -1,0 +1,39 @@
+MIRRI Accessio Number: How is assigned? How to choose number
+
+Ontobiotope term. just one field in dataset, two fields in biolomics
+Altitude. Field and in Coordinates
+
+Geographic origin: field and Entry in other table
+
+Ploidy: How is this field formated?haploid/diploid or 1, 2, 3...
+
+Best strategy:
+
+My class has
+    - strain data
+    - geographic data
+    - literature
+    - sequences
+
+
+
+No not a valid value for Strain from a registered collection, Allowed values: ?. no. yes
+yes not a valid value for GMO, Allowed values: ?. No. Yes
+
+"Plant pathogenicity code" not a valid field
+
+Organism Type:
+    firstuppercase in deposit
+    lower case in retrieve
+
+Taxon name is a list in retrieve
+
+
+null values:
+'Comment on taxonomy' = '' could be null
+'Coordinates of geographic origin':{Lontigute, lati... 'NaN' could be null
+'Date of inclusion in the catalogue' = '' could be null
+'Enzyme production'= '' could be null
+'Ploidy':'?' could be null
+
+Deposit date
