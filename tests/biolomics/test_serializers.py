@@ -1,7 +1,6 @@
 import unittest
 import pycountry
 
-from mirri.biolomics.tests import create_full_data_strain
 from mirri.biolomics.serializers.sequence import (
     GenomicSequenceBiolomics,
     serialize_to_biolomics as sequence_to_biolomics,
@@ -19,8 +18,9 @@ from mirri.biolomics.serializers.bibliography import (
 )
 from mirri.biolomics.settings import CLIENT_ID, SECRET_ID, USERNAME, PASSWORD
 from mirri.biolomics.remote.biolomics_client import BiolomicsMirriClient
-from mirri.biolomics.tests import VERSION, SERVER_URL
 from mirri.entities.publication import Publication
+from .utils import create_full_data_strain, VERSION, SERVER_URL
+
 
 STRAIN_WS = {
     'CreationDate': '2021-05-19T12:22:33',

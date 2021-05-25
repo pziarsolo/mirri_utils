@@ -1,4 +1,4 @@
-from mirri.settings import GEOGRAPHIC_ORIGIN, LOCATIONS, SUBTAXAS
+from mirri.settings import LOCATIONS, SUBTAXAS
 import re
 from pathlib import Path
 from io import BytesIO
@@ -13,7 +13,7 @@ from mirri.validation.error_logging import ErrorLog, Error
 from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
                                    MISSING, MULTIPLE, NAGOYA, NUMBER, REGEXP, ROW_VALIDATION, SEPARATOR, TAXON,
-                                   TYPE, UNIQUE, VALIDATION, VALUES)
+                                   TYPE, UNIQUE, VALIDATION, VALUES, BIBLIO)
 
 from mirri.validation.validation_conf_20200601 import MIRRI_20200601_VALLIDATION_CONF
 
@@ -178,6 +178,9 @@ def validate_row(row, validation_steps, in_memory_sheets):
         if kind == NAGOYA:
             if not is_valid_nagoya(row, in_memory_sheets):
                 return error_code
+        elif kind == BIBLIO:
+            if not is_valid_pub(row):
+                return error_code
         else:
             msg = f'{kind} is not a recognized row validation type method'
             raise NotImplementedError(msg)
@@ -192,8 +195,35 @@ def validate_cell(value, validation_steps, crossrefs, shown_values, label):
         step_conf['shown_values'] = shown_values
         step_conf['label'] = label
         error_code = validate_value(value, step_conf)
+
         if error_code is not None:
             return error_code
+
+
+def is_valid_pub(row):
+    title = row.get('Title', None)
+    full_reference = row.get('Full reference', None)
+    authors = row.get('Authors', None)
+    journal = row.get('Journal', None)
+    year = row.get('Year', None)
+    volumen = row.get('Volumen', None)
+    first_page = row.get('First page', None)
+    book_title = row.get('Book title', None)
+    editors = row.get('Editors', None)
+    publishers = row.get('Publishers', None)
+
+    if full_reference:
+        return True
+    is_journal = bool(title)
+
+    if (is_journal and (not authors  or not journal or not not year or
+                        not volumen or not first_page)):
+        return False
+    if (not is_journal and (not authors or not year or
+                            not editors or not publishers or not book_title)):
+        return False
+
+    return True
 
 
 def is_valid_nagoya(row, in_memory_sheets):  # sourcery skip: return-identity
@@ -243,6 +273,7 @@ def is_valid_regex(value, validation_conf):
 def is_valid_crossrefs(value, validation_conf):
     if value is None:
         return True
+    value = str(value)
     crossref_name = validation_conf[CROSSREF_NAME]
     crossrefs = validation_conf['crossrefs_pointer']
     choices = crossrefs[crossref_name]
@@ -253,7 +284,7 @@ def is_valid_crossrefs(value, validation_conf):
     if multiple:
         values = [v.strip() for v in value.split(separator)]
     else:
-        values = [str(value).strip()]
+        values = [value.strip()]
 
     return all(value in choices for value in values)
 
@@ -386,7 +417,8 @@ def is_valid_unique(value, validation_conf):
 
     # NOTE: what's the use of this?
     # What is the expected format for value and shown_values?
-    shown_values[label][value] = {}
+    shown_values[label][value] = None
+
     return True
 
 

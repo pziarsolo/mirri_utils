@@ -186,6 +186,11 @@ class ErrorMessage():
     def LID16(self):
         return f"The 'First page' for literature with ID {self.pk} is missing."
 
+    def LID17(self):
+        msg = 'If journal; Title, Authors, journal, year and first page are required'
+        msg += 'If Book; Book Title, Authors, Year, Editors, Publishers'
+        return msg
+
     """
         Strains Error Codes
     """
@@ -344,6 +349,12 @@ class ErrorMessage():
     def STD44(self):
         return (f"The 'Ploidy' for strain with Accession Number {self.pk} is not according to specification."
                 f" Your value is {self.value} and the accepted values are 0, 1, 2, 3, 4, 9")
+
+    def STD45(self):
+        msg = f"At least one of the values '{self.value}' of the literature field for strain {self.pk} are not in the literature sheet. "
+        msg += "If the those values are Pubmed ids or DOIs, please ignore this messsage"
+        return msg
+
 
     """
         Genomic Information Error Codes

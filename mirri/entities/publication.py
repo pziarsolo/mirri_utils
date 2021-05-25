@@ -37,7 +37,15 @@ class Publication:
 
     def dict(self):
         return self._data
+    @property
+    def id(self) -> int:
+        return self._data.get(PUB_ID, None)
 
+    @id.setter
+    def id(self, value: int):
+        if value is not None:
+            self._data[PUB_ID] = value
+            
     @property
     def record_id(self) -> int:
         return self._data.get(RECORD_ID, None)

@@ -1,7 +1,6 @@
 import unittest
 
-from mirri.biolomics.tests import VERSION, SERVER_URL
-from mirri.biolomics.tests import create_full_data_strain
+from .utils import VERSION, SERVER_URL, create_full_data_strain
 from mirri.biolomics.settings import CLIENT_ID, SECRET_ID, USERNAME, PASSWORD
 from mirri.biolomics.remote.biolomics_client import BiolomicsMirriClient, STRAIN_WS
 from mirri.biolomics.pipelines.strain import retrieve_strain_by_accession_number

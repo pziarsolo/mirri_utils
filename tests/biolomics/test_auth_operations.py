@@ -7,7 +7,7 @@ except ImportError:
     raise ImportError(
         'You need a secrets.py in the project dir. with CLIENT_ID, SECRET_ID, USERNAME, PASSWORD')
 
-from mirri.biolomics.tests import VERSION, SERVER_URL
+from .utils import VERSION, SERVER_URL
 
 
 class BiolomicsClientAuthTest(unittest.TestCase):

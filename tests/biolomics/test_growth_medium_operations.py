@@ -1,6 +1,6 @@
 import unittest
 
-from mirri.biolomics.tests import VERSION, SERVER_URL
+
 from mirri.biolomics.settings import CLIENT_ID, SECRET_ID, USERNAME, PASSWORD
 from mirri.biolomics.remote.biolomics_client import BiolomicsMirriClient
 

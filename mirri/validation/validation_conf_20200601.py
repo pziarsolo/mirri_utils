@@ -1,7 +1,8 @@
 from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
-                                   MISSING, MULTIPLE, NAGOYA, NUMBER, REGEXP, ROW_VALIDATION, SEPARATOR, TAXON, TYPE, UNIQUE,
-                                   VALIDATION, VALUES)
+                                   MISSING, MULTIPLE, NAGOYA, NUMBER, REGEXP, ROW_VALIDATION, SEPARATOR, TAXON, TYPE,
+                                   UNIQUE,
+                                   VALIDATION, VALUES, BIBLIO)
 from mirri.settings import (GEOGRAPHIC_ORIGIN, ONTOBIOTOPE, LOCATIONS, GROWTH_MEDIA, GENOMIC_INFO,
                             STRAINS, LITERATURE_SHEET)
 # MARKERS,
@@ -268,6 +269,10 @@ STRAIN_FIELDS = [
     {
         # value can be in the cell or in another sheet. Don't configure this
         FIELD: "Literature",
+        VALIDATION: [
+            {TYPE: CROSSREF, CROSSREF_NAME: LITERATURE_SHEET,
+             MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STD45"}
+        ]
     },
     {
         FIELD: "Plant pathogenicity code",
@@ -403,6 +408,9 @@ SHEETS_SCHEMA = {
         "acronym": "LID",
         'id_field': 'ID',
         VALIDATION: {TYPE: MANDATORY, ERROR_CODE: "EFS03"},
+        ROW_VALIDATION: [
+            {TYPE: BIBLIO, ERROR_CODE: 'LID17'}
+        ],
         COLUMNS: [
             {
                 FIELD: "ID",
@@ -415,42 +423,36 @@ SHEETS_SCHEMA = {
                 FIELD: "Full reference",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "LID03"},
-                    {TYPE: MISSING, ERROR_CODE: "LID04"},
                 ]
             },
             {
                 FIELD: "Authors",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "LID05"},
-                    {TYPE: MISSING, ERROR_CODE: "LID06"},
                 ]
             },
             {
                 FIELD: "Title",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "LID07"},
-                    {TYPE: MISSING, ERROR_CODE: "LID08"},
                 ]
             },
             {
                 FIELD: "Journal",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "LID09"},
-                    {TYPE: MISSING, ERROR_CODE: "LID10"},
                 ]
             },
             {
                 FIELD: "Year",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "LID11"},
-                    {TYPE: MISSING, ERROR_CODE: "LID12"},
                 ]
             },
             {
                 FIELD: "Volume",
                 VALIDATION: [
                     {TYPE: MANDATORY, ERROR_CODE: "LID13"},
-                    {TYPE: MISSING, ERROR_CODE: "LID14"},
                 ]
             },
             {
@@ -529,6 +531,7 @@ CROSS_REF_CONF = {
     LOCATIONS: ['Locality'],
     GROWTH_MEDIA: ['Acronym'],
     STRAINS: ["Accession number"]
+
 }
 
 MIRRI_20200601_VALLIDATION_CONF = {

@@ -5,6 +5,9 @@ from mirri.entities.date_range import DateRange
 from mirri.entities.publication import Publication
 from mirri.settings import NAGOYA_NO_RESTRICTIONS
 
+VERSION = 'v2'
+SERVER_URL = 'https://webservices.bio-aware.com/mirri_test'
+
 
 def create_full_data_strain():
     strain = StrainMirri()

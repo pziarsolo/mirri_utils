@@ -1,9 +1,10 @@
 import unittest
 
-from mirri.biolomics.tests import VERSION, SERVER_URL
+from .utils import VERSION, SERVER_URL
 from mirri.biolomics.settings import CLIENT_ID, SECRET_ID, USERNAME, PASSWORD
 from mirri.biolomics.remote.biolomics_client import BiolomicsMirriClient, BIBLIOGRAPHY_WS
 from mirri.entities.publication import Publication
+
 
 class BiolomicsLiteratureClientTest(unittest.TestCase):
     def setUp(self):
