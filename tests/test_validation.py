@@ -534,7 +534,9 @@ class ValidatoionFunctionsTest(unittest.TestCase):
                     TYPE: UNIQUE,
                     "label": "values",
                     "shown_values": {
-                        "values": ["abc", "def", "ghi"],
+                        "values": {"abc": '',
+                                   "def": '',
+                                   "ghi": ''},
                     }
                 },
                 TS_ASSERT: self.assertTrue
@@ -545,7 +547,9 @@ class ValidatoionFunctionsTest(unittest.TestCase):
                     TYPE: UNIQUE,
                     "label": "values",
                     "shown_values": {
-                        "values": ["abc", "def", "ghi"],
+                        "values": {"abc": '',
+                                   "def": '',
+                                   "ghi": ''},
                     }
                 },
                 TS_ASSERT: self.assertFalse
