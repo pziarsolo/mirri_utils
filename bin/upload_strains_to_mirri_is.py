@@ -51,7 +51,7 @@ def write_errors_in_screen(errors, fhand=sys.stderr):
             fhand.write(f'{error.message} - {error.code}\n')
         fhand.write('\n')
 
-from pprint import pprint
+
 def create_or_upload_strains(client, strains, update=False):
     for strain in strains:
         result = get_or_create_or_update_strain(client, strain, update=update)
@@ -66,7 +66,6 @@ def create_or_upload_strains(client, strains, update=False):
         else:
             result_state = 'not modified'
         print(f'Strain {new_strain.id.strain_id}: {result_state}')
-        break
 
 
 def create_or_upload_growth_media(client, growth_media, update=False):
@@ -110,7 +109,7 @@ def main():
 
     client.start_transaction()
     try:
-        #create_or_upload_growth_media(client, growth_media, update=args['update'])
+        create_or_upload_growth_media(client, growth_media, update=args['update'])
         create_or_upload_strains(client, strains, update=args['update'])
         client.finish_transaction()
     except (Exception, KeyboardInterrupt) as error:

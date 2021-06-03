@@ -2,8 +2,7 @@
 import argparse
 import sys
 
-from mirri.biolomics.pipelines.strain import get_or_create_strain, create_or_update_strain, get_or_create_growth_medium, \
-    retrieve_strain_by_accession_number
+from mirri.biolomics.pipelines.strain import retrieve_strain_by_accession_number
 from mirri.biolomics.remote.biolomics_client import BiolomicsMirriClient
 from mirri.biolomics.remote.endoint_names import GROWTH_MEDIUM_WS, STRAIN_WS
 from mirri.io.parsers.mirri_excel import parse_mirri_excel
@@ -48,24 +47,6 @@ def write_errors_in_screen(errors, fhand=sys.stderr):
                 fhand.write(f'{error.pk}: ')
             fhand.write(f'{error.message} - {error.code}\n')
         fhand.write('\n')
-
-
-def create_or_upload_strains(client, strains, update=False):
-    for strain in strains:
-        if not update:
-            new_strain, created = get_or_create_strain(client, strain)
-        else:
-            new_strain, created = create_or_update_strain(client, strain)
-        print(f'Strain {new_strain.id.strain_id}: {created}')
-
-
-def create_or_upload_growth_media(client, growth_media, update=False):
-    for gm in growth_media:
-        if not update:
-            new_gm, created = get_or_create_growth_medium(client, gm)
-        else:
-            new_gm, created = get_or_create_growth_medium(client, gm)
-        print(f'Growth medium {new_gm.record_name}: {created}')
 
 
 def main():

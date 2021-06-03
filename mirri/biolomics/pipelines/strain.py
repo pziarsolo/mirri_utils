@@ -66,9 +66,16 @@ def get_or_create_or_update_strain(client: BiolomicsMirriClient,
         record.record_name = new_record.record_name
     if record.synonyms is None or record.synonyms == []:
         record.synonyms = new_record.synonyms
+
+    if not record.taxonomy.interspecific_hybrid:
+        exclude_paths = ["root['taxonomy']['interspecific_hybrid']"]
+    else:
+        exclude_paths = None
+
     # compare_strains
     # we exclude pub id as it is an internal reference of pub and can be changed
     diffs = deepdiff.DeepDiff(record.dict(), new_record.dict(),
+                              exclude_paths=exclude_paths,
                               exclude_regex_paths=[r"root\[\'publications\'\]\[\d+\]\[\'id\'\]",
                                                    r"root\[\'publications\'\]\[\d+\]\[\'RecordId\'\]",
                                                    r"root\[\'genetics\'\]\[\'Markers\'\]\[\d+\]\[\'RecordId\'\]",
