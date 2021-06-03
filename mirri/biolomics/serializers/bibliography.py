@@ -36,7 +36,7 @@ PUB_MAPPING = {
 REV_PUB_MAPPING = {v: k for k, v in PUB_MAPPING.items()}
 
 
-def serializer_from_biolomics(ws_data) -> Publication:
+def serializer_from_biolomics(ws_data, client=None) -> Publication:
     pub = Publication()
 
     pub.record_id = ws_data[RECORD_ID]
@@ -49,41 +49,34 @@ def serializer_from_biolomics(ws_data) -> Publication:
         attr = REV_PUB_MAPPING.get(field, None)
         if not attr:
             continue
+        if attr in ('year', 'first_page', 'last_page'):
+            value = int(value)
         setattr(pub, attr, value)
     return pub
+
+
+def get_publication_record_name(publication):
+    if publication.record_name:
+        return publication.record_name
+    if publication.title:
+        return publication.title
+    if publication.pubmed_id:
+        return f'PUBMED:{publication.pubmed_id}'
+    if publication.doi:
+        return f'DOI:{publication.doi}'
 
 
 def serializer_to_biolomics(publication: Publication, client=None, update=False):
     ws_data = {}
     if publication.record_id:
         ws_data[RECORD_ID] = publication.record_id
-    if publication.record_name:
-        ws_data[RECORD_NAME] = publication.record_name
+    ws_data[RECORD_NAME] = get_publication_record_name(publication)
     details = {}
     for attr, field in PUB_MAPPING.items():
         value = getattr(publication, attr, None)
         if value is None:
             continue
         field_type = 'D' if attr == 'year' else "E"
-        details[field] = {'Value': value,
-                          'FieldType': field_type}
+        details[field] = {'Value': value, 'FieldType': field_type}
     ws_data['RecordDetails'] = details
     return ws_data
-
-
-def serialize_literature(publications: List[Publication]):
-    for publication in publications:
-        pub_record_details = {}
-        for field in PUB_MIRRI_FIELDS:
-            biolomics_field = field["biolomics"]["field"]
-            biolomics_type = field["biolomics"]["type"]
-            attribute = field["attribute"]
-            value = rgetattr(publication, attribute, None)
-            if value is None:
-                continue
-            content = {"Value": value, "FieldType": biolomics_type}
-            pub_record_details[biolomics_field] = content
-
-        yield {"RecordDetails": pub_record_details,
-               "RecordName": getattr(publication,
-                                     'title', "Literature record")}

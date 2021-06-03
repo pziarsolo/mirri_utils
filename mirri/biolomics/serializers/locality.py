@@ -1,7 +1,7 @@
 from mirri.entities.location import Location
 
 
-def serialize_from_biolomics(ws_data):
+def serialize_from_biolomics(ws_data, client=None):
     return ws_data
 
 

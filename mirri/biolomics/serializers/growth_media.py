@@ -1,36 +1,8 @@
-
-class GrowthMedium:
-    fields = ['record_id', 'record_name', 'acronym', 'full_description',
-              'ingredients', 'description', 'other_name', 'ph',
-              'sterilization_conditions']
-
-    def __init__(self, **kwargs):
-        self._data = {}
-        for field in self.fields:
-            if field in kwargs and kwargs['field'] is not None:
-                value = kwargs['field']
-                setattr(self, field, value)
-
-    def __setattr__(self, attr, value):
-        if attr == '_data':
-            super().__setattr__(attr, value)
-            return
-        if attr not in self.fields:
-            raise TypeError(f'{attr} not an allowed attribute')
-        self._data[attr] = value
-
-    def __getattr__(self, attr):
-        if attr == '_data':
-            return super
-        if attr not in self.fields and attr != '_data':
-            raise TypeError(f'{attr} not an allowed attribute')
-        return self._data.get(attr, None)
-
-    def dict(self):
-        return self._data
+from mirri.biolomics.serializers import RECORD_ID, RECORD_NAME, RECORD_DETAILS
+from mirri.entities.growth_medium import GrowthMedium
 
 
-def serialize_from_biolomics(ws_data) -> GrowthMedium:
+def serialize_from_biolomics(ws_data, client=None) -> GrowthMedium:
     medium = GrowthMedium()
     medium.record_name = ws_data.get('RecordName', None)
     medium.record_id = ws_data.get('RecordId', None)
@@ -51,5 +23,41 @@ def serialize_from_biolomics(ws_data) -> GrowthMedium:
             medium.ph = value
         if key == 'Sterilization conditions':
             medium.sterilization_conditions = value
-
     return medium
+
+
+def get_growth_medium_record_name(growth_medium):
+    if growth_medium.record_name:
+        return growth_medium.record_name
+    if growth_medium.acronym:
+        return growth_medium.acronym
+
+
+GROWTH_MEDIUM_MAPPING = {
+    'acronym': 'Acronym',
+    'full_description': "Full description",
+    'ingredients': "Ingredients",
+    'description': 'Medium description',
+    'other_name': 'Other name',
+    'ph': 'pH',
+    'sterilization_conditions': 'Sterilization conditions'
+}
+
+
+def serialize_to_biolomics(growth_medium: GrowthMedium, client=None, update=False):
+    ws_data = {}
+    if growth_medium.record_id:
+        ws_data[RECORD_ID] = growth_medium.record_id
+    record_name = get_growth_medium_record_name(growth_medium)
+    ws_data[RECORD_NAME] = record_name
+    details = {}
+    for field in growth_medium.fields:
+        if field in ('acronym', 'record_id', 'record_name'):
+            continue
+        value = getattr(growth_medium, field, None)
+        if value is not None:
+            details[GROWTH_MEDIUM_MAPPING[field]] = {'Value': value, 'FieldType': 'E'}
+
+    ws_data[RECORD_DETAILS] = details
+    return ws_data
+

@@ -1,7 +1,7 @@
 from mirri.entities.strain import ValidationError
 import unittest
 from pathlib import Path
-
+from pprint import pprint
 from mirri.io.parsers.mirri_excel import parse_mirri_excel
 
 TEST_DATA_DIR = Path(__file__).parent / "data"
@@ -15,14 +15,15 @@ class MirriExcelTests(unittest.TestCase):
             parsed_data = parse_mirri_excel(fhand, version="20200601")
 
         medium = parsed_data["growth_media"][0]
-        self.assertEqual("1", medium["Acronym"])
-        self.assertEqual(medium["Description"], "NUTRIENT BROTH/AGAR I")
+        self.assertEqual("1", medium.acronym)
+        self.assertEqual(medium.description, "NUTRIENT BROTH/AGAR I")
 
         strains = list(parsed_data["strains"])
         strain = strains[0]
-        self.assertEqual(strain.publications[0].id, "1")
-        self.assertEqual(strain.publications[0].title, None)
+        self.assertEqual(strain.publications[0].id, 1)
+        self.assertEqual(strain.publications[0].title, 'Cosa')
         self.assertEqual(strain.id.number, "1")
+        pprint(strain.dict())
 
     def xtest_mirri_excel_parser_invalid_fail(self):
         in_path = TEST_DATA_DIR / "invalid.mirri.xlsx"

@@ -18,6 +18,7 @@ from mirri.entities._private_classes import _FieldBasedClass, FrozenClass
 from mirri.entities.date_range import DateRange
 from mirri.entities.location import Location
 from mirri.entities.publication import Publication
+from mirri.entities.sequence import GenomicSequence
 from mirri.settings import (
     ABS_RELATED_FILES,
     ACCESSION_NAME,
@@ -88,7 +89,7 @@ from mirri.settings import (
     SUBSTRATE_HOST_OF_ISOLATION,
     ID_SYNONYMS,
     TAXONOMY,
-    TESTED_TEMPERATURE_GROWTH_RANGE,
+    TESTED_TEMPERATURE_GROWTH_RANGE, SUBTAXAS,
 )
 
 RANK_TRANSLATOR = {
@@ -191,7 +192,7 @@ class Taxonomy(FrozenClass):
             if SPECIES in data:
                 self.species = data[SPECIES]
             if INFRASUBSPECIFIC_NAME in data:
-                self.infrasubespecific_name = data[INFRASUBSPECIFIC_NAME]
+                self.infrasubspecific_name = data[INFRASUBSPECIFIC_NAME]
             if COMMENTS_ON_TAXONOMY in data:
                 self.comments = data[COMMENTS_ON_TAXONOMY]
             if INTERSPECIFIC_HYBRID in data:
@@ -1154,3 +1155,50 @@ class Strain(FrozenClass):
     @literature_linked_to_the_sequence_genome.setter
     def literature_linked_to_the_sequence_genome(self, value: str):
         self._data[LITERATURE_LINKED_TO_SEQ_GENOME] = value
+
+
+class StrainMirri(Strain):
+
+    @property
+    def record_id(self):
+        return self._data.get('record_id', None)
+
+    @record_id.setter
+    def record_id(self, value: int):
+        self._data['record_id'] = value
+
+    @property
+    def record_name(self):
+        return self._data.get('record_name', None)
+
+    @record_name.setter
+    def record_name(self, value: int):
+        self._data['record_name'] = value
+
+
+def add_taxon_to_strain(strain, value):
+    value = value.strip()
+    if not value:
+        return
+    items = re.split(r" +", value)
+    genus = items[0]
+    strain.taxonomy.genus = genus
+    if len(items) > 1:
+        species = items[1]
+        if species in ("sp", "spp", ".sp", "sp."):
+            species = None
+            return
+        strain.taxonomy.species = species
+
+        if len(items) > 2:
+            rank = None
+            name = None
+            for index in range(0, len(items[2:]), 2):
+                rank = SUBTAXAS.get(items[index + 2], None)
+                if rank is None:
+                    raise ValidationError(
+                        f'The "Taxon Name" for strain with accession number {strain.id.collection} {strain.id.number} is not according to specification.'
+                    )
+
+                name = items[index + 3]
+            strain.taxonomy.add_subtaxa(rank, name)

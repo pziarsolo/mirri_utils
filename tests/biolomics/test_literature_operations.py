@@ -26,6 +26,7 @@ class BiolomicsLiteratureClientTest(unittest.TestCase):
         self.assertEqual(biblio.record_id, record_id)
         self.assertEqual(biblio.record_name, record_name)
         self.assertEqual(biblio.year, 1994)
+        self.assertEqual(biblio.volume, '50')
 
     def test_create_biblio(self):
         pub = Publication()
@@ -33,11 +34,13 @@ class BiolomicsLiteratureClientTest(unittest.TestCase):
         pub.journal = 'my_journal'
         pub.title = 'awesome title'
         pub.authors = 'pasdas, aposjdasd, alsalsfda'
+        pub.volume = 'volume 0'
         record_id = None
         try:
             new_pub = self.client.create(BIBLIOGRAPHY_WS, pub)
             record_id = new_pub.record_id
             self.assertEqual(new_pub.title, pub.title)
+            self.assertEqual(new_pub.volume, pub.volume)
         finally:
             if record_id is not None:
                 self.client.delete_by_id(BIBLIOGRAPHY_WS, record_id)

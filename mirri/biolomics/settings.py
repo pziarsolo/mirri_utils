@@ -270,7 +270,7 @@ MIRRI_FIELDS = [
         "attribute": "publications",
         "label": "Literature",
         "mandatory": False,
-        "biolomics": {"field": "Literature", "type": "Link"},
+        "biolomics": {"field": "Literature", "type": "RLink"},
     },
     {
         "attribute": "pathogenity",

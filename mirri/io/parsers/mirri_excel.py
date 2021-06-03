@@ -2,14 +2,17 @@ import re
 from datetime import date
 from io import BytesIO
 
+import pycountry
 from openpyxl import load_workbook
 
 from mirri import rsetattr, ValidationError
+from mirri.biolomics.serializers.sequence import GenomicSequenceBiolomics
+from mirri.biolomics.serializers.strain import StrainMirri
+from mirri.entities.growth_medium import GrowthMedium
 from mirri.io.parsers.excel import workbook_sheet_reader
 from mirri.entities.publication import Publication
 from mirri.entities.date_range import DateRange
-from mirri.entities.strain import OrganismType, Strain, StrainId
-from mirri.entities.sequence import  GenomicSequence
+from mirri.entities.strain import OrganismType, StrainId, add_taxon_to_strain
 from mirri.settings import (COMMERCIAL_USE_WITH_AGREEMENT, GENOMIC_INFO,
                             GROWTH_MEDIA, LITERATURE_SHEET, LOCATIONS,
                             MIRRI_FIELDS, NAGOYA_DOCS_AVAILABLE, NAGOYA_NO_RESTRICTIONS,
@@ -81,11 +84,12 @@ def index_markers(markers):
 
 def parse_growth_media(wb):
     for row in workbook_sheet_reader(wb, GROWTH_MEDIA):
-        acronym = str(row['Acronym'])
-        description = row['Description']
-        full_desc = row.get('Full description', None)
-        yield {'Acronym': acronym, 'Description': description,
-               'Full description': full_desc}
+        gm = GrowthMedium()
+        gm.acronym = str(row['Acronym'])
+        gm.description = row['Description']
+        gm.full_description = row.get('Full description', None)
+
+        yield gm
 
 
 def parse_publications(wb):
@@ -94,8 +98,6 @@ def parse_publications(wb):
         pub = Publication()
         for pub_field in PUBLICATION_FIELDS:
             label = pub_field["label"]
-            if label == "ID":
-                continue
             col_val = row.get(label, None)
 
             if col_val:
@@ -111,12 +113,12 @@ def parse_strains(wb, locations, growth_media, markers, publications,
     ontobiotopes_by_name = {v: k for k, v in ontobiotopes_by_id.items()}
 
     locations = index_list_by(locations, 'Locality')
-    growth_media = index_list_by(growth_media, 'Acronym')
+    growth_media = index_list_by_attr(growth_media, 'acronym')
     publications = index_list_by_attr(publications, 'id')
     markers = index_markers(markers)
 
     for strain_row in workbook_sheet_reader(wb, STRAINS, "Accession number"):
-        strain = Strain()
+        strain = StrainMirri()
         strain_id = None
         label = None
         for field in MIRRI_FIELDS:
@@ -186,7 +188,12 @@ def parse_strains(wb, locations, growth_media, markers, publications,
 
             elif attribute == "collect.location":
                 location = locations[value]
-                strain.collect.location.country = location["Country"]
+                if 'Country' in location and location['Country']:
+                    country = location['Country']
+                    if country == 'Unknown':
+                        continue
+                    country_3 = pycountry.countries.get(name=location["Country"]).alpha_3
+                    strain.collect.location.country = country_3
                 strain.collect.location.state = location["Region"]
                 strain.collect.location.municipality = location["City"]
                 strain.collect.location.site = location["Locality"]
@@ -217,15 +224,21 @@ def parse_strains(wb, locations, growth_media, markers, publications,
                         val = ontobiotopes_by_name[val]
                     values.append(val)
                 rsetattr(strain, attribute, value)
-
+            elif attribute == 'other_denominations':
+                value = value.split(';')
+                rsetattr(strain, attribute, value)
+            elif attribute == 'growth.recommended_temp':
+                value = float(value)
+                rsetattr(strain, attribute, value)
             else:
+                #print(attribute, value, type(value))
                 rsetattr(strain, attribute, value)
 
         # add markers
         strain_id = strain.id.strain_id
         if strain_id in markers:
             for marker in markers[strain_id]:
-                _marker = GenomicSequence()
+                _marker = GenomicSequenceBiolomics()
                 _marker.marker_id = marker["INSDC AN"]
                 _marker.marker_type = marker["Marker"]
                 _marker.marker_seq = marker["Sequence"]
@@ -233,29 +246,3 @@ def parse_strains(wb, locations, growth_media, markers, publications,
         yield strain
 
 
-def add_taxon_to_strain(strain, value):
-    value = value.strip()
-    if not value:
-        return
-    items = re.split(r" +", value)
-    genus = items[0]
-    strain.taxonomy.genus = genus
-    if len(items) > 1:
-        species = items[1]
-        if species in ("sp", "spp", ".sp", "sp."):
-            species = None
-            return
-        strain.taxonomy.species = species
-
-        if len(items) > 2:
-            rank = None
-            name = None
-            for index in range(0, len(items[2:]), 2):
-                rank = SUBTAXAS.get(items[index + 2], None)
-                if rank is None:
-                    raise ValidationError(
-                        f'The "Taxon Name" for strain with accession number {strain.id.collection} {strain.id.number} is not according to specification.'
-                    )
-
-                name = items[index + 3]
-            strain.taxonomy.add_subtaxa(rank, name)

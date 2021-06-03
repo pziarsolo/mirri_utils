@@ -1,7 +1,5 @@
 from mirri.entities.sequence import GenomicSequence
-
-RECORD_ID = 'RecordId'
-RECORD_NAME = 'RecordName'
+from mirri.biolomics.serializers import RECORD_ID, RECORD_NAME, RECORD_DETAILS
 
 
 class GenomicSequenceBiolomics(GenomicSequence):
@@ -35,10 +33,13 @@ class GenomicSequenceBiolomics(GenomicSequence):
 
 def serialize_to_biolomics(marker: GenomicSequenceBiolomics, client=None, update=False):
     ws_sequence = {}
+    print()
     if marker.record_id:
         ws_sequence[RECORD_ID] = marker.record_id
     if marker.record_name:
         ws_sequence[RECORD_NAME] = marker.record_name
+    else:
+        ws_sequence[RECORD_NAME] = marker.marker_id
     details = {}
     if marker.marker_id:
         details["INSDC number"] = {"Value": marker.marker_id,
@@ -50,12 +51,17 @@ def serialize_to_biolomics(marker: GenomicSequenceBiolomics, client=None, update
     if marker.marker_type:
         details['Marker name'] = {"Value": marker.marker_type, "FieldType": "E"}
 
-    ws_sequence['RecordDetails'] = details
+    ws_sequence[RECORD_DETAILS] = details
 
     return ws_sequence
 
 
-def serialize_from_biolomics(ws_data) -> GenomicSequenceBiolomics:
+MAPPING_WS_SPEC_TYPES = {
+    'Beta tubulin': 'TUBB'
+}
+
+
+def serialize_from_biolomics(ws_data, client=None) -> GenomicSequenceBiolomics:
     marker = GenomicSequenceBiolomics()
     marker.record_id = ws_data[RECORD_ID]
     marker.record_name = ws_data[RECORD_NAME]
@@ -65,7 +71,10 @@ def serialize_from_biolomics(ws_data) -> GenomicSequenceBiolomics:
         if key == 'INSDC number' and value:
             marker.marker_id = value
         elif key == 'Marker name' and value:
+            kind = MAPPING_WS_SPEC_TYPES.get(value, None)
+            value = kind if kind else value
             marker.marker_type = value
+
         elif key == 'DNA sequence' and 'Sequence' in value and value['Sequence']:
             marker.marker_seq = value['Sequence']
 

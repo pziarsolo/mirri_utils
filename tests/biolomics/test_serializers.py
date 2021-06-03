@@ -1,6 +1,7 @@
 import unittest
 import pycountry
-
+import deepdiff
+from pprint import pprint
 from mirri.biolomics.serializers.sequence import (
     GenomicSequenceBiolomics,
     serialize_to_biolomics as sequence_to_biolomics,
@@ -81,8 +82,7 @@ STRAIN_WS = {
                                                      'municipality; somewhere in '
                                                      'the world'},
                       'History': {'FieldType': 5,
-                                  'Value': 'firstplave > seconn place > third '
-                                           'place'},
+                                  'Value': 'newer < In the middle < older'},
                       'Infrasubspecific names': {'FieldType': 5,
                                                  'Value': 'serovar tete'},
                       'Interspecific hybrid': {'FieldType': 20, 'Value': 'no'},
@@ -155,7 +155,22 @@ STRAIN_WS = {
                       'Restrictions on use': {'FieldType': 20,
                                               'Value': 'no restriction apply'},
                       'Risk group': {'FieldType': 20, 'Value': '1'},
-                      'Sequences 16s': {'FieldType': 114, 'Value': []},
+                      'Sequences 16s': {"Value": [
+                          {
+                              "Name": {
+                                  "Value": "X76436",
+                                  "FieldType": 5
+                              },
+                              "RecordId": 50992,
+                              "TargetFieldValue": {
+                                  "Value": {
+                                      "Sequence": ""
+                                  },
+                                  "FieldType": 14
+                              }
+                          }
+                      ],
+                         "FieldType": 114},
                       'Sequences 18S rRNA': {'FieldType': 114, 'Value': []},
                       'Sequences 23S rRNA': {'FieldType': 114, 'Value': []},
                       'Sequences ACT': {'FieldType': 114, 'Value': []},
@@ -278,25 +293,148 @@ STRAIN_WS = {
     'RecordId': 148038,
     'RecordName': 'MIRRI 2240561'}
 
+STRAIN_WS_EXPECTED_NO_REMOTE = {
+    'Acronym': 'MIRRI ',
+    'RecordDetails': {'ABS related files': {'FieldType': 'U',
+                                            'Value': [{'Name': 'link',
+                                                       'Value': 'https://example.com'}]},
+                      'Altitude of geographic origin': {'FieldType': 'D',
+                                                        'Value': 121},
+                      'Applications': {'FieldType': 'E', 'Value': 'health'},
+                      'Collection accession number': {'FieldType': 'E',
+                                                      'Value': 'TESTCC 1'},
+                      'Collection date': {'FieldType': 'H', 'Value': '1991-01-01'},
+                      'Collector': {'FieldType': 'E', 'Value': 'the collector'},
+                      'Comment on taxonomy': {'FieldType': 'E',
+                                              'Value': 'lalalalla'},
+                      'Coordinates of geographic origin': {'FieldType': 'L',
+                                                           'Value': {'Latitude': 23.3,
+                                                                     'Longitude': 23.3}},
+                      'Date of inclusion in the catalogue': {'FieldType': 'H',
+                                                             'Value': '1985-05-02'},
+                      'Deposit date': {'FieldType': 'H', 'Value': '1985-05-02'},
+                      'Depositor': {'FieldType': 'E',
+                                    'Value': 'NCTC, National Collection of Type '
+                                             'Cultures - NCTC, London, United '
+                                             'Kingdom of Great Britain and '
+                                             'Northern Ireland.'},
+                      'Dual use': {'FieldType': 'T', 'Value': 'yes'},
+                      'Enzyme production': {'FieldType': 'E',
+                                            'Value': 'some enzimes'},
+                      'Form': {'FieldType': 'C',
+                               'Value': [{'Name': 'Agar', 'Value': 'yes'},
+                                         {'Name': 'Cryo', 'Value': 'no'},
+                                         {'Name': 'Dry Ice', 'Value': 'no'},
+                                         {'Name': 'Liquid Culture Medium',
+                                          'Value': 'no'},
+                                         {'Name': 'Lyo', 'Value': 'yes'},
+                                         {'Name': 'Oil', 'Value': 'no'},
+                                         {'Name': 'Water', 'Value': 'no'}]},
+                      'GMO': {'FieldType': 'V', 'Value': 'Yes'},
+                      'GMO construction information': {'FieldType': 'E',
+                                                       'Value': 'instructrion to '
+                                                                'build'},
+                      'Genotype': {'FieldType': 'E', 'Value': 'some genotupe'},
+                      'Geographic origin': {'FieldType': 'E',
+                                            'Value': 'una state; one '
+                                                     'municipality; somewhere in '
+                                                     'the world'},
+                      'History': {'FieldType': 'E',
+                                  'Value': 'firstplave < seconn place < third '
+                                           'place'},
+                      'Infrasubspecific names': {'FieldType': 'E',
+                                                 'Value': 'serovar tete'},
+                      'Interspecific hybrid': {'FieldType': 'T', 'Value': 'no'},
+                      'Isolation date': {'FieldType': 'H', 'Value': '1900-01-01'},
+                      'Isolation habitat': {'FieldType': 'E',
+                                            'Value': 'some habitat'},
+                      'Isolator': {'FieldType': 'E', 'Value': 'the isolator'},
+                      'MTA files URL': {'FieldType': 'U',
+                                        'Value': [{'Name': 'link',
+                                                   'Value': 'https://example.com'}]},
+                      'Metabolites production': {'FieldType': 'E',
+                                                 'Value': 'big factory of cheese'},
+                      'Mutant information': {'FieldType': 'E', 'Value': 'x-men'},
+                      'Nagoya protocol restrictions and compliance conditions': {'FieldType': 'T',
+                                                                                 'Value': 'no '
+                                                                                          'known '
+                                                                                          'restrictions '
+                                                                                          'under '
+                                                                                          'the '
+                                                                                          'Nagoya '
+                                                                                          'protocol'},
+                      'Ontobiotope': {'FieldType': 'RLink', 'Value': 'OBT:000190'},
+                      'Organism type': {'FieldType': 'C',
+                                        'Value': [{'Name': 'Algae', 'Value': 'no'},
+                                                  {'Name': 'Archaea',
+                                                   'Value': 'yes'},
+                                                  {'Name': 'Bacteria',
+                                                   'Value': 'no'},
+                                                  {'Name': 'Cyanobacteria',
+                                                   'Value': 'no'},
+                                                  {'Name': 'Filamentous Fungi',
+                                                   'Value': 'no'},
+                                                  {'Name': 'Phage', 'Value': 'no'},
+                                                  {'Name': 'Plasmid',
+                                                   'Value': 'no'},
+                                                  {'Name': 'Virus', 'Value': 'no'},
+                                                  {'Name': 'Yeast',
+                                                   'Value': 'no'}]},
+                      'Other culture collection numbers': {'FieldType': 'E',
+                                                           'Value': 'aaa a; aaa3 '
+                                                                    'a3'},
+                      'Pathogenicity': {'FieldType': 'E', 'Value': 'illness'},
+                      'Plasmids': {'FieldType': 'E', 'Value': 'asda'},
+                      'Plasmids collections fields': {'FieldType': 'E',
+                                                      'Value': 'asdasda'},
+                      'Ploidy': {'FieldType': 'T', 'Value': 'Polyploid'},
+                      'Quarantine in Europe': {'FieldType': 'T', 'Value': 'no'},
+                      'Recommended growth temperature': {'FieldType': 'S',
+                                                         'MaxValue': 30,
+                                                         'MinValue': 30},
+                      'Remarks': {'FieldType': 'E', 'Value': 'no remarks for me'},
+                      'Restrictions on use': {'FieldType': 'T',
+                                              'Value': 'no restriction apply'},
+                      'Risk group': {'FieldType': 'T', 'Value': '1'},
+                      'Sexual state': {'FieldType': 'E', 'Value': 'MT+A'},
+                      'Status': {'FieldType': 'E',
+                                 'Value': 'type of Bacillus alcalophilus'},
+                      'Strain from a registered collection': {'FieldType': 'T',
+                                                              'Value': 'no'},
+                      'Substrate of isolation': {'FieldType': 'E',
+                                                 'Value': 'some substrate'},
+                      'Taxon name': {'FieldType': 'SynLink',
+                                     'Value': 'Escherichia coli'},
+                      'Tested temperature growth range': {'FieldType': 'S',
+                                                          'MaxValue': 32,
+                                                          'MinValue': 29}}}
+
 
 class StrainSerializerTest(unittest.TestCase):
 
     def test_serialize_to_biolomics(self):
         strain = create_full_data_strain()
         ws_strain = strain_to_biolomics(strain, client=None)
-        self.assertEqual(strain.applications, ws_strain['RecordDetails']['Applications']['Value'])
+        self.assertEqual(ws_strain, STRAIN_WS_EXPECTED_NO_REMOTE)
 
     def test_serialize_to_biolomics_remote(self):
         client = BiolomicsMirriClient(SERVER_URL, VERSION, CLIENT_ID,
                                       SECRET_ID, USERNAME, PASSWORD)
         strain = create_full_data_strain()
+        marker = GenomicSequenceBiolomics()
+        marker.marker_id = "MUM 02.15 - Beta tubulin"
+        marker.marker_type = 'TUBB'
+        strain.genetics.markers = [marker]
         ws_strain = strain_to_biolomics(strain, client=client)
+
         self.assertEqual(strain.collect.habitat_ontobiotope,
                          ws_strain['RecordDetails']['Ontobiotope']['Value'][0]['Name']['Value'])
         self.assertEqual(pycountry.countries.get(alpha_3=strain.collect.location.country).name,
                          ws_strain['RecordDetails']['Country']['Value'][0]['Name']['Value'])
         self.assertEqual(strain.publications[0].title,
                          ws_strain['RecordDetails']['Literature']['Value'][0]['Name']['Value'])
+        self.assertEqual(strain.genetics.markers[0].marker_id,
+                         ws_strain['RecordDetails']['Sequences TUB']['Value'][0]['Name']['Value'])
 
     def test_serialize_from_biolomics(self):
         ws_strain = STRAIN_WS
@@ -305,6 +443,36 @@ class StrainSerializerTest(unittest.TestCase):
         self.assertEqual(strain.record_name, 'MIRRI 2240561')
         self.assertEqual(strain.taxonomy.long_name, 'Escherichia coli')
         self.assertEqual(strain.growth.recommended_media, ['AAA'])
+        self.assertEqual(strain.collect.location.altitude, 121)
+        self.assertEqual(strain.collect.location.country, 'ESP')
+        self.assertEqual(strain.applications, 'health')
+        self.assertEqual(strain.id.strain_id, 'TESTCC 1')
+        self.assertEqual(strain.collect.date.strfdate, '19910101')
+        self.assertEqual(strain.taxonomy.comments, 'lalalalla')
+        self.assertEqual(strain.catalog_inclusion_date.strfdate, '19850502')
+        self.assertIn('NCTC, National Collection of Type ', strain.deposit.who)
+        self.assertTrue(strain.is_potentially_harmful)
+        self.assertEqual(strain.form_of_supply, ['Agar', 'Lyo'])
+        self.assertTrue(strain.genetics.gmo)
+        self.assertEqual(strain.genetics.gmo_construction, 'instructrion to build')
+        self.assertEqual(strain.genetics.genotype, 'some genotupe')
+        self.assertEqual(strain.history, ['newer', 'In the middle', 'older'])
+        self.assertEqual(strain.taxonomy.infrasubspecific_name, 'serovar tete')
+        self.assertEqual(strain.isolation.who, 'the isolator')
+        self.assertEqual(strain.isolation.date.strfdate, '19000101')
+        self.assertEqual(strain.mta_files, ['https://example.com'])
+        self.assertEqual(strain.genetics.mutant_info, 'x-men')
+        self.assertEqual(strain.collect.habitat_ontobiotope, 'OBT:000190')
+        self.assertEqual(strain.taxonomy.organism_type[0].name, 'Archaea')
+        self.assertEqual(strain.other_numbers[0].strain_id, 'aaa a')
+        self.assertEqual(strain.other_numbers[1].strain_id, 'aaa3 a3')
+        self.assertEqual(strain.pathogenity, 'illness')
+        self.assertEqual(strain.genetics.plasmids, ['asda'])
+        self.assertEqual(strain.genetics.ploidy, 9)
+        self.assertFalse(strain.is_subject_to_quarantine)
+        self.assertEqual(strain.risk_group, '1')
+        self.assertFalse(strain.is_from_registered_collection)
+        self.assertEqual(strain.growth.tested_temp_range, {'min': 29, 'max': 32})
 
 
 BIOLOMICSSEQ = {
@@ -336,7 +504,6 @@ class SequenceSerializerTest(unittest.TestCase):
         marker = sequence_from_biolomics(BIOLOMICSSEQ)
         self.assertEqual(marker.record_name, BIOLOMICSSEQ['RecordName'])
         self.assertEqual(marker.record_id, BIOLOMICSSEQ['RecordId'])
-        self.assertEqual(marker.marker_type, BIOLOMICSSEQ['RecordDetails']['Marker name']['Value'])
         self.assertEqual(marker.marker_type, BIOLOMICSSEQ['RecordDetails']['Marker name']['Value'])
         self.assertEqual(marker.marker_id, BIOLOMICSSEQ['RecordDetails']['INSDC number']['Value'])
         self.assertEqual(marker.marker_seq, BIOLOMICSSEQ['RecordDetails']['DNA sequence']['Value']['Sequence'])
@@ -523,15 +690,34 @@ class BibliographySerializerTest(unittest.TestCase):
         pub.year = 1992
         pub.authors = 'me and myself'
         pub.pubmed_id = '1112222'
-        pub.issue = 'issueeeeee'
+        pub.issue = 'issue'
         ws_data = literature_to_biolomics(pub)
         expected = {
             'RecordDetails': {
                 'Authors': {'FieldType': 'E', 'Value': 'me and myself'},
-                'Pubmed ID': {'FieldType': 'E', 'Value': '1112222'},
-                'Issue': {'FieldType': 'E', 'Value': 'issuee'},
+                'PubMed ID': {'FieldType': 'E', 'Value': '1112222'},
+                'Issue': {'FieldType': 'E', 'Value': 'issue'},
                 'Year': {'FieldType': 'D', 'Value': 1992}},
             'RecordName': 'My title'}
+        self.assertDictEqual(expected, ws_data)
+
+    def test_to_biolomics2(self):
+        pub = Publication()
+        pub.pubmed_id = '1112222'
+        ws_data = literature_to_biolomics(pub)
+        expected = {
+            'RecordDetails': {
+                'PubMed ID': {'FieldType': 'E', 'Value': '1112222'}},
+            'RecordName': f'PUBMED:{pub.pubmed_id}'}
+        self.assertDictEqual(expected, ws_data)
+
+        pub = Publication()
+        pub.doi = 'doi.er/111/12131'
+        ws_data = literature_to_biolomics(pub)
+        expected = {
+            'RecordDetails': {
+                'DOI number': {'FieldType': 'E', 'Value': pub.doi}},
+            'RecordName': f'DOI:{pub.doi}'}
         self.assertDictEqual(expected, ws_data)
 
 

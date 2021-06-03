@@ -1,6 +1,7 @@
 
 from mirri.entities.strain import Taxonomy
 
+#TODO this is all wrong, needs deep revision
 
 class TaxonomyMirri(Taxonomy):
     def __init__(self, **kwargs):
@@ -36,7 +37,7 @@ class TaxonomyMirri(Taxonomy):
         return self._data
 
 
-def serialize_from_biolomics(ws_data) -> TaxonomyMirri:
+def serialize_from_biolomics(ws_data, client=None) -> TaxonomyMirri:
 
     return ws_data
     medium = GrowthMedium()

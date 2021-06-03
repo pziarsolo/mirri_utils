@@ -1,9 +1,10 @@
 import time
 import re
+import sys
 
 import requests
 from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import BackendApplicationClient, LegacyApplicationClient
+from oauthlib.oauth2 import LegacyApplicationClient
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
 from mirri.entities.strain import ValidationError
@@ -14,7 +15,7 @@ class BiolomicsClient:
     allowed_fields = None
 
     def __init__(self, server_url, api_version, client_id, client_secret,
-                 username, password, website_id=1):
+                 username, password, website_id=1, verbose=False):
         self._client_id = client_id
         self._client_secret = client_secret
         self._username = username
@@ -25,6 +26,7 @@ class BiolomicsClient:
         self._auth_url = self.server_url + "/connect/token"
         self.access_token = None
         self.website_id = website_id
+        self._verbose = verbose
         # super().__init__()
         # self._schema = self.get_schema()
 
@@ -61,7 +63,7 @@ class BiolomicsClient:
         }
 
     def get_detail_url(self, end_point, record_id, api_version=None):
-        api_version = self._api_version if api_version is None else api_version
+        # api_version = self._api_version if api_version is None else api_version
         if api_version:
             return "/".join([self.server_url, api_version, 'data',
                              end_point, str(record_id)])
@@ -70,7 +72,7 @@ class BiolomicsClient:
 
     def get_list_url(self, end_point):
         return "/".join([self.server_url, 'data', end_point])
-        #return "/".join([self.server_url, self._api_version, 'data', end_point])
+        # return "/".join([self.server_url, self._api_version, 'data', end_point])
 
     def get_search_url(self, end_point):
         return "/".join([self.server_url, self._api_version, 'search', end_point])
@@ -85,17 +87,19 @@ class BiolomicsClient:
         time0 = time.time()
         response = requests.post(url, json=search_query, headers=header)
         time1 = time.time()
-        print(f'Search to {end_point} request time for {url}: {time1 - time0}')
+        if self._verbose:
+            sys.stdout.write(f'Search to {end_point} request time for {url}: {time1 - time0}\n')
         return response
 
-    def retrieve(self, end_point, id):
+    def retrieve(self, end_point, record_id):
         self._check_end_point_exists(end_point)
         header = self._build_headers()
-        url = self.get_detail_url(end_point, id, api_version=self._api_version)
+        url = self.get_detail_url(end_point, record_id, api_version=self._api_version)
         time0 = time.time()
         response = requests.get(url, headers=header)
         time1 = time.time()
-        print(f'Get to {end_point} request time for {url}: {time1-time0}')
+        if self._verbose:
+            sys.stdout.write(f'Get to {end_point} request time for {url}: {time1-time0}\n')
         return response
 
     def create(self, end_point, data):
@@ -113,10 +117,10 @@ class BiolomicsClient:
         url = self.get_list_url(end_point)
         return requests.put(url, json=data, headers=header)
 
-    def delete(self, end_point, id):
+    def delete(self, end_point, record_id):
         self._check_end_point_exists(end_point)
         header = self._build_headers()
-        url = self.get_detail_url(end_point, id)
+        url = self.get_detail_url(end_point, record_id)
         return requests.delete(url, headers=header)
 
     def find_by_name(self, end_point, name):
@@ -152,12 +156,12 @@ class BiolomicsClient:
 
     def _check_end_point_exists(self, endpoint):
         if endpoint not in self.allowed_fields.keys():
-            raise ValueError(f'{endpoint} not a recogniced endpoint')
+            raise ValueError(f'{endpoint} not a recognised endpoint')
 
     def _check_data_consistency(self, data, allowed_fields, update=False):
         update_mandatory = set(['RecordDetails', 'RecordName', 'RecordId'])
         if update and not update_mandatory.issubset(data.keys()):
-            msg = 'Updating data keys must be RecordDetails, RecordName and RecordI'
+            msg = 'Updating data keys must be RecordDetails, RecordName and RecordId'
             raise ValidationError(msg)
 
         if not update and set(data.keys()).difference(['RecordDetails', 'RecordName', 'Acronym']):
@@ -174,7 +178,7 @@ class BiolomicsClient:
     def _check_field_schema(field_name, field_schema, field_value):
         if field_schema['FieldType'] != field_value['FieldType']:
             msg = f"Bad FieldType ({field_value['FieldType']}) for {field_name}. "
-            msg += f"It shoud be {field_schema['FieldType']}"
+            msg += f"It should be {field_schema['FieldType']}"
             raise ValidationError(msg)
 
         states = field_schema['states'] if 'states' in field_schema else None
@@ -204,42 +208,8 @@ class BiolomicsClient:
                 raise ValidationError(msg)
 
     def rollback(self, created_ids):
-        for endpoint, ids in created_ids.items():
-            for _id in ids:
-                try:
-                    self.delete(end_point=endpoint, id=_id)
-                except:
-                    pass
-
-
-# class BiolomicsClientBackend(_BiolomicsClient):
-#     def __init__(self, server_url, client_id, client_secret, website_id=1):
-#         self._auth_url = server_url + "/connect/token"
-#         self._client_id = client_id
-#         self._client_secret = client_secret
-#         self._client = None
-#         self.access_token = None
-#         self.website_id = website_id
-#         self.server_url = server_url
-#         # super().__init__()
-#         # self._schema = self.get_schema()
-#
-#     def get_access_token(self):
-#         if self._client is None:
-#             self._client = BackendApplicationClient(client_id=self._client_id)
-#             authenticated = False
-#         else:
-#             expires_at = self._client.token["expires_at"]
-#             authenticated = expires_at > time.time()
-#
-#         if not authenticated:
-#             oauth = OAuth2Session(client=self._client)
-#             token = oauth.fetch_token(
-#                 token_url=self._auth_url,
-#                 client_id=self._client_id,
-#                 client_secret=self._client_secret,
-#             )
-#             oauth.close()
-#             self.access_token = token["access_token"]
-#
-#         return self.access_token
+        for endpoint, id_ in created_ids:
+            try:
+                self.delete(end_point=endpoint, record_id=id_)
+            except Exception:
+                pass

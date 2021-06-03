@@ -1,7 +1,7 @@
 from mirri.settings import (BOOK_EDITOR, BOOK_PUBLISHER, BOOK_TITLE,
                             PUB_AUTHORS, PUB_DOI, PUB_FIRST_PAGE, PUB_ID,
                             PUB_ISSUE, PUB_JOURNAL, PUB_LAST_PAGE,
-                            PUB_PUBMED_ID, PUB_TITLE, PUB_VOLUMEN)
+                            PUB_PUBMED_ID, PUB_TITLE, PUB_VOLUME)
 
 # Maybe we could implement some crossref calls to fill all field data
 # and get DOI where ever is possible
@@ -21,7 +21,7 @@ class Publication:
             self.title = data.get(PUB_TITLE, None)
             self.authors = data.get(PUB_AUTHORS, None)
             self.journal = data.get(PUB_JOURNAL, None)
-            self.volumen = data.get(PUB_VOLUMEN, None)
+            self.volume = data.get(PUB_VOLUME, None)
             self.issue = data.get(PUB_ISSUE, None)
             self.first_page = data.get(PUB_FIRST_PAGE, None)
             self.last_page = data.get(PUB_LAST_PAGE, None)
@@ -37,6 +37,7 @@ class Publication:
 
     def dict(self):
         return self._data
+
     @property
     def id(self) -> int:
         return self._data.get(PUB_ID, None)
@@ -45,7 +46,7 @@ class Publication:
     def id(self, value: int):
         if value is not None:
             self._data[PUB_ID] = value
-            
+
     @property
     def record_id(self) -> int:
         return self._data.get(RECORD_ID, None)
@@ -129,13 +130,13 @@ class Publication:
             self._data[PUB_JOURNAL] = value
 
     @property
-    def volumen(self):
-        return self._data.get(PUB_VOLUMEN, None)
+    def volume(self):
+        return self._data.get(PUB_VOLUME, None)
 
-    @volumen.setter
-    def volumen(self, value: str):
+    @volume.setter
+    def volume(self, value: str):
         if value is not None:
-            self._data[PUB_VOLUMEN] = value
+            self._data[PUB_VOLUME] = value
 
     @property
     def issue(self):

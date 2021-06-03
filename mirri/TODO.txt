@@ -1,4 +1,3 @@
-MIRRI Accessio Number: How is assigned? How to choose number
 
 Ontobiotope term. just one field in dataset, two fields in biolomics
 Altitude. Field and in Coordinates
@@ -20,8 +19,6 @@ My class has
 No not a valid value for Strain from a registered collection, Allowed values: ?. no. yes
 yes not a valid value for GMO, Allowed values: ?. No. Yes
 
-"Plant pathogenicity code" not a valid field
-
 Organism Type:
     firstuppercase in deposit
     lower case in retrieve
@@ -31,9 +28,31 @@ Taxon name is a list in retrieve
 
 null values:
 'Comment on taxonomy' = '' could be null
-'Coordinates of geographic origin':{Lontigute, lati... 'NaN' could be null
+'Coordinates of geographic origin':{Longitude, lati... 'NaN' could be null
 'Date of inclusion in the catalogue' = '' could be null
 'Enzyme production'= '' could be null
 'Ploidy':'?' could be null
 
 Deposit date
+--------------------------------------------
+
+- Assign seq to strain in strain serializers
+- Fields in ws that are not in our specification. What to do with them
+    - Type description
+    - Associated documents
+    - Data provided by
+    - Orders
+    - MTA text
+    - Catalog URL
+
+- Publication RecordName assignation. How to do it?
+- Sequence RecordName assignation. How to do it
+- Publications serializer improvement
+------------------------------------------------------
+
+Marker Name. Which options are allowed in WS and how they map to the types in specifcations?
+
+update: it should be done in the detail url.
+
+interspecific_hybrid set to "no" by default in web service if no value given.
+Tested temperature growth range {'max': 0.0, 'min': 0.0} when added empty

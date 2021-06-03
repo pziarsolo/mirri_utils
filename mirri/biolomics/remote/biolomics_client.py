@@ -11,7 +11,7 @@ from mirri.biolomics.serializers.strain import (
     serialize_from_biolomics as strain_from_biolomics)
 
 from mirri.biolomics.serializers.growth_media import (
-    #serialize_to_biolomics as strain_to_biolomics,
+    serialize_to_biolomics as growth_medium_to_biolomics,
     serialize_from_biolomics as growth_medium_from_biolomics)
 from mirri.biolomics.serializers.taxonomy import (
     serialize_from_biolomics as taxonomy_from_biolomics)
@@ -23,6 +23,7 @@ from mirri.biolomics.serializers.bibliography import (
     serializer_from_biolomics as bibliography_from_biolomics,
     serializer_to_biolomics as bibliography_to_biolomics
 )
+from pprint import pprint
 
 
 class BiolomicsMirriClient:
@@ -36,7 +37,8 @@ class BiolomicsMirriClient:
                             'from': strain_from_biolomics},
             'endpoint': 'WS Strains'},
         GROWTH_MEDIUM_WS: {
-            'serializers':  {'from': growth_medium_from_biolomics},
+            'serializers':  {'from': growth_medium_from_biolomics,
+                             'to': growth_medium_to_biolomics},
             'endpoint': 'WS Growth media'},
         TAXONOMY_WS: {
             'serializers':  {'from': taxonomy_from_biolomics},
@@ -55,14 +57,41 @@ class BiolomicsMirriClient:
     }
 
     def __init__(self, server_url, api_version, client_id, client_secret, username,
-                 password, website_id=1):
+                 password, website_id=1, verbose=False):
         _client = BiolomicsClient(server_url, api_version, client_id,
                                   client_secret, username, password,
-                                  website_id=website_id)
+                                  website_id=website_id, verbose=verbose)
 
         self.client = _client
         self.schemas = self.client.get_schemas()
         self.allowed_fields = self.client.allowed_fields
+        self._transaction_created_ids = None
+        self._in_transaction = False
+        self._verbose = verbose
+
+    def _initialize_transaction_storage(self):
+        if self._in_transaction:
+            msg = 'Can not initialize transaction if already in a transaction'
+            raise RuntimeError(msg)
+        self._transaction_created_ids = []
+
+    def _add_created_to_transaction_storage(self, response, entity_name):
+        if not self._in_transaction:
+            msg = 'Can not add ids to transaction storage if not in a transaction'
+            raise RuntimeError(msg)
+
+        id_ = response.json().get('RecordId', None)
+        if id_ is not None:
+            ws_endpoint_name = self._conf[entity_name]['endpoint']
+            self._transaction_created_ids.insert(0, (ws_endpoint_name, id_))
+
+    def start_transaction(self):
+        self._initialize_transaction_storage()
+        self._in_transaction = True
+
+    def finish_transaction(self):
+        self._in_transaction = False
+        self._transaction_created_ids = None
 
     def get_endpoint(self, entity_name):
         return self._conf[entity_name]['endpoint']
@@ -77,44 +106,48 @@ class BiolomicsMirriClient:
         endpoint = self.get_endpoint(entity_name)
         serializer_from = self.get_serializers_from(entity_name)
         response = self.client.find_by_name(endpoint, name=name)
-        if response.status_code == 204:
+        if response.status_code == 404:
             return None
         elif response.status_code != 200:
             raise ValueError(f"{response.status_code}: {response.text}")
 
         ws_entity = response.json()
-        return serializer_from(ws_entity)
+
+        return None if ws_entity is None else serializer_from(ws_entity,
+                                                              client=self)
 
     def retrieve_by_id(self, entity_name, _id):
         endpoint = self.get_endpoint(entity_name)
         serializer_from = self.get_serializers_from(entity_name)
-        response = self.client.retrieve(endpoint, id=_id)
-        if response.status_code == 204:
+        response = self.client.retrieve(endpoint, record_id=_id)
+        if response.status_code == 404:
             return None
         elif response.status_code != 200:
             raise ValueError(f"{response.status_code}: {response.text}")
 
         ws_entity = response.json()
-        # pprint(ws_entity)
-        return serializer_from(ws_entity)
+
+        return serializer_from(ws_entity, client=self)
 
     def create(self, entity_name, entity):
         endpoint = self.get_endpoint(entity_name)
         serializer_to = self.get_serializers_to(entity_name)
         serializer_from = self.get_serializers_from(entity_name)
         data = serializer_to(entity, client=self)
+        # print(data)
         response = self.client.create(endpoint, data=data)
         # pprint(response.json())
         if response.status_code == 200:
-            return serializer_from(response.json())
-
+            if self._in_transaction:
+                self._add_created_to_transaction_storage(response, entity_name)
+            return serializer_from(response.json(), client=self)
         else:
             msg = f"return_code: {response.status_code}. msg: {response.text}"
             raise RuntimeError(msg)
 
     def delete_by_id(self, entity_name, record_id):
         endpoint = self.get_endpoint(entity_name)
-        response = self.client.delete(endpoint, record_id)
+        response = self.client.delete(endpoint, record_id=record_id)
         if response.status_code != 200:
             error = response.json()
             # msg = f'{error["Title"]: {error["Details"]}}'
@@ -127,8 +160,11 @@ class BiolomicsMirriClient:
             error = response.json()
             # msg = f'{error["Title"]: {error["Details"]}}'
             raise RuntimeError(error)
-        record_id = response.json()['RecordId']
-        self.delete_by_id(entity_name, record_id)
+        try:
+            record_id = response.json()['RecordId']
+        except TypeError:
+            raise ValueError(f'The given record_name {record_name} does not exists')
+        self.delete_by_id(entity_name, record_id=record_id)
 
     def search(self, entity_name, query):
         endpoint = self.get_endpoint(entity_name)
@@ -139,9 +175,9 @@ class BiolomicsMirriClient:
             # msg = f'{error["Title"]: {error["Details"]}}'
             raise RuntimeError(error)
         search_result = response.json()
-        # pprint(search_result)
         result = {'total': search_result['TotalCount'],
-                  'records': [serializer_from(record) for record in search_result['Records']]}
+                  'records': [serializer_from(record, client=self)
+                                for record in search_result['Records']]}
         return result
 
     def update(self, entity_name, entity):
@@ -149,15 +185,18 @@ class BiolomicsMirriClient:
         serializer_to = self.get_serializers_to(entity_name)
         serializer_from = self.get_serializers_from(entity_name)
         data = serializer_to(entity, client=self, update=True)
+        # print('update')
+        # pprint(data)
         response = self.client.update(endpoint, data=data)
-        # pprint(response.json())
-        print(response.status_code)
         if response.status_code == 200:
-            return serializer_from(response.json())
+            entity = serializer_from(response.json(), client=self)
+            return entity
 
         else:
             msg = f"return_code: {response.status_code}. msg: {response.text}"
             raise RuntimeError(msg)
 
-    def rollback(self, created_ids):
-        self.client.roolback(created_ids)
+    def rollback(self):
+        self._in_transaction = False
+        self.client.rollback(self._transaction_created_ids)
+        self._transaction_created_ids = None

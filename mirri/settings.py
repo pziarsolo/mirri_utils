@@ -226,7 +226,7 @@ ALLOWED_MARKER_TYPES = [
 ]
 
 PUBLICATIONS = "publications"
-PUB_ID = "pub_id"
+PUB_ID = "id"
 PUB_DOI = "pub_doi"
 PUB_PUBMED_ID = ''
 PUB_FULL_REFERENCE = "full_reference"
@@ -234,7 +234,7 @@ PUB_TITLE = "title"
 PUB_AUTHORS = "authors"
 PUB_JOURNAL = "journal"
 PUB_YEAR = "year"
-PUB_VOLUMEN = "volumen"
+PUB_VOLUME = "volume"
 PUB_ISSUE = "issue"
 PUB_FIRST_PAGE = "first_page"
 PUB_LAST_PAGE = "last_page"
@@ -250,7 +250,7 @@ PUBLICATION_FIELDS = [
     {"label": "Title", "attribute": PUB_TITLE},
     {"label": "Journal", "attribute": PUB_JOURNAL},
     {"label": "Year", "attribute": PUB_YEAR},
-    {"label": "Volume", "attribute": PUB_VOLUMEN},
+    {"label": "Volume", "attribute": PUB_VOLUME},
     {"label": "Issue", "attribute": PUB_ISSUE},
     {"label": "First page", "attribute": PUB_FIRST_PAGE},
     {"label": "Last page", "attribute": PUB_FIRST_PAGE},

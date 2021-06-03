@@ -43,8 +43,7 @@ def validate_excel(fhand, configuration):
         return error_log
 
     # excel structure errors
-    structure_errors = list(validate_excel_structure(workbook,
-                                                     validation_conf))
+    structure_errors = list(validate_excel_structure(workbook, validation_conf))
     if structure_errors:
         for error in structure_errors:
             error = Error(error[ERROR_CODE], pk=error['id'],

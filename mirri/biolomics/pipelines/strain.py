@@ -1,8 +1,13 @@
 from collections import OrderedDict
+from pprint import pprint
+import deepdiff
 
 from mirri.biolomics.remote.biolomics_client import BiolomicsMirriClient, BIBLIOGRAPHY_WS, SEQUENCE_WS, STRAIN_WS
+from mirri.biolomics.remote.endoint_names import GROWTH_MEDIUM_WS
+
 from mirri.biolomics.serializers.sequence import GenomicSequenceBiolomics
 from mirri.biolomics.serializers.strain import StrainMirri
+from mirri.entities.growth_medium import GrowthMedium
 from mirri.entities.publication import Publication
 
 
@@ -15,62 +20,103 @@ def retrieve_strain_by_accession_number(client, accession_number):
              "DisplayStart": 0,
              "DisplayLength": 10}
 
-    result = client.search('strain', query=query)
-
+    result = client.search(STRAIN_WS, query=query)
     total = result["total"]
     if total == 0:
         return None
     elif total == 1:
         return result["records"][0]
     else:
-        msg = "More than one entries for {accession_number} in database"
+        msg = f"More than one entries for {accession_number} in database"
         raise ValueError(msg)
 
 
 def get_or_create_publication(client: BiolomicsMirriClient, pub: Publication):
-    pub = client.retrieve_by_name(pub.title)
-    if pub is not None:
-        return pub, False
+    new_pub = client.retrieve_by_name(BIBLIOGRAPHY_WS, pub.title)
+
+    if new_pub is not None:
+        return {'record': new_pub, 'created': False}
     new_pub = client.create(BIBLIOGRAPHY_WS, pub)
-    return new_pub, True
+    return {'record': new_pub, 'created': True}
 
 
 def get_or_create_sequence(client: BiolomicsMirriClient, sequence: GenomicSequenceBiolomics):
-    seq = client.retrieve_by_name(sequence.marker_id)
+    seq = client.retrieve_by_name(SEQUENCE_WS, sequence.marker_id)
     if seq is not None:
-        return seq, False
+        return {'record': seq, 'created': False}
+
     new_seq = client.create(SEQUENCE_WS, sequence)
-    return new_seq, True
+    return {'record': new_seq, 'created': True}
+
+
+def get_or_create_or_update_strain(client: BiolomicsMirriClient,
+                                   record: StrainMirri, update=False):
+    response = get_or_create_strain(client, record)
+    new_record = response['record']
+    created = response['created']
+    if created:
+        return {'record': new_record, 'created': created, 'updated': False}
+
+    if not update:
+        return {'record': new_record, 'created': False, 'updated': False}
+
+    if record.record_id is None:
+        record.record_id = new_record.record_id
+    if record.record_name is None:
+        record.record_name = new_record.record_name
+    if record.synonyms is None or record.synonyms == []:
+        record.synonyms = new_record.synonyms
+    # compare_strains
+    # we exclude pub id as it is an internal reference of pub and can be changed
+    diffs = deepdiff.DeepDiff(record.dict(), new_record.dict(),
+                              exclude_regex_paths=[r"root\[\'publications\'\]\[\d+\]\[\'id\'\]",
+                                                   r"root\[\'publications\'\]\[\d+\]\[\'RecordId\'\]",
+                                                   r"root\[\'genetics\'\]\[\'Markers\'\]\[\d+\]\[\'RecordId\'\]",
+                                                   r"root\[\'genetics\'\]\[\'Markers\'\]\[\d+\]\[\'RecordName\'\]"])
+    if diffs:
+        pprint(diffs)
+        # pprint(record.dict())
+        # pprint(new_record.dict())
+        records_are_different = True
+    else:
+        records_are_different = False
+
+    if records_are_different:
+
+        updated_record = update_strain(client, record)
+        updated = True
+    else:
+        updated_record = record
+        updated = False
+    return {'record': updated_record, 'created': False, 'updated': updated}
 
 
 def get_or_create_strain(client: BiolomicsMirriClient, strain: StrainMirri):
-    new_strain = retrieve_strain_by_accession_number(client,
-                                                     strain.id.strain_id)
-    if new_strain:
-        return new_strain, False
+    new_strain = retrieve_strain_by_accession_number(client, strain.id.strain_id)
+    if new_strain is not None:
+        return {'record': new_strain, 'created': False}
 
-    created_ids = OrderedDict()
-    try:
-        for pub in strain.publications:
-            new_pub, created = get_or_create_publication(client, pub)
-            if created:
-                if BIBLIOGRAPHY_WS not in created_ids:
-                    created_ids[BIBLIOGRAPHY_WS] = []
-                created_ids[BIBLIOGRAPHY_WS].append(new_pub.record_id)
+    new_strain = create_strain(client, strain)
 
-        for marker in strain.genetics.markers:
-            new_marker, created = get_or_create_sequence(client, marker)
-            if created:
-                if SEQUENCE_WS not in created_ids:
-                    created_ids[SEQUENCE_WS] = []
-                created_ids[SEQUENCE_WS].append(new_marker.record_id)
+    return {'record': new_strain, 'created': True}
 
-        new_strain = client.create(STRAIN_WS, strain)
-        created_ids[STRAIN_WS] = [new_strain.record_id]
-        return new_strain, True
 
-    except Exception:
-        client.rollback(created_ids)
-        raise
+def create_strain(client: BiolomicsMirriClient, strain: StrainMirri):
+    for pub in strain.publications:
+        creation_response = get_or_create_publication(client, pub)
+    for marker in strain.genetics.markers:
+        creation_response = get_or_create_sequence(client, marker)
 
+    new_strain = client.create(STRAIN_WS, strain)
+    return new_strain
+
+
+def update_strain(client: BiolomicsMirriClient, strain: StrainMirri):
+    for pub in strain.publications:
+        creation_response = get_or_create_publication(client, pub)
+    for marker in strain.genetics.markers:
+        creation_response = get_or_create_sequence(client, marker)
+
+    new_strain = client.update(STRAIN_WS, strain)
+    return new_strain
 
