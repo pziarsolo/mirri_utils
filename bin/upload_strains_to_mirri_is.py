@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import sys
+from collections import Counter
 
 from mirri.biolomics.pipelines.growth_medium import get_or_create_or_update_growth_medium
 from mirri.biolomics.pipelines.strain import get_or_create_or_update_strain
@@ -8,7 +9,8 @@ from mirri.biolomics.remote.biolomics_client import BiolomicsMirriClient
 from mirri.io.parsers.mirri_excel import parse_mirri_excel
 from mirri.validation.excel_validator import validate_mirri_excel
 
-SERVER_URL = 'https://webservices.bio-aware.com/mirri_test'
+TEST_SERVER_URL = 'https://webservices.bio-aware.com/mirri_test'
+PROD_SERVER_URL = 'https://webservices.bio-aware.com/mirri'
 
 
 def get_cmd_args():
@@ -26,11 +28,17 @@ def get_cmd_args():
                         help='Client id of the web service')
     parser.add_argument('-s', '--client_secret', required=True,
                         help='Client secret of the web service')
-    parser.add_argument('-f', '--force_update', required=False,
+    parser.add_argument('--force_update', required=False,
                         action='store_true',
                         help='Use it if you want to update the existing strains')
     parser.add_argument('--verbose', action='store_true',
                         help='use it if you want a verbose output')
+    parser.add_argument('--prod', action='store_true',
+                        help='Use production server')
+    parser.add_argument('--dont_add_gm', action='store_false',
+                        help="Don't add growth media", default=True)
+    parser.add_argument('--dont_add_strains', action='store_false',
+                        help="Don't add growth media", default=True)
 
     args = parser.parse_args()
 
@@ -38,7 +46,8 @@ def get_cmd_args():
             'version': args.spec_version,
             'password': args.ws_password, 'client_id': args.client_id,
             'client_secret': args.client_secret, 'update': args.force_update,
-            'verbose': args.verbose}
+            'verbose': args.verbose, 'use_production_server': args.prod,
+            'add_gm': args.dont_add_gm, 'add_strains': args.dont_add_strains}
 
 
 def write_errors_in_screen(errors, fhand=sys.stderr):
@@ -52,8 +61,11 @@ def write_errors_in_screen(errors, fhand=sys.stderr):
         fhand.write('\n')
 
 
-def create_or_upload_strains(client, strains, update=False):
+def create_or_upload_strains(client, strains, update=False, counter=None,
+                             out_fhand=None):
     for strain in strains:
+        # if strain.id.strain_id != 'CECT 659':
+        #     continue
         result = get_or_create_or_update_strain(client, strain, update=update)
 
         new_strain = result['record']
@@ -65,10 +77,16 @@ def create_or_upload_strains(client, strains, update=False):
             result_state = 'created'
         else:
             result_state = 'not modified'
-        print(f'Strain {new_strain.id.strain_id}: {result_state}')
+        if counter is not None:
+            counter[result_state] += 1
+        if out_fhand is not None:
+            out_fhand.write(f'Strain {new_strain.id.strain_id}: {result_state}\n')
+        # break
 
 
-def create_or_upload_growth_media(client, growth_media, update=False):
+def create_or_upload_growth_media(client, growth_media, update=False, counter=None,
+                                  out_fhand=None):
+
     for gm in growth_media:
         result = get_or_create_or_update_growth_medium(client, gm, update)
 
@@ -81,7 +99,10 @@ def create_or_upload_growth_media(client, growth_media, update=False):
             result_state = 'created'
         else:
             result_state = 'not modified'
-        print(f'Growth medium {new_gm.record_name}: {result_state}')
+        if counter is not None:
+            counter[result_state] += 1
+        if out_fhand is not None:
+            out_fhand.write(f'Growth medium {new_gm.record_name}: {result_state}\n')
 
 
 def main():
@@ -100,24 +121,58 @@ def main():
     strains = list(parsed_objects['strains'])
     growth_media = list(parsed_objects['growth_media'])
 
-    client = BiolomicsMirriClient(server_url=SERVER_URL,  api_version= 'v2',
+    if args['use_production_server']:
+        server_url = PROD_SERVER_URL
+    else:
+        server_url = TEST_SERVER_URL
+
+    client = BiolomicsMirriClient(server_url=server_url,  api_version= 'v2',
                                   client_id=args['client_id'],
                                   client_secret=args['client_secret'],
                                   username=args['user'],
                                   password=args['password'],
                                   verbose=args['verbose'])
 
-    client.start_transaction()
-    try:
-        create_or_upload_growth_media(client, growth_media, update=args['update'])
-        create_or_upload_strains(client, strains, update=args['update'])
+    if args['add_gm']:
+        client.start_transaction()
+        counter = Counter()
+        try:
+            create_or_upload_growth_media(client, growth_media, update=args['update'],
+                                          counter=counter, out_fhand=out_fhand)
+        except (Exception, KeyboardInterrupt) as error:
+            out_fhand.write('there was some error\n')
+            out_fhand.write(str(error) + '\n')
+            out_fhand.write('rolling back\n')
+            client.rollback()
+            raise
         client.finish_transaction()
-    except (Exception, KeyboardInterrupt) as error:
-        out_fhand.write('there was some error\n')
-        out_fhand.write(str(error) + '\n')
-        out_fhand.write('rolling back\n')
-        client.rollback()
-        raise
+        show_stats(counter, 'Growth Media', out_fhand)
+
+    if args['add_strains']:
+        client.start_transaction()
+        counter = Counter()
+        try:
+            create_or_upload_strains(client, strains, update=args['update'],
+                                     counter=counter,
+                                     out_fhand=out_fhand)
+            client.finish_transaction()
+        except (Exception, KeyboardInterrupt) as error:
+            out_fhand.write('there was some error\n')
+            out_fhand.write(str(error) + '\n')
+            out_fhand.write('rolling back\n')
+            client.rollback()
+            raise
+
+        show_stats(counter, 'Strains', out_fhand)
+
+
+def show_stats(counter, kind, out_fhand):
+    out_fhand.write(f'{kind}\n')
+    line = ''.join(['-'] * len(kind))
+    out_fhand.write(f"{line}\n")
+    for kind2, value in counter.most_common(5):
+        out_fhand.write(f'{kind2}: {value}\n')
+    out_fhand.write('\n')
 
 
 if __name__ == '__main__':

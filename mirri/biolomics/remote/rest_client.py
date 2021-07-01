@@ -109,12 +109,12 @@ class BiolomicsClient:
         url = self.get_list_url(end_point)
         return requests.post(url, json=data, headers=header)
 
-    def update(self, end_point, data):
+    def update(self, end_point, record_id, data):
         self._check_end_point_exists(end_point)
         self._check_data_consistency(data, self.allowed_fields[end_point],
                                      update=True)
         header = self._build_headers()
-        url = self.get_list_url(end_point)
+        url = self.get_detail_url(end_point, record_id=record_id)
         return requests.put(url, json=data, headers=header)
 
     def delete(self, end_point, record_id):

@@ -59,7 +59,7 @@ def create_full_data_strain():
 
     # already existing media in test_mirri
 
-    strain.growth.recommended_temp = 30
+    strain.growth.recommended_temp = {'min': 30, 'max': 30}
     strain.growth.recommended_media = ["AAA"]
     strain.growth.tested_temp_range = {'min': 29, 'max': 32}
 

@@ -11,6 +11,7 @@ def get_or_create_or_update_growth_medium(client: BiolomicsMirriClient,
                                           growth_medium: GrowthMedium,
                                           update=False):
     response = get_or_create_growth_medium(client, growth_medium)
+
     new_gm = response['record']
     created = response['created']
     if created:
@@ -20,10 +21,10 @@ def get_or_create_or_update_growth_medium(client: BiolomicsMirriClient,
         return {'record': new_gm, 'created': False, 'updated': False}
 
     # compare_strains
-    if growth_medium.is_equal(new_gm, exclude_fields=['record_id', 'record_name']):
+    if growth_medium.is_equal(new_gm, exclude_fields=['record_id', 'record_name', 'acronym']):
         records_are_different = False
     else:
-        growth_medium.update(new_gm)
+        growth_medium.update(new_gm, include_fields=['record_id', 'record_name'])
         records_are_different = True
 
     if records_are_different:

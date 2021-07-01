@@ -34,25 +34,28 @@ null values:
 'Ploidy':'?' could be null
 
 Deposit date
+
 --------------------------------------------
 
 - Assign seq to strain in strain serializers
 - Fields in ws that are not in our specification. What to do with them
-    - Type description
-    - Associated documents
-    - Data provided by
-    - Orders
-    - MTA text
-    - Catalog URL
+    - Type description - IGNORE
+    - Associated documents - IGNORE
+    - Data provided by - IGNORE
+    - Orders - IGNORE
+    - MTA text - IGNORE
+    - Catalog URL -
 
 - Publication RecordName assignation. How to do it?
 - Sequence RecordName assignation. How to do it
 - Publications serializer improvement
 ------------------------------------------------------
 
-Marker Name. Which options are allowed in WS and how they map to the types in specifcations?
+Marker Name. Which options are allowed in WS and how they map to the types in specifications?
 
 update: it should be done in the detail url.
 
 interspecific_hybrid set to "no" by default in web service if no value given.
 Tested temperature growth range {'max': 0.0, 'min': 0.0} when added empty
+
+Very slow: A normal search action takes

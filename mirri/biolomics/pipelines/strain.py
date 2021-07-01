@@ -55,7 +55,7 @@ def get_or_create_or_update_strain(client: BiolomicsMirriClient,
     new_record = response['record']
     created = response['created']
     if created:
-        return {'record': new_record, 'created': created, 'updated': False}
+        return {'record': new_record, 'created': True, 'updated': False}
 
     if not update:
         return {'record': new_record, 'created': False, 'updated': False}
@@ -67,22 +67,24 @@ def get_or_create_or_update_strain(client: BiolomicsMirriClient,
     if record.synonyms is None or record.synonyms == []:
         record.synonyms = new_record.synonyms
 
-    if not record.taxonomy.interspecific_hybrid:
-        exclude_paths = ["root['taxonomy']['interspecific_hybrid']"]
-    else:
-        exclude_paths = None
+    # if not record.taxonomy.interspecific_hybrid:
+    #     exclude_paths = ["root['taxonomy']['interspecific_hybrid']"]
+    # else:
+    #     exclude_paths = None
 
     # compare_strains
     # we exclude pub id as it is an internal reference of pub and can be changed
-    diffs = deepdiff.DeepDiff(record.dict(), new_record.dict(),
-                              exclude_paths=exclude_paths,
+    diffs = deepdiff.DeepDiff(new_record.dict(), record.dict(),
+                              ignore_order=True, exclude_paths=None,
                               exclude_regex_paths=[r"root\[\'publications\'\]\[\d+\]\[\'id\'\]",
                                                    r"root\[\'publications\'\]\[\d+\]\[\'RecordId\'\]",
                                                    r"root\[\'genetics\'\]\[\'Markers\'\]\[\d+\]\[\'RecordId\'\]",
                                                    r"root\[\'genetics\'\]\[\'Markers\'\]\[\d+\]\[\'RecordName\'\]"])
     if diffs:
-        pprint(diffs)
+        pprint(diffs,  width=200)
+        # pprint('en el que yo mando')
         # pprint(record.dict())
+        # pprint('lo que hay en db')
         # pprint(new_record.dict())
         records_are_different = True
     else:

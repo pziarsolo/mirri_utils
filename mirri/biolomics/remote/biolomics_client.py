@@ -126,6 +126,7 @@ class BiolomicsMirriClient:
             raise ValueError(f"{response.status_code}: {response.text}")
 
         ws_entity = response.json()
+        # pprint(ws_entity)
 
         return serializer_from(ws_entity, client=self)
 
@@ -133,8 +134,10 @@ class BiolomicsMirriClient:
         endpoint = self.get_endpoint(entity_name)
         serializer_to = self.get_serializers_to(entity_name)
         serializer_from = self.get_serializers_from(entity_name)
+        # pprint(entity.dict())
         data = serializer_to(entity, client=self)
-        # print(data)
+        # print('sent')
+        # pprint(data)
         response = self.client.create(endpoint, data=data)
         # pprint(response.json())
         if response.status_code == 200:
@@ -175,21 +178,31 @@ class BiolomicsMirriClient:
             # msg = f'{error["Title"]: {error["Details"]}}'
             raise RuntimeError(error)
         search_result = response.json()
+        # pprint(search_result)
         result = {'total': search_result['TotalCount'],
                   'records': [serializer_from(record, client=self)
                                 for record in search_result['Records']]}
         return result
 
     def update(self, entity_name, entity):
+        record_id = entity.record_id
+        if record_id is None:
+            msg = 'In order to update the record, you need the recordId in the entity'
+            raise ValueError(msg)
         endpoint = self.get_endpoint(entity_name)
         serializer_to = self.get_serializers_to(entity_name)
         serializer_from = self.get_serializers_from(entity_name)
         data = serializer_to(entity, client=self, update=True)
         # print('update')
+        # print(entity.dict())
+        # print(data)
         # pprint(data)
-        response = self.client.update(endpoint, data=data)
+        response = self.client.update(endpoint, record_id=record_id, data=data)
         if response.status_code == 200:
+            # print('receive')
+            # pprint(response.json())
             entity = serializer_from(response.json(), client=self)
+            # pprint(entity.dict())
             return entity
 
         else:

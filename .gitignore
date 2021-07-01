@@ -8,3 +8,4 @@ main.py
 *secrets.py
 *.pytest_cache
 data/*
+/bin/cect_to_mirri_excel.py

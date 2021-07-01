@@ -89,7 +89,7 @@ from mirri.settings import (
     SUBSTRATE_HOST_OF_ISOLATION,
     ID_SYNONYMS,
     TAXONOMY,
-    TESTED_TEMPERATURE_GROWTH_RANGE, SUBTAXAS,
+    TESTED_TEMPERATURE_GROWTH_RANGE, SUBTAXAS, DATE_OF_DEPOSIT, HYBRIDS,
 )
 
 RANK_TRANSLATOR = {
@@ -197,6 +197,8 @@ class Taxonomy(FrozenClass):
                 self.comments = data[COMMENTS_ON_TAXONOMY]
             if INTERSPECIFIC_HYBRID in data:
                 self.interspecific_hybrid = data[INTERSPECIFIC_HYBRID]
+            if HYBRIDS in data:
+                self.hybrids = data[HYBRIDS]
 
         self._freeze()
 
@@ -284,6 +286,14 @@ class Taxonomy(FrozenClass):
         self._data[SPECIES]["author"] = species_author
 
     @property
+    def hybrids(self) -> list[str]:
+        return self._data.get(HYBRIDS, None)
+
+    @hybrids.setter
+    def hybrids(self, hybrids: List[str]):
+        if isinstance(hybrids, (tuple, list)):
+            self._data[HYBRIDS] = hybrids
+    @property
     def subtaxas(self):
         return {
             key: value for key, value in self._data.items() if key in ALLOWED_SUBTAXA
@@ -318,6 +328,9 @@ class Taxonomy(FrozenClass):
         # ‘subsp.’ (for subspecies); ‘convar.’ (for convariety);
         # ‘var.’ (for variety); ‘f.’ (for form);
         # ‘Group’ (for ‘cultivar group’)
+        if self.hybrids:
+            return ';'.join(self.hybrids)
+
         taxas = []
         for rank in ALLOWED_TAXONOMIC_RANKS:
             value = self.get_subtaxa_name(rank)
@@ -375,7 +388,7 @@ class _GeneralStep(FrozenClass):
             _date = DateRange()
             if data and self._date_tag in data:
                 _date = _date.strpdate(data[self._date_tag])
-            self.date = _date
+                self.date = _date
 
     def __bool__(self):
         return bool(self.location) or bool(self.date) or bool(self.who)
@@ -515,7 +528,7 @@ class Isolation(_GeneralStep):
 
 class Deposit(_GeneralStep):
     _who_tag = DEPOSITOR
-    _date_tag = DATE_OF_INCLUSION
+    _date_tag = DATE_OF_DEPOSIT
 
     def __init__(self, data=None):
         if data is None:
@@ -548,7 +561,13 @@ class StrainId(FrozenClass):
         return not self.__eq__(other)
 
     def __str__(self):
-        return f'{self.collection} {self.number}'
+        if self.number is None and self.collection is None:
+            return None
+        _id = ''
+        if self.collection is not None:
+            _id += f'{self.collection} '
+        _id += self.number
+        return _id
 
     def dict(self):
         return self._id_dict
@@ -765,12 +784,17 @@ class Growth(_FieldBasedClass):
             self._data[RECOMMENDED_GROWTH_MEDIUM] = value
 
     @property
-    def recommended_temp(self) -> Union[float, int, None]:
+    def recommended_temp(self) -> dict:
         return self._data.get(RECOMMENDED_GROWTH_TEMP, None)
 
     @recommended_temp.setter
-    def recommended_temp(self, value: Union[float, int]):
-        self._data[RECOMMENDED_GROWTH_TEMP] = value
+    def recommended_temp(self, val: dict):
+        if val is not None:
+            if isinstance(val, dict) and "min" in val and "max" in val:
+                self._data[RECOMMENDED_GROWTH_TEMP] = val
+            else:
+                msg = "A dict with min and max is required"
+                raise ValidationError(msg)
 
 
 class Strain(FrozenClass):
@@ -1180,6 +1204,13 @@ def add_taxon_to_strain(strain, value):
     value = value.strip()
     if not value:
         return
+    spps = [v.strip() for v in value.split(';')]
+
+    if len(spps) == 2:
+        strain.taxonomy.hybrids = spps
+        strain.taxonomy.interspecific_hybrid = True
+        return
+    value = spps[0]
     items = re.split(r" +", value)
     genus = items[0]
     strain.taxonomy.genus = genus

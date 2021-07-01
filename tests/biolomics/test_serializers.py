@@ -294,7 +294,7 @@ STRAIN_WS = {
     'RecordName': 'MIRRI 2240561'}
 
 STRAIN_WS_EXPECTED_NO_REMOTE = {
-    'Acronym': 'MIRRI ',
+    'Acronym': 'MIRRI',
     'RecordDetails': {'ABS related files': {'FieldType': 'U',
                                             'Value': [{'Name': 'link',
                                                        'Value': 'https://example.com'}]},
@@ -390,8 +390,8 @@ STRAIN_WS_EXPECTED_NO_REMOTE = {
                       'Ploidy': {'FieldType': 'T', 'Value': 'Polyploid'},
                       'Quarantine in Europe': {'FieldType': 'T', 'Value': 'no'},
                       'Recommended growth temperature': {'FieldType': 'S',
-                                                         'MaxValue': 30,
-                                                         'MinValue': 30},
+                                                         'MaxValue': 30.0,
+                                                         'MinValue': 30.0},
                       'Remarks': {'FieldType': 'E', 'Value': 'no remarks for me'},
                       'Restrictions on use': {'FieldType': 'T',
                                               'Value': 'no restriction apply'},
@@ -406,8 +406,8 @@ STRAIN_WS_EXPECTED_NO_REMOTE = {
                       'Taxon name': {'FieldType': 'SynLink',
                                      'Value': 'Escherichia coli'},
                       'Tested temperature growth range': {'FieldType': 'S',
-                                                          'MaxValue': 32,
-                                                          'MinValue': 29}}}
+                                                          'MaxValue': 32.0,
+                                                          'MinValue': 29.0}}}
 
 
 class StrainSerializerTest(unittest.TestCase):
@@ -415,7 +415,7 @@ class StrainSerializerTest(unittest.TestCase):
     def test_serialize_to_biolomics(self):
         strain = create_full_data_strain()
         ws_strain = strain_to_biolomics(strain, client=None)
-        self.assertEqual(ws_strain, STRAIN_WS_EXPECTED_NO_REMOTE)
+        self.assertDictEqual(ws_strain, STRAIN_WS_EXPECTED_NO_REMOTE)
 
     def test_serialize_to_biolomics_remote(self):
         client = BiolomicsMirriClient(SERVER_URL, VERSION, CLIENT_ID,

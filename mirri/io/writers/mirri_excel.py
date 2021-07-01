@@ -57,7 +57,6 @@ def write_mirri_excel(path, strains, growth_media, version):
 
 def _write_mirri_excel_20200601(path, strains, growth_media):
     wb = Workbook()
-    # wb.remove_sheet("Sheet")
 
     write_markers_sheet(wb)
 
@@ -65,24 +64,14 @@ def _write_mirri_excel_20200601(path, strains, growth_media):
     write_ontobiotypes(wb, ontobiotype_path)
 
     write_growth_media(wb, growth_media)
-    growth_media_indexes = [str(gm["Acronym"]) for gm in growth_media]
+    growth_media_indexes = [str(gm.acronym) for gm in growth_media]
 
-    unknown_location = Location()
-    unknown_location.country = "Unknown"
-    unknown_location.state = "Unknown"
-    unknown_location.municipality = "Unknown"
-    unknown_location.site = "Unknown"
-    locations = {"Unknown": unknown_location}
+    locations = {}
     publications = {}
     sexual_states = set(deepcopy(INITIAL_SEXUAL_STATES))
-    strains_data = _deserialize_strains(
-        strains,
-        locations,
-        growth_media_indexes,
-        publications,
-        sexual_states,
-    )
-
+    genomic_markers = {}
+    strains_data = _deserialize_strains(strains, locations, growth_media_indexes,
+                                        publications, sexual_states, genomic_markers)
     strains_data = list(strains_data)
 
     # write strain to generate indexed data
@@ -90,25 +79,30 @@ def _write_mirri_excel_20200601(path, strains, growth_media):
     strain_sheet.append([field["label"] for field in MIRRI_FIELDS])
     for strain_row in strains_data:
         strain_sheet.append(strain_row)
+    redimension_cell_width(strain_sheet)
 
     # write locations
     loc_sheet = wb.create_sheet("Geographic origin")
     loc_sheet.append(["ID", "Country", "Region", "City", "Locality"])
-    for index, location in enumerate(locations.values()):
-        row = [
-            index,
-            location.country,
-            location.state,
-            location.municipality,
-            location.site,
-        ]
+    for index, loc_index in enumerate(locations.keys()):
+        location = locations[loc_index]
+        row = [index, location.country, location.state, location.municipality,
+               loc_index]
         loc_sheet.append(row)
+    redimension_cell_width(loc_sheet)
+
     # write publications
     pub_sheet = wb.create_sheet("Literature")
     pub_sheet.append(PUB_HEADERS)
-    for index, publication in enumerate(publications):
+    for publication in publications.values():
         row = []
+        for pub_field in PUBLICATION_FIELDS:
+            # if pub_field['attribute'] == 'id':
+            #     value = index
+            value = getattr(publication, pub_field['attribute'], None)
+            row.append(value)
         pub_sheet.append(row)
+    redimension_cell_width(pub_sheet)
 
     # write sexual states
     sex_sheet = wb.create_sheet("Sexual states")
@@ -116,18 +110,28 @@ def _write_mirri_excel_20200601(path, strains, growth_media):
         sex_sheet.append([sex_state])
     redimension_cell_width(sex_sheet)
 
+    # write genetic markers
+    markers_sheet = wb.create_sheet("Genomic information")
+    markers_sheet.append(['Strain AN', 'Marker', 'INSDC AN', 'Sequence'])
+    for strain_id, markers in genomic_markers.items():
+        for marker in markers:
+            row = [strain_id, marker.marker_type, marker.marker_id, marker.marker_seq]
+            markers_sheet.append(row)
+    redimension_cell_width(markers_sheet)
+
+    del wb["Sheet"]
     wb.save(str(path))
 
 
-def _deserialize_strains(
-    strains, locations, growth_media_indexes, publications, sexual_states
-):
+def _deserialize_strains(strains, locations, growth_media_indexes,
+                         publications, sexual_states, genomic_markers):
     for strain in strains:
         strain_row = []
         for field in MIRRI_FIELDS:
             attribute = field["attribute"]
+
             if attribute == "id":
-                value = f"{strain.id.collection} {strain.id.number}"
+                value = strain.id.strain_id
             elif attribute == "restriction_on_use":
                 value = rgetattr(strain, attribute)
                 if value is not None:
@@ -141,32 +145,44 @@ def _deserialize_strains(
                 if value is not None:
                     value = [f"{on.collection} {on.number}" for on in value]
                     value = "; ".join(value)
+            elif attribute == 'other_denominations':
+                od = strain.other_denominations
+                value = "; ".join(od) if od else None
             elif attribute in (
                 "is_from_registered_collection",
                 "is_subject_to_quarantine",
                 "is_potentially_harmful",
                 "genetics.gmo",
+                "taxonomy.interspecific_hybrid"
             ):
                 value = rgetattr(strain, attribute)
                 if value is True:
-                    value = 1
-                elif value is False:
                     value = 2
+                elif value is False:
+                    value = 1
                 else:
                     value = None
             elif attribute == "taxonomy.taxon_name":
                 value = strain.taxonomy.long_name
-            elif attribute in ("deposit.date", "collect.date", "isolation.date"):
+            elif attribute in ("deposit.date", "collect.date", "isolation.date",
+                               'catalog_inclusion_date'):
                 value = rgetattr(strain, attribute)
                 value = value.strfdate if value else None
-            elif attribute == "growth.recommended_medium":
+            elif attribute == "growth.recommended_media":
                 value = rgetattr(strain, attribute)
-                for gm in value:
-                    if not gm in growth_media_indexes:
-                        print(gm, growth_media_indexes)
-                        msg = "Growth media {gm} not in the provided ones"
-                        raise ValueError(msg)
-                value = "/".join(value)
+                if value is not None:
+                    for gm in value:
+                        gm = str(gm)
+                        if gm not in growth_media_indexes:
+                            print(gm, growth_media_indexes)
+                            msg = f"Growth media {gm} not in the provided ones"
+                            continue
+                            raise ValueError(msg)
+                    value = "/".join(value)
+            elif attribute in ('growth.tested_temp_range',"growth.recommended_temp"):
+                value = rgetattr(strain, attribute)
+                if value:
+                    value = f'{value["min"]}; {value["max"]}'
             elif attribute == "form_of_supply":
                 value = rgetattr(strain, attribute)
                 value = ";".join(value)
@@ -180,41 +196,58 @@ def _deserialize_strains(
 
             elif attribute == "collect.location":
                 location = strain.collect.location
-                if (
-                    not location.country
-                    and not location.state
-                    and not location.municipality
-                    and not location.site
-                ):
-                    value = 0
-                else:
-                    if location not in locations:
-                        locations.append(location)
-                    value = location.site
+                loc_index = _build_location_index(location)
+                if loc_index is None:
+                    continue
+                if loc_index not in locations:
+                    locations[loc_index] = location
+                value = loc_index
             elif attribute in ("abs_related_files", "mta_files"):
                 value = rgetattr(strain, attribute)
                 value = ";".join(value) if value else None
             elif attribute == "taxonomy.organism_type":
                 value = rgetattr(strain, attribute)
                 if value:
-                    value = value.code
+                    value = "; ".join([str(v.code) for v in value])
+
             elif attribute == "history":
                 value = rgetattr(strain, attribute)
-                value = " < ".join(value)
+                if value is not None:
+                    value = " < ".join(value)
             elif attribute == "genetics.sexual_state":
                 value = rgetattr(strain, attribute)
                 if value:
                     sexual_states.add(value)
+            elif attribute == "genetics.ploidy":
+                value = rgetattr(strain, attribute)
             elif attribute == "taxonomy.organism_type":
                 organism_types = rgetattr(strain, attribute)
                 if organism_types is not None:
                     value = [org_type.code for org_type in organism_types]
                     value = ";".join(value)
+            elif attribute == 'publications':
+                value = []
+                for pub in strain.publications:
+                    print(pub.dict())
+                    value.append(pub.id)
+                    if pub.id not in publications:
+                        publications[pub.id] = pub
+                value = ';'.join(str(v) for v in value) if value else None
             else:
                 value = rgetattr(strain, attribute)
 
             strain_row.append(value)
+        genomic_markers[strain.id.strain_id] = strain.genetics.markers
         yield strain_row
+
+
+def _build_location_index(location):
+    index = []
+    if location.country:
+        index.append(location.country)
+    if location.site:
+        index.append(location.site)
+    return ';'.join(index) if index else None
 
 
 def write_markers_sheet(wb):
@@ -229,7 +262,7 @@ def write_markers_sheet(wb):
 
 
 def write_ontobiotypes(workbook, ontobiotype_path):
-    ws = workbook.create_sheet("Ontobiotype")
+    ws = workbook.create_sheet("Ontobiotope")
     with ontobiotype_path.open() as fhand:
         for row in csv.reader(fhand, delimiter="\t"):
             ws.append(row)
@@ -250,9 +283,9 @@ def write_growth_media(wb, growth_media):
     ws.append(["Acronym", "Description", "Full description"])
     for growth_medium in growth_media:
         row = [
-            growth_medium["Acronym"],
-            growth_medium["Description"],
-            growth_medium["Full description"],
+            growth_medium.acronym,
+            growth_medium.description,
+            growth_medium.full_description,
         ]
         ws.append(row)
     redimension_cell_width(ws)

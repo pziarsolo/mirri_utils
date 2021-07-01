@@ -4,7 +4,7 @@ from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROS
                                    UNIQUE,
                                    VALIDATION, VALUES, BIBLIO)
 from mirri.settings import (GEOGRAPHIC_ORIGIN, ONTOBIOTOPE, LOCATIONS, GROWTH_MEDIA, GENOMIC_INFO,
-                            STRAINS, LITERATURE_SHEET)
+                            STRAINS, LITERATURE_SHEET, SEXUAL_STATE_SHEET)
 # MARKERS,
 # SEXUAL_STATE_SHEET,
 # RESOURCE_TYPES_VALUES,
@@ -103,7 +103,8 @@ STRAIN_FIELDS = [
         VALIDATION: [
             {TYPE: MANDATORY, ERROR_CODE: "STD20"},
             {TYPE: MISSING, ERROR_CODE: "STD21"},
-            {TYPE: TAXON, ERROR_CODE: "STD22"}
+            {TYPE: TAXON, ERROR_CODE: "STD22", MULTIPLE: True,
+             SEPARATOR: ';'}
         ]
     },
     {
@@ -168,8 +169,8 @@ STRAIN_FIELDS = [
     {
         FIELD: "Tested temperature growth range",
         VALIDATION: [
-            {TYPE: REGEXP, "match": r"\d+", ERROR_CODE: "STD29",
-             MULTIPLE: True, SEPARATOR: ";"}
+            {TYPE: REGEXP, "match": r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?',
+             ERROR_CODE: "STD29", MULTIPLE: True, SEPARATOR: ";"}
         ]
     },
     {
@@ -177,7 +178,8 @@ STRAIN_FIELDS = [
         VALIDATION: [
             {TYPE: MANDATORY, ERROR_CODE: "STD30"},
             {TYPE: MISSING, ERROR_CODE: "STD31"},
-            {TYPE: REGEXP, "match": r"\d+", ERROR_CODE: "STD32",
+            {TYPE: REGEXP, "match": r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?',
+             ERROR_CODE: "STD32",
              MULTIPLE: True, SEPARATOR: ";"}
         ]
     },
@@ -195,8 +197,9 @@ STRAIN_FIELDS = [
         VALIDATION: [
             {TYPE: MANDATORY, ERROR_CODE: "STD36"},
             {TYPE: MISSING, ERROR_CODE: "STD37"},
-            # {TYPE: CROSSREF, CROSSREF_NAME: "Forms of supply",
-            #  MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STD38"}
+            {TYPE: CHOICES, VALUES: ['Agar', 'Cryo', 'Dry Ice', 'Liquid Culture Medium',
+                                     'Lyo', 'Oil', 'Water'],
+             MULTIPLE: True, SEPARATOR: ";", ERROR_CODE: "STD38"}
         ]
     },
     {
@@ -247,10 +250,12 @@ STRAIN_FIELDS = [
     {
         FIELD: "Sexual state",
         VALIDATION: [
-            {TYPE: CHOICES, VALUES: ["Mata", "Matalpha", "Mata/Matalpha",
-                                     "Matb", "Mata/Matb", "MTLa", "MTLalpha", "MTLa/MTLalpha",
-                                     "MAT1-1", "MAT1-2", "MAT1", "MAT2", "MT+", "MT-"],
+            {TYPE: CROSSREF, CROSSREF_NAME: SEXUAL_STATE_SHEET,
              ERROR_CODE: "STD43"}
+            # {TYPE: CHOICES, VALUES: ["Mata", "Matalpha", "Mata/Matalpha",
+            #                          "Matb", "Mata/Matb", "MTLa", "MTLalpha", "MTLa/MTLalpha",
+            #                          "MAT1-1", "MAT1-2", "MAT1", "MAT2", "MT+", "MT-"],
+            #  ERROR_CODE: "STD43"}
         ]
     },
     {
@@ -530,7 +535,8 @@ CROSS_REF_CONF = {
     LITERATURE_SHEET: ['ID'],
     LOCATIONS: ['Locality'],
     GROWTH_MEDIA: ['Acronym'],
-    STRAINS: ["Accession number"]
+    STRAINS: ["Accession number"],
+    SEXUAL_STATE_SHEET: []
 
 }
 

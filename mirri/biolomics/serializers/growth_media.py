@@ -5,6 +5,7 @@ from mirri.entities.growth_medium import GrowthMedium
 def serialize_from_biolomics(ws_data, client=None) -> GrowthMedium:
     medium = GrowthMedium()
     medium.record_name = ws_data.get('RecordName', None)
+    medium.description = get_growth_medium_record_name(medium)
     medium.record_id = ws_data.get('RecordId', None)
     for key, value in ws_data['RecordDetails'].items():
         value = value['Value']
@@ -29,6 +30,8 @@ def serialize_from_biolomics(ws_data, client=None) -> GrowthMedium:
 def get_growth_medium_record_name(growth_medium):
     if growth_medium.record_name:
         return growth_medium.record_name
+    if growth_medium.description:
+        return growth_medium.description
     if growth_medium.acronym:
         return growth_medium.acronym
 

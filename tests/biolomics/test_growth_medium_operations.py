@@ -39,4 +39,24 @@ class BiolomicsSequenceClientTest(unittest.TestCase):
         finally:
             self.client.rollback()
 
+    def test_update_growth_media(self):
+        self.client.start_transaction()
+        try:
+            growth_medium = GrowthMedium()
+            growth_medium.acronym = 'BBB'
+            growth_medium.ingredients = 'alkhdflakhf'
+            growth_medium.description = 'desc'
+            growth_medium.full_description = 'full'
+            new_growth_medium = self.client.create(GROWTH_MEDIUM_WS, growth_medium)
+
+            new_growth_medium.full_description = 'full2'
+            updated_gm = new_growth_medium = self.client.update(GROWTH_MEDIUM_WS, new_growth_medium)
+            self.assertEqual(updated_gm.full_description, new_growth_medium.full_description)
+
+            retrieved = self.client.retrieve_by_id(GROWTH_MEDIUM_WS, new_growth_medium.record_id)
+            self.assertEqual(retrieved.full_description, updated_gm.full_description)
+
+        finally:
+            self.client.rollback()
+
 

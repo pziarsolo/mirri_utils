@@ -8,14 +8,13 @@ TEST_DATA_DIR = Path(__file__).parent / "data"
 
 
 class MirriExcelTests(unittest.TestCase):
-    def xtest_valid_excel(self):
-        in_path = TEST_DATA_DIR / "valid.mirri.xlsx"
-        parsed_data = parse_mirri_excel(
-            in_path, version="20200601", fail_if_error=False
-        )
+    def test_valid_excel(self):
+        in_path = TEST_DATA_DIR / "valid.mirri.full.xlsx"
+        parsed_data = parse_mirri_excel(in_path.open('rb'), version="20200601")
         strains = parsed_data["strains"]
         growth_media = parsed_data["growth_media"]
         out_path = Path("/tmp/test.xlsx")
+
         write_mirri_excel(out_path, strains, growth_media, version="20200601")
 
 

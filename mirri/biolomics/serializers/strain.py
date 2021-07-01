@@ -6,7 +6,7 @@ from mirri import rgetattr, rsetattr
 from mirri.entities.date_range import DateRange
 from mirri.entities.strain import ORG_TYPES, OrganismType, StrainId, StrainMirri, add_taxon_to_strain
 from mirri.biolomics.remote.endoint_names import (GROWTH_MEDIUM_WS, TAXONOMY_WS,
-                                                  ONTOBIOTOPE_WS, BIBLIOGRAPHY_WS, SEQUENCE_WS)
+                                                  ONTOBIOTOPE_WS, BIBLIOGRAPHY_WS, SEQUENCE_WS, COUNTRY_WS)
 from mirri.settings import (
     ALLOWED_FORMS_OF_SUPPLY,
     NAGOYA_PROBABLY_SCOPE,
@@ -17,6 +17,7 @@ from mirri.settings import (
     COMMERCIAL_USE_WITH_AGREEMENT,
 )
 from mirri.biolomics.settings import MIRRI_FIELDS
+from mirri.utils import get_pycountry
 
 NAGOYA_TRANSLATOR = {
     NAGOYA_NO_RESTRICTIONS: "no known restrictions under the Nagoya protocol",
@@ -41,8 +42,7 @@ BOOLEAN_TYPE_FIELDS = ("Strain from a registered collection", "Dual use",
 FILE_TYPE_FIELDS = ("MTA file", "ABS related files")
 MAX_MIN_TYPE_FIELDS = ("Tested temperature growth range",
                        "Recommended growth temperature")
-LIST_TYPES_TO_JOIN = ('Other denomination', 'Plasmids',
-                      'Plasmids collections fields')
+LIST_TYPES_TO_JOIN = ('Other denomination', 'Plasmids collections fields')
 
 MARKER_TYPE_MAPPING = {
     '16S rRNA': 'Sequences 16s', # or Sequences c16S rRNA
@@ -96,8 +96,14 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
                 value.append({"Name": ot, "Value": is_organism})
         elif label == 'Taxon name':
             if client:
-                value = [get_remote_rlink(client, TAXONOMY_WS,
-                                          strain.taxonomy.long_name)]
+                taxon = get_remote_rlink(client, TAXONOMY_WS,
+                                          strain.taxonomy.long_name)
+                value = [taxon] if taxon else None
+                if value is None:
+                    msg = f'ERROR: {strain.taxonomy.long_name} not found in database'
+                    print(msg)
+                    # TODO: decide to raise or not if taxon not in MIRRI DB
+                    #raise ValueError(msg)
 
         elif label in DATE_TYPE_FIELDS:
             year = value._year
@@ -112,7 +118,7 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
             if isinstance(value, (int, float, str)):
                 _max, _min = float(value), float(value)
             else:
-                _max, _min = value['max'], value['min']
+                _max, _min = float(value['max']), float(value['min'])
 
             content = {"MaxValue": _max, "MinValue": _min,
                        "FieldType": biolomics_type}
@@ -151,10 +157,24 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
                 value['Precision'] = precision
         elif label == "Geographic origin":
             if client is not None and value.country is not None:
-                _country = pycountry.countries.get(alpha_3=value.country)
-                _value = [get_remote_rlink(client, 'country', _country.name)]
-                content = {"Value": _value, "FieldType": "RLink"}
-                strain_record_details['Country'] = content
+
+                _country = get_pycountry(value.country)
+                if _country is None:
+                    print(f'{value.country} Not a valida country code/name')
+                else:
+                    _value = get_remote_rlink(client, COUNTRY_WS, _country.name)
+                    if _value is None:
+                        try:
+                            _value = get_remote_rlink(client, COUNTRY_WS, _country.official_name)
+                        except AttributeError:
+                            _value = None
+                    if _value is None:  # TODO: Remove this once the countries are added to the DB
+                        msg = f'{value.country} not in MIRRI DB'
+                        print(msg + '\n')
+                        #raise ValueError(msg)
+                    else:
+                        content = {"Value": [_value], "FieldType": "RLink"}
+                        strain_record_details['Country'] = content
             _value = []
             for sector in ('state', 'municipality', 'site'):
                 sector_val = getattr(value, sector, None)
@@ -166,13 +186,15 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
 
         elif label == "Ontobiotope":
             if client and value:
-                value = [get_remote_rlink(client, ONTOBIOTOPE_WS, value)]
+                onto = get_remote_rlink(client, ONTOBIOTOPE_WS, value)
+                value = [onto] if onto is not None else None
         elif label == 'Literature':
             if client and value:
                 pub_rlinks = []
                 for pub in value:
                     rlink = get_remote_rlink(client, BIBLIOGRAPHY_WS, pub.title)
-                    pub_rlinks.append(rlink)
+                    if rlink:
+                        pub_rlinks.append(rlink)
                 if pub_rlinks:
                     value = pub_rlinks
             else:
@@ -183,9 +205,9 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
 
         elif label == 'Ploidy':
             value = _translate_polidy(value)
-
-        content = {"Value": value, "FieldType": biolomics_type}
-        strain_record_details[biolomics_field] = content
+        if value is not None:
+            content = {"Value": value, "FieldType": biolomics_type}
+            strain_record_details[biolomics_field] = content
 
     # if False:
     #     record_details["Data provided by"] = {
@@ -252,6 +274,7 @@ def add_strain_rlink_to_entity(record, strain_id, strain_name):
 
 
 PLOIDY_TRANSLATOR = {
+    0: 'Aneuploid',
     1: 'Haploid',
     2: 'Diploid',
     3: 'Triploid',
@@ -263,6 +286,7 @@ REV_PLOIDY_TRANSLATOR = {v: k for k, v in PLOIDY_TRANSLATOR.items()}
 
 
 def _translate_polidy(ploidy):
+    # print('ploidy in serializer', ploidy)
     try:
         ploidy = int(ploidy)
     except TypeError:
@@ -290,7 +314,9 @@ def serialize_from_biolomics(biolomics_strain, client=None):  # sourcery no-metr
         field_data = biolomics_strain['RecordDetails'].get(biolomics_field, None)
         if field_data is None:
             continue
-
+        is_empty = field_data.get('IsEmpty')
+        if is_empty:
+            continue
         if biolomics_field in ('Tested temperature growth range', 'Recommended growth temperature'):
             value = {'max': field_data.get('MaxValue', None),
                      'min': field_data.get('MinValue', None)}
@@ -344,13 +370,8 @@ def serialize_from_biolomics(biolomics_strain, client=None):  # sourcery no-metr
             # date_range = DateRange()
             value = DateRange().strpdate(value)
 
-        elif label == "Recommended growth temperature":
-            if (value['max'] is not None and value['max'] != 0 and
-                    value['min'] is not None and value['min'] != 0):
-                value = float((value['max'] + value['min']) / 2)
-            else:
-                continue
-        elif label == "Tested temperature growth range":
+        elif label in ("Recommended growth temperature",
+                       "Tested temperature growth range"):
             if (value['max'] is None or value['max'] == 0 or
                     value['min'] is None and value['min'] == 0):
                 continue
@@ -395,7 +416,8 @@ def serialize_from_biolomics(biolomics_strain, client=None):  # sourcery no-metr
     if 'Country' in biolomics_strain['RecordDetails'] and biolomics_strain['RecordDetails']['Country']:
         try:
             country_name = biolomics_strain['RecordDetails']['Country']['Value'][0]['Name']['Value']
-            country_3 = pycountry.countries.get(name=country_name).alpha_3
+            country = get_pycountry(country_name)
+            country_3 = country.alpha_3 if country else None
         except (IndexError, KeyError):
             country_3 = None
         if country_3:
@@ -410,6 +432,7 @@ def serialize_from_biolomics(biolomics_strain, client=None):  # sourcery no-metr
                 continue
             if not marker_value:
                 continue
+
             for marker in marker_value:
                 record_id = marker['RecordId']
                 marker = client.retrieve_by_id(SEQUENCE_WS, record_id)
@@ -417,6 +440,5 @@ def serialize_from_biolomics(biolomics_strain, client=None):  # sourcery no-metr
                     markers.append(marker)
         if markers:
             strain.genetics.markers = markers
-
 
     return strain

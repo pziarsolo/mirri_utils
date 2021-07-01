@@ -51,3 +51,29 @@ def workbook_sheet_reader(workbook, sheet_name, mandatory_column_name=None,
             # print(msg)
             continue
         yield data
+
+
+def get_all_cell_data_from_sheet(workbook, sheet_name, allowed_empty_line_slots=5):
+    try:
+        sheet = workbook[sheet_name]
+    except KeyError as error:
+        raise ValueError(f"The '{sheet_name}' sheet is missing.") from error
+
+    empty_lines = 0
+    all_values = []
+    for row in sheet.rows:
+        values = []
+        for cell in row:
+            if cell.value is not None and cell.data_type == 's':
+                value = str(cell.value).strip()
+            else:
+                value = cell.value
+            values.append(value)
+        if not any(values):
+            empty_lines += 1
+            if empty_lines >= allowed_empty_line_slots:
+                break
+            continue
+        empty_lines = 0
+        all_values.extend(values)
+    return all_values

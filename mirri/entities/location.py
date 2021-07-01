@@ -1,5 +1,7 @@
+from __future__ import  annotations
 # from collections import OrderedDict
 # from copy import deepcopy
+import hashlib
 from typing import Union
 
 from mirri.entities._private_classes import _FieldBasedClass
@@ -51,6 +53,14 @@ class Location(_FieldBasedClass):
 
         return ": ".join(_site)
 
+    def __hash__(self):
+        hash_str = ''
+        for field in self._fields:
+            value = str(getattr(self, field, None))
+            hash_str += value
+        # hash_str = str(self.country) + str(self.province) + str(self.municipality) + str(self.site)
+        return int(hashlib.sha1(hash_str.encode("utf-8")).hexdigest(), 16) % (10 ** 8)
+
     @property
     def country(self) -> Union[str, None]:
         return self._data.get(COUNTRY, None)
@@ -60,6 +70,8 @@ class Location(_FieldBasedClass):
         if code3 is not None:
             _country = pycountry.countries.get(alpha_3=code3)
             if _country is None:
+                _country = pycountry.historic_countries.get(alpha_3=code3)
+            if _country is None and code3 != 'INW':
                 raise ValueError(f'{code3}, not a valid 3 letter country name')
             self._data[COUNTRY] = code3
 

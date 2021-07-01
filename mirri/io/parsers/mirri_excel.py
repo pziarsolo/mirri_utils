@@ -19,6 +19,7 @@ from mirri.settings import (COMMERCIAL_USE_WITH_AGREEMENT, GENOMIC_INFO,
                             NAGOYA_PROBABLY_SCOPE, NO_RESTRICTION,
                             ONLY_RESEARCH, ONTOBIOTOPE,
                             PUBLICATION_FIELDS, STRAINS, SUBTAXAS)
+from mirri.utils import get_country_from_name
 
 RESTRICTION_USE_TRANSLATOR = {
     1: NO_RESTRICTION,
@@ -82,12 +83,19 @@ def index_markers(markers):
     return indexed_markers
 
 
+def remove_hard_lines(string=None):
+    if string is not None and string != '':
+        return re.sub(r'\r+\n+|\t+', '', string).strip()
+    else:
+        return None
+
+
 def parse_growth_media(wb):
     for row in workbook_sheet_reader(wb, GROWTH_MEDIA):
         gm = GrowthMedium()
         gm.acronym = str(row['Acronym'])
         gm.description = row['Description']
-        gm.full_description = row.get('Full description', None)
+        gm.full_description = remove_hard_lines(row.get('Full description', None))
 
         yield gm
 
@@ -159,7 +167,8 @@ def parse_strains(wb, locations, growth_media, markers, publications,
                 value = [OrganismType(val.strip())
                          for val in str(value).split(";")]
                 rsetattr(strain, attribute, value)
-            elif attribute in ("deposit.date", "collect.date", "isolation.date"):
+            elif attribute in ("deposit.date", "collect.date", "isolation.date",
+                               "catalog_inclusion_date"):
                 if isinstance(value, date):
                     value = DateRange(
                         year=value.year, month=value.month, day=value.day
@@ -169,14 +178,24 @@ def parse_strains(wb, locations, growth_media, markers, publications,
                 else:
                     raise NotImplementedError()
                 rsetattr(strain, attribute, value)
-
+            elif attribute == 'growth.recommended_temp':
+                temps = value.split(';')
+                if len(temps) == 1:
+                    _min, _max = float(temps[0]), float(temps[0])
+                else:
+                    _min, _max = float(temps[0]), float(temps[1])
+                rsetattr(strain, attribute, {'min': _min, 'max': _max})
             elif attribute == "growth.recommended_media":
                 sep = "/"
                 if ";" in value:
                     sep = ";"
-                growth_media = value.split(sep)
+                growth_media = [v.strip() for v in value.split(sep)]
                 rsetattr(strain, attribute, growth_media)
-
+            elif attribute == 'growth.tested_temp_range':
+                if value:
+                    min_, max_ = value.split(";")
+                    value = {'min': float(min_), 'max': float(max_)}
+                    rsetattr(strain, attribute, value)
             elif attribute == "form_of_supply":
                 rsetattr(strain, attribute, value.split(";"))
             elif attribute == "collect.location.coords":
@@ -189,10 +208,9 @@ def parse_strains(wb, locations, growth_media, markers, publications,
             elif attribute == "collect.location":
                 location = locations[value]
                 if 'Country' in location and location['Country']:
-                    country = location['Country']
-                    if country == 'Unknown':
+                    if location['Country'] == 'Unknown':
                         continue
-                    country_3 = pycountry.countries.get(name=location["Country"]).alpha_3
+                    country_3 = _get_country_alpha3(location['Country'])
                     strain.collect.location.country = country_3
                 strain.collect.location.state = location["Region"]
                 strain.collect.location.municipality = location["City"]
@@ -227,9 +245,7 @@ def parse_strains(wb, locations, growth_media, markers, publications,
             elif attribute == 'other_denominations':
                 value = value.split(';')
                 rsetattr(strain, attribute, value)
-            elif attribute == 'growth.recommended_temp':
-                value = float(value)
-                rsetattr(strain, attribute, value)
+
             else:
                 #print(attribute, value, type(value))
                 rsetattr(strain, attribute, value)
@@ -246,3 +262,13 @@ def parse_strains(wb, locations, growth_media, markers, publications,
         yield strain
 
 
+def _get_country_alpha3(loc_country):
+    if loc_country == 'INW':
+        return loc_country
+    country = get_country_from_name(loc_country)
+    if not country:
+        country = pycountry.countries.get(alpha_3=loc_country)
+    if not country:
+        country = pycountry.historic_countries.get(alpha_3=loc_country)
+    country_3 = country.alpha_3
+    return country_3

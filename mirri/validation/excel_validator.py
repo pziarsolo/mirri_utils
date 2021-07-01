@@ -8,7 +8,7 @@ from calendar import monthrange
 
 from openpyxl import load_workbook
 
-from mirri.io.parsers.excel import workbook_sheet_reader
+from mirri.io.parsers.excel import workbook_sheet_reader, get_all_cell_data_from_sheet
 from mirri.validation.error_logging import ErrorLog, Error
 from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROSSREF_NAME, DATE,
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
@@ -58,7 +58,10 @@ def validate_excel(fhand, configuration):
                                       crossrefs, in_memory_sheets)
 
     for error in content_errors:
+        # if error[ERROR_CODE] == 'STD43':
+        #     continue
         error = Error(error[ERROR_CODE], pk=error['id'], data=error['value'])
+
         error_log.add_error(error)
     return error_log
 
@@ -99,17 +102,25 @@ def _get_values_from_columns(workbook, sheet_name, columns):
     for row in workbook_sheet_reader(workbook, sheet_name):
         for col in columns:
             indexed_values[str(row.get(col))] = ""
+
     return indexed_values
 
 
 def get_all_crossrefs(workbook, cross_refs_names):
     crossrefs = {}
     for ref_name, columns in cross_refs_names.items():
-        try:
+        if columns:
             crossrefs[ref_name] = _get_values_from_columns(workbook, ref_name,
-                                                           columns)
-        except ValueError:
-            raise
+                                                               columns)
+        else:
+            try:
+                crossrefs[ref_name] = get_all_cell_data_from_sheet(workbook, ref_name)
+            except ValueError as error:
+                if 'sheet is missing' in str(error):
+                    crossrefs[ref_name] = []
+                else:
+                    raise
+
     return crossrefs
 
 
@@ -270,12 +281,13 @@ def is_valid_regex(value, validation_conf):
 
 
 def is_valid_crossrefs(value, validation_conf):
-    if value is None:
-        return True
-    value = str(value)
     crossref_name = validation_conf[CROSSREF_NAME]
     crossrefs = validation_conf['crossrefs_pointer']
     choices = crossrefs[crossref_name]
+    if value is None or not choices:
+        return True
+    value = str(value)
+
     multiple = validation_conf.get(MULTIPLE, False)
     separator = validation_conf.get(SEPARATOR, None)
     if value is None:
@@ -383,6 +395,18 @@ def is_valid_number(value, validation_conf):
 
 
 def is_valid_taxon(value, validation_conf=None):
+    multiple = validation_conf.get(MULTIPLE, False)
+    separator = validation_conf.get(SEPARATOR, ';')
+
+    value = value.split(separator) if multiple else [value]
+    for taxon in value:
+        taxon = taxon.strip()
+        if not _is_valid_taxon(taxon):
+            return False
+    return True
+
+
+def _is_valid_taxon(value):
     value = value.strip()
     if not value:
         return True

@@ -39,8 +39,9 @@ from mirri.settings import (
     PLOIDY,
     RECOMMENDED_GROWTH_MEDIUM,
     TAXONOMY,
-    DATE_OF_INCLUSION
+    DATE_OF_INCLUSION, NO_RESTRICTION
 )
+from mirri.validation.entity_validators import validate_strain
 
 
 class TestDataRange(unittest.TestCase):
@@ -256,6 +257,34 @@ class TestStrain(unittest.TestCase):
         import pprint
 
         pprint.pprint(strain.dict())
+
+    def test_strain_validation(self):
+        strain = Strain()
+        strain.form_of_supply = ['Lyo']
+
+        return
+
+        errors = validate_strain(strain)
+        self.assertEqual(len(errors), 10)
+
+        strain.id.collection = 'test'
+        strain.id.number = '1'
+
+
+        errors = validate_strain(strain)
+        self.assertEqual(len(errors), 9)
+
+        strain.nagoya_protocol = NAGOYA_DOCS_AVAILABLE
+        strain.restriction_on_use = NO_RESTRICTION
+        strain.risk_group = 1
+        strain.taxonomy.organism_type = [OrganismType(4)]
+        strain.taxonomy.hybrids = ['Sac lac', 'Sac lcac3']
+        strain.growth.recommended_media = ['aa']
+        strain.growth.recommended_temp = {'min': 2, 'max':5}
+        strain.form_of_supply = ['lyo']
+        strain.collect.location.country = 'ESP'
+        errors = validate_strain(strain)
+        self.assertFalse(errors)
 
 
 class TestIsolation(unittest.TestCase):

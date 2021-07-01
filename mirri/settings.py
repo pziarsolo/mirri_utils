@@ -41,6 +41,7 @@ LITERATURE = "literature"
 SEXUAL_STATE = "sexual_state"
 PLOIDY = "ploidy"
 INTERSPECIFIC_HYBRID = "interspecific_hybrid"
+HYBRIDS = 'hybrids'
 PLANT_PATHOGENICITY_CODE = "plant_pathogenicity_code"
 PATHOGENICITY = "pathogenicity"
 ENZYME_PRODUCTION = "enzyme_production"
@@ -268,8 +269,8 @@ TRIPLOID = 3
 TETRAPLOID = 4
 POLYPLOID = 9
 
-ALLOWED_PLOIDIES = [ANEUPLOID, HAPLOID,
-                    DIPLOID, TRIPLOID, TETRAPLOID, POLYPLOID]
+ALLOWED_PLOIDIES = [ANEUPLOID, HAPLOID, DIPLOID, TRIPLOID, TETRAPLOID,
+                    POLYPLOID]
 
 SUBTAXAS = {
     "subsp.": "subspecies",
@@ -285,7 +286,7 @@ GROWTH_MEDIA = "Growth media"
 GENOMIC_INFO = "Genomic information"
 STRAINS = "Strains"
 LITERATURE_SHEET = "Literature"
-SEXUAL_STATE_SHEET = "Sexual state"
+SEXUAL_STATE_SHEET = "Sexual states"
 RESOURCE_TYPES_VALUES = "Resource types values"
 FORM_OF_SUPPLY_SHEET = "Forms of supply"
 PLOIDY_SHEET = "Ploidy"
