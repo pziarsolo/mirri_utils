@@ -338,7 +338,7 @@ def is_valid_date(value, validation_conf):
                 if len(value) >= 8:
                     day = int(value[6: 8])
 
-        except (IndexError, TypeError):
+        except (IndexError, TypeError, ValueError):
             return False
     else:
         return False
