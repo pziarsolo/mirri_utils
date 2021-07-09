@@ -133,7 +133,7 @@ def parse_strains(wb, locations, growth_media, markers, publications,
             label = field["label"]
             attribute = field["attribute"]
             value = strain_row[label]
-            if value is None:
+            if value is None or value == '':
                 continue
 
             if attribute == "id":
@@ -200,8 +200,8 @@ def parse_strains(wb, locations, growth_media, markers, publications,
                 rsetattr(strain, attribute, value.split(";"))
             elif attribute == "collect.location.coords":
                 items = value.split(";")
-                strain.collect.location.latitude = items[0]
-                strain.collect.location.longitude = items[1]
+                strain.collect.location.latitude = float(items[0])
+                strain.collect.location.longitude = float(items[1])
                 if len(items) > 2:
                     strain.collect.location.coord_uncertainty = items[2]
 
@@ -218,7 +218,7 @@ def parse_strains(wb, locations, growth_media, markers, publications,
             elif attribute in ("abs_related_files", "mta_files"):
                 rsetattr(strain, attribute, value.split(";"))
             elif attribute in ("is_from_registered_collection",
-                               "is_subject_to_quarantine",
+                               "is_subject_to_quarantine", 'taxonomy.interspecific_hybrid',
                                "is_potentially_harmful", "genetics.gmo"):
                 rsetattr(strain, attribute, TRUEFALSE_TRANSLATOR[value])
             elif attribute == "publications":
@@ -243,9 +243,11 @@ def parse_strains(wb, locations, growth_media, markers, publications,
                     values.append(val)
                 rsetattr(strain, attribute, value)
             elif attribute == 'other_denominations':
-                value = value.split(';')
+                value = [v.strip() for v in value.split(';')]
                 rsetattr(strain, attribute, value)
-
+            elif attribute == 'genetics.plasmids':
+                value = [v.strip() for v in value.split(';')]
+                rsetattr(strain, attribute, value)
             else:
                 #print(attribute, value, type(value))
                 rsetattr(strain, attribute, value)

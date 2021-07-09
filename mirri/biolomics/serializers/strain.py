@@ -42,7 +42,7 @@ BOOLEAN_TYPE_FIELDS = ("Strain from a registered collection", "Dual use",
 FILE_TYPE_FIELDS = ("MTA file", "ABS related files")
 MAX_MIN_TYPE_FIELDS = ("Tested temperature growth range",
                        "Recommended growth temperature")
-LIST_TYPES_TO_JOIN = ('Other denomination', 'Plasmids collections fields')
+LIST_TYPES_TO_JOIN = ('Other denomination', 'Plasmids collections fields', 'Plasmids')
 
 MARKER_TYPE_MAPPING = {
     '16S rRNA': 'Sequences 16s', # or Sequences c16S rRNA
@@ -83,7 +83,7 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
         elif label in FILE_TYPE_FIELDS:
             value = [{"Name": "link", "Value": fname} for fname in value]
         elif label == "Other culture collection numbers":
-            value = "; ".join(on.strain_id for on in value)
+            value = "; ".join(on.strain_id for on in value) if value else None
         elif label in BOOLEAN_TYPE_FIELDS:
             value = 'yes' if value else 'no'
         elif label in 'GMO':
@@ -96,11 +96,15 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
                 value.append({"Name": ot, "Value": is_organism})
         elif label == 'Taxon name':
             if client:
-                taxon = get_remote_rlink(client, TAXONOMY_WS,
-                                          strain.taxonomy.long_name)
-                value = [taxon] if taxon else None
-                if value is None:
-                    msg = f'ERROR: {strain.taxonomy.long_name} not found in database'
+                taxa = strain.taxonomy.long_name.split(';')
+                value = []
+                for taxon_name in taxa:
+                    taxon = get_remote_rlink(client, TAXONOMY_WS,
+                                             taxon_name)
+                    if taxon:
+                        value.append(taxon)
+                if not value:
+                    msg = f'WARNING: {strain.taxonomy.long_name} not found in database'
                     print(msg)
                     # TODO: decide to raise or not if taxon not in MIRRI DB
                     #raise ValueError(msg)
@@ -160,7 +164,7 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
 
                 _country = get_pycountry(value.country)
                 if _country is None:
-                    print(f'{value.country} Not a valida country code/name')
+                    print(f'WARNING: {value.country} Not a valida country code/name')
                 else:
                     _value = get_remote_rlink(client, COUNTRY_WS, _country.name)
                     if _value is None:
@@ -169,7 +173,7 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
                         except AttributeError:
                             _value = None
                     if _value is None:  # TODO: Remove this once the countries are added to the DB
-                        msg = f'{value.country} not in MIRRI DB'
+                        msg = f'WARNING: {value.country} not in MIRRI DB'
                         print(msg + '\n')
                         #raise ValueError(msg)
                     else:
@@ -239,12 +243,16 @@ def add_markers_to_strain_details(client, strain: StrainMirri, details):
             "Value": [{
                   "Name": {"Value": marker_in_ws.record_name,
                            "FieldType": "E"},
-                  "RecordId": marker_in_ws.record_id,
-                  "TargetFieldValue": {
-                      "Value": { "Sequence": marker_in_ws.marker_seq},
-                      "FieldType": "N"}}],
+                  "RecordId": marker_in_ws.record_id
+            }],
             "FieldType": "NLink"
         }
+        if marker_in_ws.marker_seq:
+            ws_marker['Value'][0]["TargetFieldValue"] = {
+                "Value": {"Sequence": marker_in_ws.marker_seq},
+                "FieldType": "N"
+            }
+
         details[MARKER_TYPE_MAPPING[marker_type]] = ws_marker
 
 
@@ -322,8 +330,8 @@ def serialize_from_biolomics(biolomics_strain, client=None):  # sourcery no-metr
                      'min': field_data.get('MinValue', None)}
         else:
             value = field_data['Value']
-        if value in (None, '', [], {}, '?', 'Unknown', 'nan', 'NaN'):
-            continue
+        # if value in (None, '', [], {}, '?', 'Unknown', 'nan', 'NaN'):
+        #     continue
 
         # print(label, attribute, biolomics_field, value)
 
@@ -362,7 +370,7 @@ def serialize_from_biolomics(biolomics_strain, client=None):  # sourcery no-metr
             if organism_types:
                 value = organism_types
         elif label in 'Taxon name':
-            value = value[0]['Name']['Value']
+            value = ";".join([v['Name']['Value'] for v in value])
             add_taxon_to_strain(strain, value)
             continue
 
@@ -382,12 +390,13 @@ def serialize_from_biolomics(biolomics_strain, client=None):  # sourcery no-metr
         elif label in LIST_TYPES_TO_JOIN:
             value = [v.strip() for v in value.split(";")]
         elif label == "Coordinates of geographic origin":
-            if ('Longitude' in value and 'latitude' in value and
+            if ('Longitude' in value and 'Latitude' in value and
                     isinstance(value['Longitude'], float) and
                     isinstance(value['Latitude'], float)):
                 strain.collect.location.longitude = value['Longitude']
                 strain.collect.location.latitude = value['Latitude']
-                strain.collect.location.coord_uncertainty = value['Precision']
+                if value['Precision'] != 0:
+                    strain.collect.location.coord_uncertainty = value['Precision']
             continue
         elif label == "Altitude of geographic origin":
             value = float(value)
@@ -409,6 +418,7 @@ def serialize_from_biolomics(biolomics_strain, client=None):  # sourcery no-metr
                     pub = client.retrieve_by_id(BIBLIOGRAPHY_WS, pub['RecordId'])
                     pubs.append(pub)
                 value = pubs
+
 
         rsetattr(strain, attribute, value)
     # fields that are not in MIRRI FIELD list

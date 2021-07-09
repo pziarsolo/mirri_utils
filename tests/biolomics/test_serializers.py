@@ -466,7 +466,7 @@ class StrainSerializerTest(unittest.TestCase):
         self.assertEqual(strain.taxonomy.organism_type[0].name, 'Archaea')
         self.assertEqual(strain.other_numbers[0].strain_id, 'aaa a')
         self.assertEqual(strain.other_numbers[1].strain_id, 'aaa3 a3')
-        self.assertEqual(strain.pathogenity, 'illness')
+        self.assertEqual(strain.pathogenicity, 'illness')
         self.assertEqual(strain.genetics.plasmids, ['asda'])
         self.assertEqual(strain.genetics.ploidy, 9)
         self.assertFalse(strain.is_subject_to_quarantine)

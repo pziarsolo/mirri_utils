@@ -423,6 +423,7 @@ def _is_valid_taxon(value):
             for index in range(0, len(items[2:]), 2):
                 rank = SUBTAXAS.get(items[index + 2], None)
                 if rank is None:
+                    print(value)
                     return False
 
     return True

@@ -54,6 +54,7 @@ def get_or_create_or_update_strain(client: BiolomicsMirriClient,
     response = get_or_create_strain(client, record)
     new_record = response['record']
     created = response['created']
+
     if created:
         return {'record': new_record, 'created': True, 'updated': False}
 
@@ -67,11 +68,6 @@ def get_or_create_or_update_strain(client: BiolomicsMirriClient,
     if record.synonyms is None or record.synonyms == []:
         record.synonyms = new_record.synonyms
 
-    # if not record.taxonomy.interspecific_hybrid:
-    #     exclude_paths = ["root['taxonomy']['interspecific_hybrid']"]
-    # else:
-    #     exclude_paths = None
-
     # compare_strains
     # we exclude pub id as it is an internal reference of pub and can be changed
     diffs = deepdiff.DeepDiff(new_record.dict(), record.dict(),
@@ -80,18 +76,16 @@ def get_or_create_or_update_strain(client: BiolomicsMirriClient,
                                                    r"root\[\'publications\'\]\[\d+\]\[\'RecordId\'\]",
                                                    r"root\[\'genetics\'\]\[\'Markers\'\]\[\d+\]\[\'RecordId\'\]",
                                                    r"root\[\'genetics\'\]\[\'Markers\'\]\[\d+\]\[\'RecordName\'\]"])
+
     if diffs:
         pprint(diffs,  width=200)
         # pprint('en el que yo mando')
         # pprint(record.dict())
         # pprint('lo que hay en db')
         # pprint(new_record.dict())
-        records_are_different = True
-    else:
-        records_are_different = False
 
+    records_are_different = True if diffs else False
     if records_are_different:
-
         updated_record = update_strain(client, record)
         updated = True
     else:
