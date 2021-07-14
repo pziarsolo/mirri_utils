@@ -1,5 +1,5 @@
 import re
-
+import sys
 import pycountry
 
 from mirri import rgetattr, rsetattr
@@ -57,7 +57,10 @@ MARKER_TYPE_MAPPING = {
 }
 
 
-def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # sourcery no-metrics
+def serialize_to_biolomics(strain: StrainMirri, client=None, update=False,
+                           log_fhand=None):  # sourcery no-metrics
+    if log_fhand is None:
+        log_fhand = sys.stdout
     strain_record_details = {}
 
     for field in MIRRI_FIELDS:
@@ -105,7 +108,7 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
                         value.append(taxon)
                 if not value:
                     msg = f'WARNING: {strain.taxonomy.long_name} not found in database'
-                    print(msg)
+                    log_fhand.write(msg + '\n')
                     # TODO: decide to raise or not if taxon not in MIRRI DB
                     #raise ValueError(msg)
 
@@ -161,20 +164,14 @@ def serialize_to_biolomics(strain: StrainMirri, client=None, update=False):  # s
                 value['Precision'] = precision
         elif label == "Geographic origin":
             if client is not None and value.country is not None:
-
-                _country = get_pycountry(value.country)
-                if _country is None:
-                    print(f'WARNING: {value.country} Not a valida country code/name')
+                country = get_pycountry(value.country)
+                if country is None:
+                    log_fhand.write(f'WARNING: {value.country} Not a valida country code/name\n')
                 else:
-                    _value = get_remote_rlink(client, COUNTRY_WS, _country.name)
-                    if _value is None:
-                        try:
-                            _value = get_remote_rlink(client, COUNTRY_WS, _country.official_name)
-                        except AttributeError:
-                            _value = None
+                    _value = get_country_record(country, client)
                     if _value is None:  # TODO: Remove this once the countries are added to the DB
                         msg = f'WARNING: {value.country} not in MIRRI DB'
-                        print(msg + '\n')
+                        log_fhand.write(msg + '\n')
                         #raise ValueError(msg)
                     else:
                         content = {"Value": [_value], "FieldType": "RLink"}
@@ -259,6 +256,7 @@ def add_markers_to_strain_details(client, strain: StrainMirri, details):
 def get_remote_rlink(client, endpoint, record_name):
     entity = client.retrieve_by_name(endpoint, record_name)
     if entity:
+        # some Endpoints does not serialize the json into a python object yet
         try:
             record_name = entity.record_name
             record_id = entity.record_id
@@ -452,3 +450,13 @@ def serialize_from_biolomics(biolomics_strain, client=None):  # sourcery no-metr
             strain.genetics.markers = markers
 
     return strain
+
+
+def get_country_record(country, client):
+    for attr in ('common_name', 'name', 'official_name'):
+        val = getattr(country, attr, None)
+        if val is not None:
+            _value = get_remote_rlink(client, COUNTRY_WS, val)
+            if _value is not None:
+                return _value
+    return None

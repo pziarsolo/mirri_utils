@@ -388,7 +388,7 @@ def is_valid_number(value, validation_conf):
 
     _max = validation_conf.get('max', None)
     _min = validation_conf.get('min', None)
-    if ((_max is not None and value > _max) or (_min is not None and value < _min)):
+    if (_max is not None and value > _max) or (_min is not None and value < _min):
         return False
 
     return True

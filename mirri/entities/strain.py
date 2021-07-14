@@ -101,14 +101,14 @@ RANK_TRANSLATOR = {
     "forma.specialis": 'f.sp.'
 }
 
-ORG_TYPES = {
-    "algae": 1,
-    "archaea": 2,
-    "bacteria": 3,
-    "fungi": 4,
-    "virus": 5,
-    "yeast": 6,
-}
+# ORG_TYPES = {
+#     "algae": 1,
+#     "archaea": 2,
+#     "bacteria": 3,
+#     "fungi": 4,
+#     "virus": 5,
+#     "yeast": 6,
+# }
 
 ORG_TYPES = {
     "Algae": 1,
