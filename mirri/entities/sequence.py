@@ -7,6 +7,7 @@ from mirri.settings import (
 
 from mirri import  ValidationError
 
+
 class GenomicSequence(_FieldBasedClass):
     _fields = [
         {"attribute": "marker_type", "label": MARKER_TYPE},

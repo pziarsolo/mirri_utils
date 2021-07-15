@@ -1,4 +1,3 @@
-from mirri.settings import LOCATIONS, SUBTAXAS
 import re
 from pathlib import Path
 from io import BytesIO
@@ -14,7 +13,7 @@ from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROS
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
                                    MISSING, MULTIPLE, NAGOYA, NUMBER, REGEXP, ROW_VALIDATION, SEPARATOR, TAXON,
                                    TYPE, UNIQUE, VALIDATION, VALUES, BIBLIO)
-
+from mirri.settings import LOCATIONS, SUBTAXAS
 from mirri.validation.validation_conf_20200601 import MIRRI_20200601_VALLIDATION_CONF
 
 

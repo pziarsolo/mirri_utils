@@ -1,13 +1,10 @@
-from collections import OrderedDict
 from pprint import pprint
 import deepdiff
 
 from mirri.biolomics.remote.biolomics_client import BiolomicsMirriClient, BIBLIOGRAPHY_WS, SEQUENCE_WS, STRAIN_WS
-from mirri.biolomics.remote.endoint_names import GROWTH_MEDIUM_WS
 
 from mirri.biolomics.serializers.sequence import GenomicSequenceBiolomics
 from mirri.biolomics.serializers.strain import StrainMirri
-from mirri.entities.growth_medium import GrowthMedium
 from mirri.entities.publication import Publication
 
 

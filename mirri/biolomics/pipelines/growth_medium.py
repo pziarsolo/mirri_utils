@@ -1,6 +1,3 @@
-from pprint import pprint
-
-import deepdiff
 from mirri.biolomics.remote.biolomics_client import BiolomicsMirriClient
 from mirri.biolomics.remote.endoint_names import GROWTH_MEDIUM_WS
 from mirri.entities.growth_medium import GrowthMedium

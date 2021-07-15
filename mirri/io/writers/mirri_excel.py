@@ -1,6 +1,5 @@
 import csv
 from copy import deepcopy
-from mirri.entities.location import Location
 from openpyxl.workbook.workbook import Workbook
 
 
@@ -179,7 +178,8 @@ def _deserialize_strains(strains, locations, growth_media_indexes,
                             continue
                             raise ValueError(msg)
                     value = "/".join(value)
-            elif attribute in ('growth.tested_temp_range',"growth.recommended_temp"):
+            elif attribute in ('growth.tested_temp_range',
+                               "growth.recommended_temp"):
                 value = rgetattr(strain, attribute)
                 if value:
                     value = f'{value["min"]}; {value["max"]}'
@@ -228,11 +228,14 @@ def _deserialize_strains(strains, locations, growth_media_indexes,
             elif attribute == 'publications':
                 value = []
                 for pub in strain.publications:
-                    print(pub.dict())
                     value.append(pub.id)
                     if pub.id not in publications:
                         publications[pub.id] = pub
                 value = ';'.join(str(v) for v in value) if value else None
+            elif attribute == 'genetics.plasmids':
+                value = rgetattr(strain, attribute)
+                if value is not None:
+                    value = ';'.join(value)
             else:
                 value = rgetattr(strain, attribute)
 

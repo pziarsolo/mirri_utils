@@ -6,7 +6,6 @@ Created on 2020(e)ko abe. 1(a)
 from __future__ import annotations
 
 import re
-from builtins import property
 from collections import OrderedDict
 from copy import deepcopy
 from typing import List, Union

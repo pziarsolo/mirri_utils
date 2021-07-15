@@ -5,14 +5,14 @@ from setuptools import find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-requirements = ['openpyxl']
+requirements = [line.strip() for line in open('requirements')]
 scripts = [str(f) for f in Path('./bin').glob('*.py')]
 
 setuptools.setup(
     name="Mirri utils",  # Replace with your own username
     version=0.1,
-    author="P.Ziarsolo,Arthur.Matta,Jose.Bravo",
-    author_email="pziarsolo@cect.org",
+    author="P.Ziarsolo",
+    author_email="pziarsolo@gmail.com",
     description="A small library to help dealing with MIRRI data",
     long_description=long_description,
     long_description_content_type="text/markdown",

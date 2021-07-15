@@ -114,7 +114,7 @@ def main():
     args = get_cmd_args()
     input_fhand = args['input_fhand']
     spec_version = args['version']
-    out_fhand = sys.stderr
+    out_fhand = sys.stdout
     error_log = validate_mirri_excel(input_fhand, version=spec_version)
     errors = error_log.get_errors()
     skip_first_num = args['skip_first_num']
@@ -127,12 +127,9 @@ def main():
     strains = list(parsed_objects['strains'])
     growth_media = list(parsed_objects['growth_media'])
 
-    if args['use_production_server']:
-        server_url = PROD_SERVER_URL
-    else:
-        server_url = TEST_SERVER_URL
+    server_url = PROD_SERVER_URL if args['use_production_server'] else TEST_SERVER_URL
 
-    client = BiolomicsMirriClient(server_url=server_url,  api_version= 'v2',
+    client = BiolomicsMirriClient(server_url=server_url,  api_version='v2',
                                   client_id=args['client_id'],
                                   client_secret=args['client_secret'],
                                   username=args['user'],
@@ -146,9 +143,9 @@ def main():
             create_or_upload_growth_media(client, growth_media, update=args['update'],
                                           counter=counter, out_fhand=out_fhand)
         except (Exception, KeyboardInterrupt) as error:
-            out_fhand.write('there was some error\n')
+            out_fhand.write('There were some errors in the Growth media upload\n')
             out_fhand.write(str(error) + '\n')
-            out_fhand.write('rolling back\n')
+            out_fhand.write('Rolling back\n')
             client.rollback()
             raise
         client.finish_transaction()
@@ -163,12 +160,12 @@ def main():
                                      out_fhand=out_fhand, seek=skip_first_num)
             client.finish_transaction()
         except (Exception, KeyboardInterrupt) as error:
-            out_fhand.write('there was some error\n')
+            out_fhand.write('There were some errors in the Strain upload\n')
             out_fhand.write(str(error) + '\n')
             out_fhand.write('rolling back\n')
-            #client.rollback()
+            # client.rollback()
             raise
-
+        client.finish_transaction()
         show_stats(counter, 'Strains', out_fhand)
 
 
