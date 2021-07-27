@@ -5,7 +5,7 @@ from setuptools import find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-requirements = [line.strip() for line in open('requirements')]
+requirements = [line.strip() for line in open('requirements.txt')]
 scripts = [str(f) for f in Path('./bin').glob('*.py')]
 
 setuptools.setup(
