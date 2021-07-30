@@ -59,8 +59,8 @@ def _write_mirri_excel_20200601(path, strains, growth_media):
 
     write_markers_sheet(wb)
 
-    ontobiotype_path = DATA_DIR / "ontobiotypes.csv"
-    write_ontobiotypes(wb, ontobiotype_path)
+    ontobiotope_path = DATA_DIR / "ontobiotopes.csv"
+    write_ontobiotopes(wb, ontobiotope_path)
 
     write_growth_media(wb, growth_media)
     growth_media_indexes = [str(gm.acronym) for gm in growth_media]
@@ -264,7 +264,7 @@ def write_markers_sheet(wb):
     redimension_cell_width(sheet)
 
 
-def write_ontobiotypes(workbook, ontobiotype_path):
+def write_ontobiotopes(workbook, ontobiotype_path):
     ws = workbook.create_sheet("Ontobiotope")
     with ontobiotype_path.open() as fhand:
         for row in csv.reader(fhand, delimiter="\t"):
