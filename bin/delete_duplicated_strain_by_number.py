@@ -2,11 +2,8 @@
 import argparse
 import sys
 
-from mirri.biolomics.pipelines.strain import retrieve_strain_by_accession_number
 from mirri.biolomics.remote.biolomics_client import BiolomicsMirriClient
 from mirri.biolomics.remote.endoint_names import GROWTH_MEDIUM_WS, STRAIN_WS
-from mirri.io.parsers.mirri_excel import parse_mirri_excel
-from mirri.validation.excel_validator import validate_mirri_excel
 
 SERVER_URL = 'https://webservices.bio-aware.com/mirri_test'
 
@@ -72,7 +69,6 @@ def main():
 
     print(f'Duplicates found: {total}. removing duplicates')
     duplicated_ids = [record.record_id  for record in result['records']]
-    print(duplicated_ids)
     for duplicated_id in duplicated_ids[:-1]:
         client.delete_by_id(STRAIN_WS, duplicated_id)
 

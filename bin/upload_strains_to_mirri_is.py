@@ -39,6 +39,8 @@ def get_cmd_args():
                         help="Don't add growth media", default=True)
     parser.add_argument('--dont_add_strains', action='store_false',
                         help="Don't add growth media", default=True)
+    parser.add_argument('--skip_first_num', type=int,
+                       help='skip first X strains to the tool')
 
     args = parser.parse_args()
 
@@ -47,7 +49,8 @@ def get_cmd_args():
             'password': args.ws_password, 'client_id': args.client_id,
             'client_secret': args.client_secret, 'update': args.force_update,
             'verbose': args.verbose, 'use_production_server': args.prod,
-            'add_gm': args.dont_add_gm, 'add_strains': args.dont_add_strains}
+            'add_gm': args.dont_add_gm, 'add_strains': args.dont_add_strains,
+            'skip_first_num': args.skip_first_num}
 
 
 def write_errors_in_screen(errors, fhand=sys.stderr):
@@ -62,9 +65,11 @@ def write_errors_in_screen(errors, fhand=sys.stderr):
 
 
 def create_or_upload_strains(client, strains, update=False, counter=None,
-                             out_fhand=None):
-    for strain in strains:
-        # if strain.id.strain_id != 'CECT 659':
+                             out_fhand=None, seek=None):
+    for index, strain in enumerate(strains):
+        if seek is not None and index < seek:
+            continue
+        # if strain.id.strain_id != 'CECT 5766':
         #     continue
         result = get_or_create_or_update_strain(client, strain, update=update)
 
@@ -80,7 +85,7 @@ def create_or_upload_strains(client, strains, update=False, counter=None,
         if counter is not None:
             counter[result_state] += 1
         if out_fhand is not None:
-            out_fhand.write(f'Strain {new_strain.id.strain_id}: {result_state}\n')
+            out_fhand.write(f'{index}: Strain {new_strain.id.strain_id}: {result_state}\n')
         # break
 
 
@@ -109,9 +114,10 @@ def main():
     args = get_cmd_args()
     input_fhand = args['input_fhand']
     spec_version = args['version']
-    out_fhand = sys.stderr
+    out_fhand = sys.stdout
     error_log = validate_mirri_excel(input_fhand, version=spec_version)
     errors = error_log.get_errors()
+    skip_first_num = args['skip_first_num']
     if errors:
         write_errors_in_screen(errors, out_fhand)
         sys.exit(1)
@@ -121,12 +127,9 @@ def main():
     strains = list(parsed_objects['strains'])
     growth_media = list(parsed_objects['growth_media'])
 
-    if args['use_production_server']:
-        server_url = PROD_SERVER_URL
-    else:
-        server_url = TEST_SERVER_URL
+    server_url = PROD_SERVER_URL if args['use_production_server'] else TEST_SERVER_URL
 
-    client = BiolomicsMirriClient(server_url=server_url,  api_version= 'v2',
+    client = BiolomicsMirriClient(server_url=server_url,  api_version='v2',
                                   client_id=args['client_id'],
                                   client_secret=args['client_secret'],
                                   username=args['user'],
@@ -140,9 +143,9 @@ def main():
             create_or_upload_growth_media(client, growth_media, update=args['update'],
                                           counter=counter, out_fhand=out_fhand)
         except (Exception, KeyboardInterrupt) as error:
-            out_fhand.write('there was some error\n')
+            out_fhand.write('There were some errors in the Growth media upload\n')
             out_fhand.write(str(error) + '\n')
-            out_fhand.write('rolling back\n')
+            out_fhand.write('Rolling back\n')
             client.rollback()
             raise
         client.finish_transaction()
@@ -154,15 +157,15 @@ def main():
         try:
             create_or_upload_strains(client, strains, update=args['update'],
                                      counter=counter,
-                                     out_fhand=out_fhand)
+                                     out_fhand=out_fhand, seek=skip_first_num)
             client.finish_transaction()
         except (Exception, KeyboardInterrupt) as error:
-            out_fhand.write('there was some error\n')
+            out_fhand.write('There were some errors in the Strain upload\n')
             out_fhand.write(str(error) + '\n')
             out_fhand.write('rolling back\n')
-            client.rollback()
+            # client.rollback()
             raise
-
+        client.finish_transaction()
         show_stats(counter, 'Strains', out_fhand)
 
 

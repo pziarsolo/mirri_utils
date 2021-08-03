@@ -126,7 +126,6 @@ class BiolomicsMirriClient:
             raise ValueError(f"{response.status_code}: {response.text}")
 
         ws_entity = response.json()
-        # pprint(ws_entity)
 
         return serializer_from(ws_entity, client=self)
 
@@ -134,18 +133,14 @@ class BiolomicsMirriClient:
         endpoint = self.get_endpoint(entity_name)
         serializer_to = self.get_serializers_to(entity_name)
         serializer_from = self.get_serializers_from(entity_name)
-        # pprint(entity.dict())
         data = serializer_to(entity, client=self)
-        # print('sent')
-        # pprint(data)
         response = self.client.create(endpoint, data=data)
-        # pprint(response.json())
         if response.status_code == 200:
             if self._in_transaction:
                 self._add_created_to_transaction_storage(response, entity_name)
             return serializer_from(response.json(), client=self)
         else:
-            msg = f"return_code: {response.status_code}. msg: {response.text}"
+            msg = f"return_code: {response.status_code}. msg: {response.json()['errors']['Value']}"
             raise RuntimeError(msg)
 
     def delete_by_id(self, entity_name, record_id):
@@ -194,9 +189,9 @@ class BiolomicsMirriClient:
         serializer_from = self.get_serializers_from(entity_name)
         data = serializer_to(entity, client=self, update=True)
         # print('update')
-        # print(entity.dict())
+        # pprint(entity.dict())
         # print(data)
-        # pprint(data)
+        # pprint(data, width=200)
         response = self.client.update(endpoint, record_id=record_id, data=data)
         if response.status_code == 200:
             # print('receive')

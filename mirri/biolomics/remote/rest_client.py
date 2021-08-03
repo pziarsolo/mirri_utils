@@ -27,8 +27,7 @@ class BiolomicsClient:
         self.access_token = None
         self.website_id = website_id
         self._verbose = verbose
-        # super().__init__()
-        # self._schema = self.get_schema()
+        self._schema = self.get_schemas()
 
     def get_access_token(self):
         if self._client is None:

@@ -85,7 +85,7 @@ def create_full_data_strain():
     strain.publications = [pub]
 
     strain.plant_pathogenicity_code = 'PATH:001'
-    strain.pathogenity = 'illness'
+    strain.pathogenicity = 'illness'
     strain.enzyme_production = 'some enzimes'
     strain.production_of_metabolites = 'big factory of cheese'
     strain.applications = 'health'

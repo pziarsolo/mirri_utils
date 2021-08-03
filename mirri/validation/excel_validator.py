@@ -1,4 +1,3 @@
-from mirri.settings import LOCATIONS, SUBTAXAS
 import re
 from pathlib import Path
 from io import BytesIO
@@ -14,7 +13,7 @@ from mirri.validation.tags import (CHOICES, COLUMNS, COORDINATES, CROSSREF, CROS
                                    ERROR_CODE, FIELD, MANDATORY, MATCH,
                                    MISSING, MULTIPLE, NAGOYA, NUMBER, REGEXP, ROW_VALIDATION, SEPARATOR, TAXON,
                                    TYPE, UNIQUE, VALIDATION, VALUES, BIBLIO)
-
+from mirri.settings import LOCATIONS, SUBTAXAS
 from mirri.validation.validation_conf_20200601 import MIRRI_20200601_VALLIDATION_CONF
 
 
@@ -388,7 +387,7 @@ def is_valid_number(value, validation_conf):
 
     _max = validation_conf.get('max', None)
     _min = validation_conf.get('min', None)
-    if ((_max is not None and value > _max) or (_min is not None and value < _min)):
+    if (_max is not None and value > _max) or (_min is not None and value < _min):
         return False
 
     return True
@@ -423,6 +422,7 @@ def _is_valid_taxon(value):
             for index in range(0, len(items[2:]), 2):
                 rank = SUBTAXAS.get(items[index + 2], None)
                 if rank is None:
+                    print(value)
                     return False
 
     return True

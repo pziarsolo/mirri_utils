@@ -1,6 +1,5 @@
 import csv
 from copy import deepcopy
-from mirri.entities.location import Location
 from openpyxl.workbook.workbook import Workbook
 
 
@@ -60,8 +59,8 @@ def _write_mirri_excel_20200601(path, strains, growth_media):
 
     write_markers_sheet(wb)
 
-    ontobiotype_path = DATA_DIR / "ontobiotypes.csv"
-    write_ontobiotypes(wb, ontobiotype_path)
+    ontobiotope_path = DATA_DIR / "ontobiotopes.csv"
+    write_ontobiotopes(wb, ontobiotope_path)
 
     write_growth_media(wb, growth_media)
     growth_media_indexes = [str(gm.acronym) for gm in growth_media]
@@ -179,7 +178,8 @@ def _deserialize_strains(strains, locations, growth_media_indexes,
                             continue
                             raise ValueError(msg)
                     value = "/".join(value)
-            elif attribute in ('growth.tested_temp_range',"growth.recommended_temp"):
+            elif attribute in ('growth.tested_temp_range',
+                               "growth.recommended_temp"):
                 value = rgetattr(strain, attribute)
                 if value:
                     value = f'{value["min"]}; {value["max"]}'
@@ -228,11 +228,14 @@ def _deserialize_strains(strains, locations, growth_media_indexes,
             elif attribute == 'publications':
                 value = []
                 for pub in strain.publications:
-                    print(pub.dict())
                     value.append(pub.id)
                     if pub.id not in publications:
                         publications[pub.id] = pub
                 value = ';'.join(str(v) for v in value) if value else None
+            elif attribute == 'genetics.plasmids':
+                value = rgetattr(strain, attribute)
+                if value is not None:
+                    value = ';'.join(value)
             else:
                 value = rgetattr(strain, attribute)
 
@@ -261,7 +264,7 @@ def write_markers_sheet(wb):
     redimension_cell_width(sheet)
 
 
-def write_ontobiotypes(workbook, ontobiotype_path):
+def write_ontobiotopes(workbook, ontobiotype_path):
     ws = workbook.create_sheet("Ontobiotope")
     with ontobiotype_path.open() as fhand:
         for row in csv.reader(fhand, delimiter="\t"):

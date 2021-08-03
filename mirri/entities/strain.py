@@ -6,7 +6,6 @@ Created on 2020(e)ko abe. 1(a)
 from __future__ import annotations
 
 import re
-from builtins import property
 from collections import OrderedDict
 from copy import deepcopy
 from typing import List, Union
@@ -98,16 +97,17 @@ RANK_TRANSLATOR = {
     "variety": "var.",
     "group": "Group",
     "forma": "f.",
+    "forma.specialis": 'f.sp.'
 }
 
-ORG_TYPES = {
-    "algae": 1,
-    "archaea": 2,
-    "bacteria": 3,
-    "fungi": 4,
-    "virus": 5,
-    "yeast": 6,
-}
+# ORG_TYPES = {
+#     "algae": 1,
+#     "archaea": 2,
+#     "bacteria": 3,
+#     "fungi": 4,
+#     "virus": 5,
+#     "yeast": 6,
+# }
 
 ORG_TYPES = {
     "Algae": 1,
@@ -328,6 +328,7 @@ class Taxonomy(FrozenClass):
         # ‘subsp.’ (for subspecies); ‘convar.’ (for convariety);
         # ‘var.’ (for variety); ‘f.’ (for form);
         # ‘Group’ (for ‘cultivar group’)
+        # f.sp. for forma.specialis
         if self.hybrids:
             return ';'.join(self.hybrids)
 
@@ -1117,11 +1118,11 @@ class Strain(FrozenClass):
 
     # mierder
     @property
-    def pathogenity(self) -> str:
+    def pathogenicity(self) -> str:
         return self._data.get(PATHOGENICITY, None)
 
-    @pathogenity.setter
-    def pathogenity(self, value: str):
+    @pathogenicity.setter
+    def pathogenicity(self, value: str):
         self._data[PATHOGENICITY] = value
 
     @property
@@ -1130,7 +1131,8 @@ class Strain(FrozenClass):
 
     @enzyme_production.setter
     def enzyme_production(self, value: str):
-        self._data[ENZYME_PRODUCTION] = value
+        if value:
+            self._data[ENZYME_PRODUCTION] = value
 
     @property
     def production_of_metabolites(self) -> str:
@@ -1204,7 +1206,13 @@ def add_taxon_to_strain(strain, value):
     value = value.strip()
     if not value:
         return
-    spps = [v.strip() for v in value.split(';')]
+    if "*" in value or "×" in value:
+        spps = re.split('\*|×', value)
+        sp1 = spps[0]
+        sp2 = f'{spps[0].split()[0]} {spps[1]}'
+        spps = [sp1, sp2]
+    else:
+        spps = [v.strip() for v in value.split(';')]
 
     if len(spps) == 2:
         strain.taxonomy.hybrids = spps

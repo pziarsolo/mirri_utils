@@ -158,7 +158,7 @@ MIRRI_FIELDS = [
         "label": "Plasmids collections fields"},
     {"attribute": "publications", "label": "Literature"},
     {"attribute": PLANT_PATHOGENICITY_CODE, "label": "Plant pathogenicity code"},
-    {"attribute": "pathogenity", "label": "Pathogenicity"},
+    {"attribute": "pathogenicity", "label": "Pathogenicity"},
     {"attribute": "enzyme_production", "label": "Enzyme production"},
     {"attribute": "production_of_metabolites",
         "label": "Production of metabolites"},
@@ -168,7 +168,8 @@ MIRRI_FIELDS = [
         "label": "Literature linked to the sequence/genome"},
 ]
 
-ALLOWED_SUBTAXA = ["subspecies", "variety", "convarietas", "group", "forma"]
+ALLOWED_SUBTAXA = ["subspecies", "variety", "convarietas", "group", "forma",
+                   'forma.specialis']
 ALLOWED_TAXONOMIC_RANKS = ["family", "genus", "species"] + ALLOWED_SUBTAXA
 
 # nagoya
@@ -278,6 +279,7 @@ SUBTAXAS = {
     "convar.": "convarietas",
     "group.": "group",
     "f.": "forma",
+    "f.sp.": "forma.specialis"
 }
 
 # Excel sheet name
